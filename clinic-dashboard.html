@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClinicOS — Appointment Management</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #F4F6F9;
+      --surface: #FFFFFF;
+      --surface-2: #EEF1F5;
+      --border: #DDE2EC;
+      --border-light: #EEF1F5;
+      --text-primary: #0F1623;
+      --text-secondary: #5A6478;
+      --text-muted: #9BA5B7;
+      --accent: #1B6CA8;
+      --accent-light: #EBF4FF;
+      --accent-mid: #C5DFF5;
+      --green: #0F8A5F;
+      --green-light: #E6F5F0;
+      --red: #C0392B;
+      --red-light: #FDECEA;
+      --amber: #B45309;
+      --amber-light: #FEF3C7;
+      --slot-available: #E8F5EF;
+      --slot-available-border: #A8D9C0;
+      --slot-booked: #FDECEA;
+      --slot-booked-border: #F5B7B1;
+      --slot-disabled: #F0F2F5;
+      --slot-disabled-border: #DDE2EC;
+      --sidebar-w: 240px;
+      --header-h: 64px;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 4px rgba(15, 22, 35, 0.08), 0 0 0 1px rgba(15, 22, 35, 0.04);
+      --shadow-md: 0 4px 16px rgba(15, 22, 35, 0.10), 0 0 0 1px rgba(15, 22, 35, 0.04);
+      --shadow-lg: 0 16px 48px rgba(15, 22, 35, 0.14), 0 0 0 1px rgba(15, 22, 35, 0.06);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-mark svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-text span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: block;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-top: -2px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 8px 10px 4px;
+      margin-top: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.15s;
+      position: relative;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .nav-item.active svg {
+      color: var(--accent);
+    }
+
+    .nav-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 12px 10px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .user-card:hover {
+      background: var(--surface-2);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .header-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #155d94;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+
+    .btn-danger {
+      background: var(--red-light);
+      color: var(--red);
+      border: 1px solid #f5b7b1;
+    }
+
+    .btn-danger:hover {
+      background: #fbd5d2;
+    }
+
+    /* ── PAGE CONTENT ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── TAB VIEW ── */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── SUMMARY CARDS ── */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-label svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .card-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .card-sub strong {
+      color: var(--green);
+    }
+
+    .card-sub .warn {
+      color: var(--amber);
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .progress-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .progress-count span {
+      color: var(--accent);
+      font-size: 15px;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1B6CA8, #2E86C1);
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .progress-fill.warning {
+      background: linear-gradient(90deg, #B45309, #D97706);
+    }
+
+    .progress-fill.danger {
+      background: linear-gradient(90deg, #C0392B, #E74C3C);
+    }
+
+    .progress-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .progress-tick {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── SLOT GRID ── */
+    .slot-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .slot-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slot-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .date-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+    }
+
+    .date-btn:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+
+    .date-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .date-display {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .date-display:hover {
+      background: var(--surface-2);
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      margin-left: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    .legend-dot.available {
+      background: var(--slot-available-border);
+    }
+
+    .legend-dot.booked {
+      background: var(--slot-booked-border);
+    }
+
+    .legend-dot.disabled {
+      background: var(--slot-disabled-border);
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: 70px repeat(6, 1fr);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .slot-grid-header {
+      display: contents;
+    }
+
+    .slot-col-header {
+      padding: 10px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+    }
+
+    .slot-col-header:first-child {
+      text-align: left;
+      padding-left: 20px;
+    }
+
+    .time-label {
+      padding: 0 0 0 20px;
+      display: flex;
+      align-items: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      border-right: 1px solid var(--border-light);
+      background: #FAFBFD;
+    }
+
+    .slot-cell {
+      border: 1px solid transparent;
+      margin: 3px;
+      border-radius: 5px;
+      min-height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 500;
+      transition: all 0.12s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slot-cell.available {
+      background: var(--slot-available);
+      border-color: var(--slot-available-border);
+      color: var(--green);
+    }
+
+    .slot-cell.available:hover {
+      background: #d0ede0;
+      border-color: #7cc0a0;
+      transform: scale(1.03);
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(15, 138, 95, 0.15);
+    }
+
+    .slot-cell.booked {
+      background: var(--slot-booked);
+      border-color: var(--slot-booked-border);
+      color: var(--red);
+      cursor: pointer;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .slot-cell.booked:hover {
+      background: #fbd5d2;
+      border-color: #e99188;
+      transform: scale(1.03);
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(192, 57, 43, 0.12);
+    }
+
+    .slot-cell.disabled {
+      background: var(--slot-disabled);
+      border-color: var(--slot-disabled-border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .slot-patient {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--red);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .slot-phone {
+      font-size: 9.5px;
+      color: #e07070;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .slot-row {
+      display: contents;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 22, 35, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      width: 420px;
+      max-width: 95vw;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s;
+      opacity: 0;
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .modal-header {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .modal-slot-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+
+    .modal-close svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .form-input {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(27, 108, 168, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 72px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .modal-footer {
+      padding: 14px 22px 20px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .modal-footer.has-delete {
+      justify-content: space-between;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--text-primary);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(20px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: all;
+      max-width: 300px;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: var(--green);
+    }
+
+    .toast.error {
+      background: var(--red);
+    }
+
+    .toast.info {
+      background: var(--accent);
+    }
+
+    .toast svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* ── STATS TABLE (small) ── */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mini-table th {
+      text-align: left;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-light);
+      background: #FAFBFD;
+    }
+
+    .mini-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    .mini-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .mini-table tr:hover td {
+      background: var(--surface-2);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-pill.booked {
+      background: var(--slot-booked);
+      color: var(--red);
+    }
+
+    .status-pill.available {
+      background: var(--slot-available);
+      color: var(--green);
+    }
+
+    .status-pill::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── LIMIT BANNER ── */
+    .limit-banner {
+      background: var(--red-light);
+      border: 1px solid #f5b7b1;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .limit-banner svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ── CONFIRMATION DIALOG ── */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 22, 35, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .confirm-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .confirm-box {
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      width: 360px;
+      padding: 24px;
+      transform: scale(0.95);
+      transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .confirm-overlay.open .confirm-box {
+      transform: scale(1);
+    }
+
+    .confirm-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--red-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      color: var(--red);
+    }
+
+    .confirm-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .confirm-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .confirm-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cards-row .card {
+      animation: fadeIn 0.3s ease both;
+    }
+
+    .cards-row .card:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .cards-row .card:nth-child(2) {
+      animation-delay: 0.10s;
+    }
+
+    .cards-row .card:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .cards-row .card:nth-child(4) {
+      animation-delay: 0.20s;
+    }
+
+    .real-time-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      margin-right: 4px;
+      box-shadow: 0 0 0 0 rgba(15, 138, 95, 0.4);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% {
+        box-shadow: 0 0 0 0 rgba(15, 138, 95, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 5px rgba(15, 138, 95, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(15, 138, 95, 0);
+      }
+    }
+
+    .page-hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      </div>
+      <div class="logo-text">ClinicOS<span>Appointment System</span></div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('slots', this)">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        Daily Slots
+        <span class="nav-badge">12</span>
+      </div>
+
+      <div class="nav-section-label">Reports</div>
+      <div class="nav-item" onclick="showPage('analytics', this)">
+        <svg viewBox="0 0 24 24">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+        Analytics
+      </div>
+
+      <div class="nav-section-label">Admin</div>
+      <div class="nav-item" onclick="showPage('users', this)">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        Users
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M21 12h-2M5 12H3M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 21v-2M12 5V3" />
+        </svg>
+        Settings
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">SA</div>
+        <div class="user-info">
+          <div class="user-name">Dr. Sarah Al-Amin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+        <svg
+          style="width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"
+          viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="19" cy="12" r="1" />
+          <circle cx="5" cy="12" r="1" />
+        </svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div>
+        <span class="header-title" id="page-title">Dashboard</span>
+        <span class="header-sub" id="page-sub">— Today's Overview</span>
+      </div>
+      <div class="header-actions">
+        <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
+            class="real-time-dot"></span>Live</span>
+        <button class="btn btn-ghost" onclick="openModal(null)">
+          <svg viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Appointment
+        </button>
+      </div>
+    </header>
+
+    <div class="content" id="main-content">
+
+      <!-- ─── DASHBOARD PAGE ─── -->
+      <div id="page-dashboard">
+
+        <!-- Summary Cards -->
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-label">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Booked Today
+            </div>
+            <div class="card-value" id="booked-count">32</div>
+            <div class="card-sub"><strong>↑ 4</strong> since yesterday</div>
+          </div>
+          <div class="card">
+            <div class="card-label">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Remaining Slots
+            </div>
+            <div class="card-value" id="remaining-count">13</div>
+            <div class="card-sub"><span class="warn">29% remaining</span> of 45</div>
+          </div>
+          <div class="card">
+            <div class="card-label">
+              <svg viewBox="0 0 24 24">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
+              This Month
+            </div>
+            <div class="card-value">748</div>
+            <div class="card-sub"><strong>↑ 12%</strong> vs last month</div>
+          </div>
+          <div class="card">
+            <div class="card-label">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+              Avg / Day
+            </div>
+            <div class="card-value">38.2</div>
+            <div class="card-sub"><strong>85%</strong> utilization rate</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <div class="progress-label">Daily Capacity — Thursday, 27 Feb 2026</div>
+            <div class="progress-count"><span id="progress-booked">32</span> / 45 slots filled</div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill warning" id="progress-fill" style="width: 71.1%"></div>
+          </div>
+          <div class="progress-ticks">
+            <span class="progress-tick">0</span>
+            <span class="progress-tick">10</span>
+            <span class="progress-tick">20</span>
+            <span class="progress-tick">30</span>
+            <span class="progress-tick" style="color:var(--amber);font-weight:600">40</span>
+            <span class="progress-tick" style="color:var(--red);font-weight:600">45</span>
+          </div>
+        </div>
+
+        <!-- Quick View Table -->
+        <div class="slot-section">
+          <div class="slot-header">
+            <div class="slot-header-title">Today's Appointments</div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <input type="text" class="form-input" placeholder="Search patient..."
+                style="padding:6px 10px;font-size:12.5px;width:180px" oninput="filterTable(this.value)">
+            </div>
+          </div>
+          <table class="mini-table" id="appointments-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Phone</th>
+                <th>Notes</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── SLOTS PAGE ─── -->
+      <div id="page-slots" class="page-hidden">
+
+        <div class="progress-section">
+          <div class="progress-header">
+            <div class="progress-label">Daily Capacity</div>
+            <div class="progress-count"><span id="slots-booked-count">32</span> / 45 booked · <span
+                style="color:var(--green);font-weight:600" id="slots-remaining-count">13 remaining</span></div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill warning" style="width:71.1%"></div>
+          </div>
+        </div>
+
+        <div class="slot-section">
+          <div class="slot-header">
+            <div class="slot-header-title">Slot Grid</div>
+            <div class="legend">
+              <div class="legend-item">
+                <div class="legend-dot available"></div>Available
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot booked"></div>Booked
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot disabled"></div>Disabled
+              </div>
+            </div>
+            <div class="date-nav">
+              <button class="date-btn" onclick="changeDate(-1)">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <div class="date-display" id="slot-date-display">Thu, 27 Feb</div>
+              <button class="date-btn" onclick="changeDate(1)">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="slot-grid-container" style="padding:12px 16px 16px">
+            <!-- Grid rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── ANALYTICS PAGE ─── -->
+      <div id="page-analytics" class="page-hidden">
+        <div class="cards-row" style="grid-template-columns: repeat(3, 1fr)">
+          <div class="card">
+            <div class="card-label">Total This Month</div>
+            <div class="card-value">748</div>
+            <div class="card-sub"><strong>↑ 12%</strong> vs February 2025</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Average Per Day</div>
+            <div class="card-value">38.2</div>
+            <div class="card-sub">Out of 45 max capacity</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Peak Day</div>
+            <div class="card-value">45</div>
+            <div class="card-sub">Feb 12 · <strong>Full capacity</strong></div>
+          </div>
+        </div>
+
+        <div class="slot-section">
+          <div class="slot-header">
+            <div class="slot-header-title">Monthly Trend — February 2026</div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">← Jan</button>
+              <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">Mar →</button>
+            </div>
+          </div>
+          <div style="padding:24px">
+            <canvas id="trend-chart" height="200" style="width:100%"></canvas>
+          </div>
+        </div>
+
+        <div class="slot-section">
+          <div class="slot-header">
+            <div class="slot-header-title">Daily Breakdown</div>
+          </div>
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Bookings</th>
+                <th>Remaining</th>
+                <th>Utilization</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── USERS PAGE ─── -->
+      <div id="page-users" class="page-hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:14px;font-weight:600">Staff Members</div>
+          <button class="btn btn-primary" style="font-size:12.5px" onclick="showToast('User invite sent!','success')">
+            <svg viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Invite User
+          </button>
+        </div>
+        <div class="slot-section">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="user-avatar" style="width:28px;height:28px;font-size:11px">SA</div>Dr. Sarah Al-Amin
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">s.alamin@clinic.com</td>
+                <td><span class="status-pill booked">Admin</span></td>
+                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Jan 2025</td>
+                <td><button class="btn btn-ghost" style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="user-avatar" style="width:28px;height:28px;font-size:11px;background:var(--green)">MR
+                    </div>Mohammed Raza
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">m.raza@clinic.com</td>
+                <td><span class="status-pill available">Staff</span></td>
+                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Mar 2025</td>
+                <td><button class="btn btn-ghost" style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="user-avatar" style="width:28px;height:28px;font-size:11px;background:#7D5BA6">FK</div>
+                    Fatima Khan
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">f.khan@clinic.com</td>
+                <td><span class="status-pill available">Staff</span></td>
+                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Jun 2025</td>
+                <td><button class="btn btn-ghost" style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="user-avatar" style="width:28px;height:28px;font-size:11px;background:#B45309">AH</div>
+                    Dr. Aisha Habib
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">a.habib@clinic.com</td>
+                <td><span class="status-pill" style="background:var(--amber-light);color:var(--amber)">Doctor</span>
+                </td>
+                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Sep 2025</td>
+                <td><button class="btn btn-ghost" style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+  <!-- ─── MODAL ─── -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modal-title">Add Appointment</div>
+          <div class="modal-slot-badge" id="modal-slot-badge"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">
+          <svg viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Patient Name *</label>
+          <input type="text" class="form-input" id="field-name" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input type="tel" class="form-input" id="field-phone" placeholder="+966 5X XXX XXXX"
+            oninput="formatPhone(this)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input" id="field-notes"
+            placeholder="Reason for visit, symptoms, follow-up info..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAppointment()">
+          <svg viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Save Appointment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CONFIRM DIALOG ─── -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-box">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+      </div>
+      <div class="confirm-title">Cancel Appointment?</div>
+      <div class="confirm-desc" id="confirm-desc">This will free up the slot and cannot be undone.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Keep It</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOASTS ─── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8001";
+    // ──────────────────────────────────────────
+    //  DATA
+    // ──────────────────────────────────────────
+    const DAILY_LIMIT = 45;
+    const START_HOUR = 8;
+    const END_HOUR = 17;
+    const SLOT_DURATION = 15; // minutes
+
+    const names = ['Ahmed Al-Rashid', 'Fatima Al-Zahra', 'Mohammed Al-Ghamdi', 'Noura Al-Shehri', 'Khalid Al-Otaibi', 'Hessa Al-Dossari', 'Tariq Al-Maliki', 'Reem Al-Anazi', 'Saad Al-Qahtani', 'Lina Al-Harbi', 'Omar Al-Zahrani', 'Sara Al-Mutairi', 'Hamad Al-Shamri', 'Dana Al-Jaber', 'Faisal Al-Bishi', 'Mona Al-Subaie'];
+    const phones = ['+966 55 123 4567', '+966 50 987 6543', '+966 54 321 0987', '+966 59 456 7890', '+966 56 234 5678', '+966 53 876 5432', '+966 58 345 6789', '+966 51 654 3210'];
+    const notesList = ['Follow-up visit', 'Blood test results', 'Routine check-up', 'First consultation', 'Prescription renewal', 'Post-surgery review', 'Chronic pain management', 'Vaccination'];
+
+    let appointments = {};
+    let currentEditId = null;
+    let deleteTargetId = null;
+    let currentDate = new Date(2026, 1, 27); // Feb 27
+
+    // Generate time slots
+    function generateSlots() {
+      const slots = [];
+      for (let h = START_HOUR; h < END_HOUR; h++) {
+        for (let m = 0; m < 60; m += SLOT_DURATION) {
+          slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        }
+      }
+      return slots;
+    }
+
+    const ALL_SLOTS = generateSlots();
+
+    // Fetch appointments from API
+    async function fetchAppointments() {
+      try {
+        const res = await fetch(API_BASE + "/bookings");
+        const data = await res.json();
+
+        appointments = {};
+
+        data.forEach(item => {
+          appointments[item.id] = {
+            id: item.id,
+            time: item.time,
+            patient: item.patient_name,
+            phone: item.phone,
+            notes: item.notes,
+            status: "booked"
+          };
+        });
+
+        updateCounters();
+        renderTable();
+        renderSlotGrid();
+
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      }
+    }
+
+    function getBookedCount() { return Object.keys(appointments).length; }
+    function isBooked(time) { return !!appointments['appt-' + time.replace(':', '-')]; }
+    function getAppt(time) { return appointments['appt-' + time.replace(':', '-')]; }
+
+    // ──────────────────────────────────────────
+    //  PAGE NAVIGATION
+    // ──────────────────────────────────────────
+    const pageMeta = {
+      dashboard: { title: 'Dashboard', sub: '— Today\'s Overview' },
+      slots: { title: 'Daily Slots', sub: '— Appointment Grid' },
+      analytics: { title: 'Analytics', sub: '— Performance Reports' },
+      users: { title: 'User Management', sub: '— Staff & Roles' },
+    };
+
+    function showPage(name, navEl) {
+      document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
+      document.getElementById('page-' + name).classList.remove('page-hidden');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (navEl) navEl.classList.add('active');
+      const meta = pageMeta[name] || {};
+      document.getElementById('page-title').textContent = meta.title || name;
+      document.getElementById('page-sub').textContent = meta.sub || '';
+      if (name === 'slots') renderSlotGrid();
+      if (name === 'analytics') renderAnalytics();
+      if (name === 'dashboard') renderTable();
+    }
+
+    // ──────────────────────────────────────────
+    //  TABLE RENDER
+    // ──────────────────────────────────────────
+    function renderTable(filter = '') {
+      const sorted = Object.values(appointments).sort((a, b) => a.time.localeCompare(b.time));
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = sorted.filter(a => !filter || a.patient.toLowerCase().includes(filter.toLowerCase())).map(a => `
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12.5px;font-weight:500">${a.time}</span></td>
+      <td><strong>${a.patient}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-secondary)">${a.phone}</td>
+      <td style="color:var(--text-secondary);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.notes}</td>
+      <td><span class="status-pill booked">Booked</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-danger" style="font-size:11.5px;padding:4px 10px" onclick='askDelete("${a.id}","${a.patient}")'>Cancel</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:28px">No appointments found</td></tr>';
+    }
+
+    function filterTable(val) { renderTable(val); }
+
+    // ──────────────────────────────────────────
+    //  SLOT GRID RENDER
+    // ──────────────────────────────────────────
+    const COLUMNS = ['08:xx', '09:xx', '10:xx', '11:xx', '13:xx', '14:xx'];
+    const COLUMN_HOURS = [8, 9, 10, 11, 13, 14];
+
+    function renderSlotGrid() {
+      const container = document.getElementById('slot-grid-container');
+      const booked = getBookedCount();
+      const remaining = DAILY_LIMIT - booked;
+      const limitReached = booked >= DAILY_LIMIT;
+
+      // Group slots by minute, columns by hour
+      const minuteGroups = {};
+      ALL_SLOTS.forEach(t => {
+        const [h, m] = t.split(':').map(Number);
+        if (!minuteGroups[m]) minuteGroups[m] = {};
+        minuteGroups[m][h] = t;
+      });
+
+      const minutes = [...new Set(ALL_SLOTS.map(t => t.split(':')[1]))].sort();
+
+      let html = `
+    <div style="display:grid;grid-template-columns:64px repeat(6,1fr);gap:3px">
+      <div style="padding:6px 0;font-size:10.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Time</div>
+      ${COLUMN_HOURS.map(h => `<div style="padding:6px 4px;font-size:11px;font-weight:600;color:var(--text-muted);text-align:center;letter-spacing:0.4px">${String(h).padStart(2, '0')}:xx</div>`).join('')}
+  `;
+
+      minutes.forEach(min => {
+        html += `<div style="display:contents">`;
+        html += `<div style="padding:0 4px;height:40px;display:flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);border-right:1px solid var(--border-light)">:${min}</div>`;
+        COLUMN_HOURS.forEach(h => {
+          const time = `${String(h).padStart(2, '0')}:${min}`;
+          const appt = getAppt(time);
+          if (appt) {
+            html += `<div class="slot-cell booked" onclick='openModal("${time}")'><div class="slot-patient">${appt.patient.split(' ')[0]}</div><div class="slot-phone">${appt.phone.slice(-7)}</div></div>`;
+          } else if (limitReached) {
+            html += `<div class="slot-cell disabled" title="Daily limit reached">—</div>`;
+          } else {
+            html += `<div class="slot-cell available" onclick='openModal(null, "${time}")'>+</div>`;
+          }
+        });
+        html += `</div>`;
+      });
+
+      html += `</div>`;
+
+      if (limitReached) {
+        html = `<div class="limit-banner" style="margin-bottom:12px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Daily limit of 45 reached. All slots are now disabled.</div>` + html;
+      }
+
+      container.innerHTML = html;
+
+      document.getElementById('slots-booked-count').textContent = booked;
+      document.getElementById('slots-remaining-count').textContent = remaining + ' remaining';
+    }
+
+    // ──────────────────────────────────────────
+    //  MODAL
+    // ──────────────────────────────────────────
+    let targetSlotTime = null;
+
+    function openModal(existingTime, newSlotTime = null) {
+      currentEditId = null;
+      targetSlotTime = null;
+
+      const overlay = document.getElementById('modal-overlay');
+      const nameField = document.getElementById('field-name');
+      const phoneField = document.getElementById('field-phone');
+      const notesField = document.getElementById('field-notes');
+      const footer = document.getElementById('modal-footer');
+
+      nameField.value = '';
+      phoneField.value = '';
+      notesField.value = '';
+
+      if (existingTime) {
+        const appt = getAppt(existingTime);
+        if (!appt) return;
+        document.getElementById('modal-title').textContent = 'Appointment Details';
+        document.getElementById('modal-slot-badge').textContent = '📅 ' + existingTime + ' · ' + appt.patient;
+        nameField.value = appt.patient;
+        phoneField.value = appt.phone;
+        notesField.value = appt.notes;
+        nameField.disabled = true;
+        phoneField.disabled = true;
+        notesField.disabled = true;
+        footer.innerHTML = `
+      <button class="btn btn-danger" onclick='askDelete("${appt.id}","${appt.patient}")'>Cancel Appointment</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      </div>`;
+        footer.className = 'modal-footer has-delete';
+      } else {
+        targetSlotTime = newSlotTime;
+        document.getElementById('modal-title').textContent = 'Add Appointment';
+        document.getElementById('modal-slot-badge').textContent = newSlotTime ? '📅 Slot: ' + newSlotTime : '📅 Select time slot';
+        footer.innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAppointment()">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Appointment
+      </button>`;
+        footer.className = 'modal-footer';
+      }
+
+      overlay.classList.add('open');
+      setTimeout(() => nameField.focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('open');
+      currentEditId = null;
+      targetSlotTime = null;
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    }
+
+    async function saveAppointment() {
+      const name = document.getElementById('field-name').value.trim();
+      const phone = document.getElementById('field-phone').value.trim();
+      const notes = document.getElementById('field-notes').value.trim();
+
+      if (!name) {
+        showToast("Patient name is required", "error");
+        return;
+      }
+
+      if (!phone) {
+        showToast("Phone number is required", "error");
+        return;
+      }
+
+      const time = targetSlotTime;
+
+      if (!time) {
+        showToast("Select a slot first", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + "/bookings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            patient_name: name,
+            phone: phone,
+            notes: notes,
+            time: time
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showToast(err.detail || "Booking failed", "error");
+          return;
+        }
+
+        showToast("Appointment booked", "success");
+        closeModal();
+        fetchAppointments();
+
+      } catch (err) {
+        showToast("Server error", "error");
+        console.error(err);
+      }
+    }
+
+    // ──────────────────────────────────────────
+    //  DELETE / CONFIRM
+    // ──────────────────────────────────────────
+    function askDelete(id, name) {
+      closeModal();
+      deleteTargetId = id;
+      document.getElementById('confirm-desc').textContent = `Cancel appointment for "${name}"? The slot will become available again.`;
+      document.getElementById('confirm-overlay').classList.add('open');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirm-overlay').classList.remove('open');
+      deleteTargetId = null;
+    }
+
+    async function confirmDelete() {
+      if (!deleteTargetId) return;
+
+      try {
+        await fetch(API_BASE + "/bookings/" + deleteTargetId, {
+          method: "DELETE"
+        });
+
+        showToast("Appointment cancelled", "info");
+        closeConfirm();
+        fetchAppointments();
+
+      } catch (err) {
+        showToast("Delete failed", "error");
+        console.error(err);
+      }
+    }
+
+    // ──────────────────────────────────────────
+    //  COUNTERS
+    // ──────────────────────────────────────────
+    function updateCounters() {
+      const booked = getBookedCount();
+      const remaining = DAILY_LIMIT - booked;
+      const pct = (booked / DAILY_LIMIT) * 100;
+
+      document.getElementById('booked-count').textContent = booked;
+      document.getElementById('remaining-count').textContent = remaining;
+      document.getElementById('progress-booked').textContent = booked;
+      const fill = document.getElementById('progress-fill');
+      fill.style.width = pct + '%';
+      fill.className = 'progress-fill' + (pct >= 100 ? ' danger' : pct >= 80 ? ' warning' : '');
+    }
+
+    // ──────────────────────────────────────────
+    //  DATE NAV
+    // ──────────────────────────────────────────
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    function changeDate(dir) {
+      currentDate.setDate(currentDate.getDate() + dir);
+      const d = currentDate;
+      document.getElementById('slot-date-display').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+    }
+
+    // ──────────────────────────────────────────
+    //  PHONE FORMAT
+    // ──────────────────────────────────────────
+    function formatPhone(input) {
+      let val = input.value.replace(/\D/g, '');
+      if (val.startsWith('966')) val = '+' + val;
+      else if (val.startsWith('05')) val = '+966 ' + val.slice(1);
+      input.value = val;
+    }
+
+    // ──────────────────────────────────────────
+    //  TOAST
+    // ──────────────────────────────────────────
+    function showToast(msg, type = 'info') {
+      const icons = {
+        success: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+        error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+      };
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `${icons[type] || icons.info} ${msg}`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ──────────────────────────────────────────
+    //  ANALYTICS
+    // ──────────────────────────────────────────
+    function renderAnalytics() {
+      const data = Array.from({ length: 27 }, (_, i) => ({
+        day: i + 1,
+        count: Math.floor(Math.random() * 10 + 35)
+      }));
+      data[11].count = 45; data[17].count = 45;
+
+      const tbody = document.getElementById('analytics-table-body');
+      tbody.innerHTML = data.slice(-7).reverse().map(d => {
+        const rem = 45 - d.count;
+        const util = ((d.count / 45) * 100).toFixed(0);
+        const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
+        return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12.5px">Feb ${String(d.day).padStart(2, '0')}</td>
+      <td><strong>${d.count}</strong></td>
+      <td style="color:${rem === 0 ? 'var(--red)' : 'var(--green)'}">${rem}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border-light)">
+            <div style="height:100%;width:${util}%;background:${color};border-radius:99px"></div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);width:32px;text-align:right">${util}%</span>
+        </div>
+      </td>
+    </tr>`;
+      }).join('');
+
+      // Chart
+      const canvas = document.getElementById('trend-chart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.parentElement.clientWidth - 48;
+      const H = 200;
+      canvas.width = W * devicePixelRatio;
+      canvas.height = H * devicePixelRatio;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+
+      const padL = 40, padR = 16, padT = 16, padB = 28;
+      const chartW = W - padL - padR;
+      const chartH = H - padT - padB;
+      const maxVal = 45;
+      const minVal = 30;
+
+      // Grid lines
+      ctx.strokeStyle = '#EEF1F5';
+      ctx.lineWidth = 1;
+      [30, 35, 40, 45].forEach(v => {
+        const y = padT + chartH - ((v - minVal) / (maxVal - minVal)) * chartH;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + chartW, y);
+        ctx.stroke();
+        ctx.fillStyle = '#9BA5B7';
+        ctx.font = '10px DM Mono, monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(v, padL - 6, y + 3.5);
+      });
+
+      // Area fill
+      const pts = data.map((d, i) => ({
+        x: padL + (i / (data.length - 1)) * chartW,
+        y: padT + chartH - ((d.count - minVal) / (maxVal - minVal)) * chartH
+      }));
+
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+      grad.addColorStop(0, 'rgba(27,108,168,0.18)');
+      grad.addColorStop(1, 'rgba(27,108,168,0)');
+
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, padT + chartH);
+      ctx.lineTo(pts[0].x, pts[0].y);
+      pts.slice(1).forEach((p, i) => {
+        const prev = pts[i];
+        const cpx = (prev.x + p.x) / 2;
+        ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+      });
+      ctx.lineTo(pts[pts.length - 1].x, padT + chartH);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      pts.slice(1).forEach((p, i) => {
+        const prev = pts[i];
+        const cpx = (prev.x + p.x) / 2;
+        ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+      });
+      ctx.strokeStyle = '#1B6CA8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Dots for peaks
+      data.forEach((d, i) => {
+        if (d.count === 45) {
+          ctx.beginPath();
+          ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#C0392B';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      });
+
+      // X labels (every 5 days)
+      ctx.fillStyle = '#9BA5B7';
+      ctx.font = '10px DM Mono, monospace';
+      ctx.textAlign = 'center';
+      data.forEach((d, i) => {
+        if (d.day % 5 === 0 || d.day === 1) {
+          ctx.fillText(d.day, pts[i].x, padT + chartH + 16);
+        }
+      });
+    }
+
+    // ──────────────────────────────────────────
+    //  KEYBOARD
+    // ──────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeModal();
+        closeConfirm();
+      }
+    });
+
+    // ──────────────────────────────────────────
+    //  INIT
+    // ──────────────────────────────────────────
+    fetchAppointments();
+  </script>
+</body>
+
+</html>

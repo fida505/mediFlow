@@ -1,0 +1,90 @@
+﻿.\venv\Scripts\python.exe : Traceback (most recent call last):
+At line:1 char:1
++ .\venv\Scripts\python.exe -m uvicorn app.main:app > uvicorn_error.log ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo              : NotSpecified: (Tra    ceback (most recent ca    ll last)::String) [],     RemoteException
+    + FullyQualifiedErrorI    d : NativeCommandError
+ 
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\__main__.py", line 4, in <module>
+    uvicorn.main()
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\click\core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\click\core.py", line 1406, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\click\core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\click\core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\main.py", line 410, in main
+    run(
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\main.py", line 578, in run
+    server.run()
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\server.py", line 61, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\server.py", line 68, in serve
+    config.load()
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\config.py", line 473, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\uvicorn\importer.py", line 21, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\app\main.py", line 4, in <module>
+    from app.routers import health, auth, clinics, doctors, bookings, admin
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\app\routers\clinics.py", line 4, in <module>
+    from app.services.clinic_service import ClinicService
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\app\services\clinic_service.py", line 2, in <module>
+    from app.db.session import AsyncSession
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\app\db\session.py", line 15, in <module>
+    engine = create_async_engine(
+             ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\ext\asyncio\engine.py", line 43, in create_async_engine
+    sync_engine = _create_engine(*arg, **kw)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in create_engine
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\util\deprecations.py", line 375, in warned
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 656, in create_engine
+    event.listen(pool, "connect", on_connect)
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\event\api.py", line 115, in listen
+    _event_key(target, identifier, fn).listen(*args, **kw)
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\event\registry.py", line 232, in listen
+    self.dispatch_target.dispatch._listen(self, *args, **kw)
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\pool\events.py", line 69, in _listen
+    event_key.base_listen(**kw)
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\event\registry.py", line 270, in base_listen
+    for_modify._set_asyncio()
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\event\attr.py", line 265, in _set_asyncio
+    self._exec_once_mutex = AsyncAdaptedLock()
+                            ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\util\concurrency.py", line 67, in AsyncAdaptedLock
+    _not_implemented()
+  File "C:\Users\HP\Desktop\untitled folder 4\untitled folder 4\mediFlow\venv\Lib\site-packages\sqlalchemy\util\concurrency.py", line 47, in _not_implemented
+    raise ValueError(
+ValueError: the greenlet library is required to use this function. No module named 'greenlet._greenlet'
