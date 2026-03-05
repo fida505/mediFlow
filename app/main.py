@@ -51,8 +51,11 @@ async def health_check():
     except Exception as e:
         return {"status": "error", "database": str(e), "resolved_ip": resolved_ip}
 
-# serve frontend
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+from fastapi.responses import FileResponse
+
+@app.get("/")
+async def serve_frontend():
+    return FileResponse("frontend/index.html")
 
 # startup/shutdown events
 @app.on_event("startup")
