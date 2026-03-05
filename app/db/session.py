@@ -9,24 +9,35 @@ if settings.DATABASE_URL.startswith("sqlite"):
     if "aiosqlite" not in settings.DATABASE_URL:
         settings.DATABASE_URL = settings.DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
 else:
-    # Use standard postgresql dialect if postgres:// is used
+else:
+    # 1. Clean up "postgres://" to "postgresql://"
     if settings.DATABASE_URL.startswith("postgres://"):
         settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
     
-    # Ensure async driver is used
-    if "postgresql" in settings.DATABASE_URL and "+asyncpg" not in settings.DATABASE_URL:
-        settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    # 2. Extract and clean query parameters (asyncpg doesn't like 'sslmode')
+    base_url = settings.DATABASE_URL
+    query_params = ""
+    if "?" in base_url:
+        base_url, query_params = base_url.split("?", 1)
+    
+    # Remove 'sslmode' from parameters
+    params_list = [p for p in query_params.split("&") if p and not p.startswith("sslmode=")]
+    
+    # 3. Ensure asyncpg driver is used
+    if "postgresql" in base_url and "+asyncpg" not in base_url:
+        base_url = base_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-    # Production optimizations and SSL
+    # 4. Handle SSL for production
     if settings.ENV == "production":
         engine_kwargs["pool_size"] = 10
         engine_kwargs["max_overflow"] = 20
-        # Supabase and Render often need SSL
-        if "ssl=" not in settings.DATABASE_URL and "sqlite" not in settings.DATABASE_URL:
-             if "?" in settings.DATABASE_URL:
-                 settings.DATABASE_URL += "&ssl=require"
-             else:
-                 settings.DATABASE_URL += "?ssl=require"
+        if not any(p.startswith("ssl=") for p in params_list):
+            params_list.append("ssl=require")
+    
+    # 5. Reconstruct URL
+    settings.DATABASE_URL = base_url
+    if params_list:
+        settings.DATABASE_URL += "?" + "&".join(params_list)
 
 engine = create_async_engine(
     settings.DATABASE_URL,
