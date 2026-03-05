@@ -22,11 +22,11 @@ else:
         engine_kwargs["pool_size"] = 10
         engine_kwargs["max_overflow"] = 20
         # Supabase and Render often need SSL
-        if "sslmode" not in settings.DATABASE_URL and "sqlite" not in settings.DATABASE_URL:
+        if "ssl=" not in settings.DATABASE_URL and "sqlite" not in settings.DATABASE_URL:
              if "?" in settings.DATABASE_URL:
-                 settings.DATABASE_URL += "&sslmode=require"
+                 settings.DATABASE_URL += "&ssl=require"
              else:
-                 settings.DATABASE_URL += "?sslmode=require"
+                 settings.DATABASE_URL += "?ssl=require"
 
 engine = create_async_engine(
     settings.DATABASE_URL,
