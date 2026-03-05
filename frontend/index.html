@@ -1525,7 +1525,7 @@
                                     <polyline points="15 18 9 12 15 6" />
                                 </svg>
                             </button>
-                            <div class="date-display" id="slot-date-display">Thu, 27 Feb</div>
+                            <div class="date-display" id="slot-date-display">Thu, 05 Mar</div>
                             <button class="date-btn" onclick="changeDate(1)">
                                 <svg viewBox="0 0 24 24">
                                     <polyline points="9 18 15 12 9 6" />
@@ -1766,7 +1766,7 @@
         let appointments = {};
         let currentEditId = null;
         let deleteTargetId = null;
-        let currentDate = new Date(2026, 1, 27); // Feb 27
+        let currentDate = new Date(2026, 2, 5); // March 5, 2026
 
         // Generate time slots
         function generateSlots() {
@@ -1784,7 +1784,8 @@
         // Fetch appointments from API
         async function fetchAppointments() {
             try {
-                const res = await fetch(API_BASE + "/bookings");
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
                 const data = await res.json();
 
                 appointments = {};
@@ -1802,7 +1803,9 @@
 
                 updateCounters();
                 renderTable();
-                renderSlotGrid();
+                if (document.getElementById('page-slots').classList.contains('page-hidden') === false) {
+                    renderSlotGrid();
+                }
 
             } catch (err) {
                 console.error("Error fetching bookings:", err);
@@ -1994,6 +1997,7 @@
             }
 
             const time = targetSlotTime;
+            const dateStr = currentDate.toISOString().split('T')[0];
 
             if (!time) {
                 showToast("Select a slot first", "error");
@@ -2010,7 +2014,8 @@
                         patient_name: name,
                         phone: phone,
                         notes: notes,
-                        time: time
+                        time: time,
+                        date: dateStr
                     })
                 });
 
@@ -2089,6 +2094,7 @@
             currentDate.setDate(currentDate.getDate() + dir);
             const d = currentDate;
             document.getElementById('slot-date-display').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+            fetchAppointments(); // Refresh data for the new date
         }
 
         // ──────────────────────────────────────────
@@ -2125,123 +2131,113 @@
         // ──────────────────────────────────────────
         //  ANALYTICS
         // ──────────────────────────────────────────
-        function renderAnalytics() {
-            const data = Array.from({ length: 27 }, (_, i) => ({
-                day: i + 1,
-                count: Math.floor(Math.random() * 10 + 35)
-            }));
-            data[11].count = 45; data[17].count = 45;
+        async function renderAnalytics() {
+            try {
+                const res = await fetch(`${API_BASE}/bookings/analytics`);
+                const stats = await res.json();
 
-            const tbody = document.getElementById('analytics-table-body');
-            tbody.innerHTML = data.slice(-7).reverse().map(d => {
-                const rem = 45 - d.count;
-                const util = ((d.count / 45) * 100).toFixed(0);
-                const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
-                return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:12.5px">Feb ${String(d.day).padStart(2, '0')}</td>
-      <td><strong>${d.count}</strong></td>
-      <td style="color:${rem === 0 ? 'var(--red)' : 'var(--green)'}">${rem}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border-light)">
-            <div style="height:100%;width:${util}%;background:${color};border-radius:99px"></div>
-          </div>
-          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);width:32px;text-align:right">${util}%</span>
-        </div>
-      </td>
-    </tr>`;
-            }).join('');
+                // Update top cards
+                document.querySelectorAll('.card-value')[0].textContent = stats.total;
+                document.querySelectorAll('.card-value')[1].textContent = stats.average_per_day;
 
-            // Chart
-            const canvas = document.getElementById('trend-chart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const W = canvas.parentElement.clientWidth - 48;
-            const H = 200;
-            canvas.width = W * devicePixelRatio;
-            canvas.height = H * devicePixelRatio;
-            canvas.style.width = W + 'px';
-            canvas.style.height = H + 'px';
-            ctx.scale(devicePixelRatio, devicePixelRatio);
+                const trends = stats.daily_trends || [];
+                const tbody = document.getElementById('analytics-table-body');
+                tbody.innerHTML = trends.map(d => {
+                    const count = d.count;
+                    const rem = DAILY_LIMIT - count;
+                    const util = ((count / DAILY_LIMIT) * 100).toFixed(0);
+                    const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
+                    const dateObj = new Date(d.date);
+                    const formattedDate = d.date ? `${months[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}` : 'N/A';
 
-            const padL = 40, padR = 16, padT = 16, padB = 28;
-            const chartW = W - padL - padR;
-            const chartH = H - padT - padB;
-            const maxVal = 45;
-            const minVal = 30;
+                    return `<tr>
+          <td style="font-family:'DM Mono',monospace;font-size:12.5px">${formattedDate}</td>
+          <td><strong>${count}</strong></td>
+          <td style="color:${rem === 0 ? 'var(--red)' : 'var(--green)'}">${rem}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border-light)">
+                <div style="height:100%;width:${util}%;background:${color};border-radius:99px"></div>
+              </div>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);width:32px;text-align:right">${util}%</span>
+            </div>
+          </td>
+        </tr>`;
+                }).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">No data available</td></tr>';
 
-            // Grid lines
-            ctx.strokeStyle = '#EEF1F5';
-            ctx.lineWidth = 1;
-            [30, 35, 40, 45].forEach(v => {
-                const y = padT + chartH - ((v - minVal) / (maxVal - minVal)) * chartH;
-                ctx.beginPath();
-                ctx.moveTo(padL, y);
-                ctx.lineTo(padL + chartW, y);
-                ctx.stroke();
-                ctx.fillStyle = '#9BA5B7';
-                ctx.font = '10px DM Mono, monospace';
-                ctx.textAlign = 'right';
-                ctx.fillText(v, padL - 6, y + 3.5);
-            });
+                // Chart
+                const canvas = document.getElementById('trend-chart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const W = canvas.parentElement.clientWidth - 48;
+                const H = 200;
+                canvas.width = W * devicePixelRatio;
+                canvas.height = H * devicePixelRatio;
+                canvas.style.width = W + 'px';
+                canvas.style.height = H + 'px';
+                ctx.scale(devicePixelRatio, devicePixelRatio);
 
-            // Area fill
-            const pts = data.map((d, i) => ({
-                x: padL + (i / (data.length - 1)) * chartW,
-                y: padT + chartH - ((d.count - minVal) / (maxVal - minVal)) * chartH
-            }));
+                const padL = 40, padR = 16, padT = 16, padB = 28;
+                const chartW = W - padL - padR;
+                const chartH = H - padT - padB;
+                const maxVal = DAILY_LIMIT;
+                const minVal = 0;
 
-            const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
-            grad.addColorStop(0, 'rgba(27,108,168,0.18)');
-            grad.addColorStop(1, 'rgba(27,108,168,0)');
-
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x, padT + chartH);
-            ctx.lineTo(pts[0].x, pts[0].y);
-            pts.slice(1).forEach((p, i) => {
-                const prev = pts[i];
-                const cpx = (prev.x + p.x) / 2;
-                ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
-            });
-            ctx.lineTo(pts[pts.length - 1].x, padT + chartH);
-            ctx.closePath();
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // Line
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x, pts[0].y);
-            pts.slice(1).forEach((p, i) => {
-                const prev = pts[i];
-                const cpx = (prev.x + p.x) / 2;
-                ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
-            });
-            ctx.strokeStyle = '#1B6CA8';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Dots for peaks
-            data.forEach((d, i) => {
-                if (d.count === 45) {
+                // Grid lines
+                ctx.strokeStyle = '#EEF1F5';
+                ctx.lineWidth = 1;
+                [0, 15, 30, 45].forEach(v => {
+                    const y = padT + chartH - (v / maxVal) * chartH;
                     ctx.beginPath();
-                    ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = '#C0392B';
-                    ctx.fill();
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(padL, y);
+                    ctx.lineTo(padL + chartW, y);
                     ctx.stroke();
-                }
-            });
+                    ctx.fillStyle = '#9BA5B7';
+                    ctx.font = '10px DM Mono, monospace';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(v, padL - 6, y + 3.5);
+                });
 
-            // X labels (every 5 days)
-            ctx.fillStyle = '#9BA5B7';
-            ctx.font = '10px DM Mono, monospace';
-            ctx.textAlign = 'center';
-            data.forEach((d, i) => {
-                if (d.day % 5 === 0 || d.day === 1) {
-                    ctx.fillText(d.day, pts[i].x, padT + chartH + 16);
-                }
-            });
+                if (trends.length < 2) return;
+
+                const displayTrends = [...trends].reverse();
+                // Area fill
+                const pts = displayTrends.map((d, i) => ({
+                    x: padL + (i / (displayTrends.length - 1)) * chartW,
+                    y: padT + chartH - (d.count / maxVal) * chartH
+                }));
+
+                const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+                grad.addColorStop(0, 'rgba(27,108,168,0.18)');
+                grad.addColorStop(1, 'rgba(27,108,168,0)');
+
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, padT + chartH);
+                ctx.lineTo(pts[0].x, pts[0].y);
+                pts.slice(1).forEach((p, i) => {
+                    const prev = pts[i];
+                    const cpx = (prev.x + p.x) / 2;
+                    ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+                });
+                ctx.lineTo(pts[pts.length - 1].x, padT + chartH);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Line
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                pts.slice(1).forEach((p, i) => {
+                    const prev = pts[i];
+                    const cpx = (prev.x + p.x) / 2;
+                    ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+                });
+                ctx.strokeStyle = '#1B6CA8';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } catch (err) {
+                console.error("Analytics error:", err);
+            }
         }
 
         // ──────────────────────────────────────────
