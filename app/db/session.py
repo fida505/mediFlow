@@ -9,6 +9,11 @@ if settings.DATABASE_URL.startswith("sqlite"):
     if "aiosqlite" not in settings.DATABASE_URL:
         settings.DATABASE_URL = settings.DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
 else:
+    if settings.DATABASE_URL.startswith("postgres://"):
+        settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    if settings.DATABASE_URL.startswith("postgresql://"):
+        settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
     engine_kwargs["pool_size"] = 20
     engine_kwargs["max_overflow"] = 30
 
