@@ -28,12 +28,18 @@ app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
 async def health_check():
     from sqlalchemy import text
     from app.db.session import engine
+    from app.config import settings
+    
+    # Mask URL for security
+    url = settings.DATABASE_URL
+    masked_url = url.split("@")[-1] if "@" in url else "no-url"
+    
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
+        return {"status": "ok", "database": "connected", "endpoint": masked_url}
     except Exception as e:
-        return {"status": "error", "database": str(e)}
+        return {"status": "error", "database": str(e), "endpoint": masked_url}
 
 # serve frontend
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
