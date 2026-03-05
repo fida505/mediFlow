@@ -20,6 +20,11 @@ else:
     if settings.ENV == "production":
         engine_kwargs["pool_size"] = 10
         engine_kwargs["max_overflow"] = 20
+        # Supabase pooler (pgBouncer) transaction mode requires statement_cache_size=0 for asyncpg
+        engine_kwargs["connect_args"] = {
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0
+        }
         # Simple query param addition
         if "ssl=" not in url:
             sep = "&" if "?" in url else "?"
