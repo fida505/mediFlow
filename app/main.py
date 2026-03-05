@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.core.logging import configure_logging
 from app.core.exceptions import register_exception_handlers
 from app.routers import clinics, admin, bookings
+from fastapi.staticfiles import StaticFiles
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,6 +23,9 @@ register_exception_handlers(app)
 app.include_router(clinics.router, prefix="/clinics", tags=["clinics"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
+
+# serve frontend
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # startup/shutdown events
 @app.on_event("startup")
