@@ -24,13 +24,13 @@ async def init_db(db: AsyncSession):
     """))
     await db.commit()
 
-@router.get("/")
+@router.get("")
 async def get_bookings(db: AsyncSession = Depends(get_db)):
     await init_db(db)
     result = await db.execute(text("SELECT * FROM dashboard_bookings"))
     return [dict(row) for row in result.mappings().all()]
 
-@router.post("/")
+@router.post("")
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     await init_db(db)
     booking_id = "appt-" + booking.time.replace(":", "-")

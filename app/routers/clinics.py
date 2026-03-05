@@ -10,7 +10,7 @@ router = APIRouter()
 
 service = ClinicService(ClinicRepository())
 
-@router.post("/", response_model=ClinicRead)
+@router.post("", response_model=ClinicRead)
 async def create_clinic(payload: ClinicCreate, db: AsyncSession = Depends(get_db)):
     # multi-tenancy bypass since onboarding
     clinic = await service.create_clinic(db, payload.name, payload.domain)
