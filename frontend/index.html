@@ -1813,8 +1813,14 @@
         }
 
         function getBookedCount() { return Object.keys(appointments).length; }
-        function isBooked(time) { return !!appointments['appt-' + time.replace(':', '-')]; }
-        function getAppt(time) { return appointments['appt-' + time.replace(':', '-')]; }
+        function isBooked(time) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            return !!appointments[`appt-${dateStr}-${time.replace(':', '-')}`];
+        }
+        function getAppt(time) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            return appointments[`appt-${dateStr}-${time.replace(':', '-')}`];
+        }
 
         // ──────────────────────────────────────────
         //  PAGE NAVIGATION
