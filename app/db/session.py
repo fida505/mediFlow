@@ -9,35 +9,23 @@ if settings.DATABASE_URL.startswith("sqlite"):
     if "aiosqlite" not in settings.DATABASE_URL:
         settings.DATABASE_URL = settings.DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
 else:
-else:
-    # 1. Clean up "postgres://" to "postgresql://"
-    if settings.DATABASE_URL.startswith("postgres://"):
-        settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # 1. Standardize for asyncpg
+    url = settings.DATABASE_URL
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://") and "+asyncpg" not in url:
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     
-    # 2. Extract and clean query parameters (asyncpg doesn't like 'sslmode')
-    base_url = settings.DATABASE_URL
-    query_params = ""
-    if "?" in base_url:
-        base_url, query_params = base_url.split("?", 1)
-    
-    # Remove 'sslmode' from parameters
-    params_list = [p for p in query_params.split("&") if p and not p.startswith("sslmode=")]
-    
-    # 3. Ensure asyncpg driver is used
-    if "postgresql" in base_url and "+asyncpg" not in base_url:
-        base_url = base_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-    # 4. Handle SSL for production
+    # 2. Production SSL handling
     if settings.ENV == "production":
         engine_kwargs["pool_size"] = 10
         engine_kwargs["max_overflow"] = 20
-        if not any(p.startswith("ssl=") for p in params_list):
-            params_list.append("ssl=require")
+        # Simple query param addition
+        if "ssl=" not in url:
+            sep = "&" if "?" in url else "?"
+            url += f"{sep}ssl=require"
     
-    # 5. Reconstruct URL
-    settings.DATABASE_URL = base_url
-    if params_list:
-        settings.DATABASE_URL += "?" + "&".join(params_list)
+    settings.DATABASE_URL = url
 
 engine = create_async_engine(
     settings.DATABASE_URL,
