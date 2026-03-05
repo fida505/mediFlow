@@ -1170,6 +1170,109 @@
         .page-hidden {
             display: none;
         }
+
+        /* ── MOBILE RESPONSIVENESS ── */
+        .header-menu-btn {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 22, 35, 0.4);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 1024px) {
+            .cards-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 0 16px;
+            }
+
+            .header-menu-btn {
+                display: flex;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .cards-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header-sub {
+                display: none;
+            }
+
+            .slot-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .date-nav {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .legend {
+                margin-left: 0;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .slot-section {
+                overflow-x: auto;
+            }
+
+            .mini-table {
+                min-width: 600px;
+            }
+
+            #slot-grid-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
     </style>
 </head>
 
@@ -1263,6 +1366,14 @@
 
         <!-- HEADER -->
         <header class="header">
+            <button class="header-menu-btn" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
             <div>
                 <span class="header-title" id="page-title">Dashboard</span>
                 <span class="header-sub" id="page-sub">— Today's Overview</span>
@@ -2147,7 +2258,15 @@
         //  INIT
         // ──────────────────────────────────────────
         fetchAppointments();
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
     </script>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 </body>
 
 </html>
