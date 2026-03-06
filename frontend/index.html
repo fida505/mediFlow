@@ -1544,19 +1544,19 @@
             <div id="page-analytics" class="page-hidden">
                 <div class="cards-row" style="grid-template-columns: repeat(3, 1fr)">
                     <div class="card">
-                        <div class="card-label">Total This Month</div>
-                        <div class="card-value">748</div>
-                        <div class="card-sub"><strong>↑ 12%</strong> vs February 2025</div>
+                        <div class="card-label">📅 Today's Bookings</div>
+                        <div class="card-value" id="analytics-today-booked">–</div>
+                        <div class="card-sub">Out of 45 max slots</div>
                     </div>
                     <div class="card">
-                        <div class="card-label">Average Per Day</div>
-                        <div class="card-value">38.2</div>
-                        <div class="card-sub">Out of 45 max capacity</div>
+                        <div class="card-label">✅ Slots Remaining Today</div>
+                        <div class="card-value" id="analytics-today-remaining">–</div>
+                        <div class="card-sub">Still available for today</div>
                     </div>
                     <div class="card">
-                        <div class="card-label">Peak Day</div>
-                        <div class="card-value">45</div>
-                        <div class="card-sub">Feb 12 · <strong>Full capacity</strong></div>
+                        <div class="card-label">📊 All-Time Total Bookings</div>
+                        <div class="card-value" id="analytics-total">–</div>
+                        <div class="card-sub">Since the clinic started using this app</div>
                     </div>
                 </div>
 
@@ -2142,9 +2142,14 @@
                 const res = await fetch(`${API_BASE}/bookings/analytics`);
                 const stats = await res.json();
 
-                // Update top cards
-                document.querySelectorAll('.card-value')[0].textContent = stats.total;
-                document.querySelectorAll('.card-value')[1].textContent = stats.average_per_day;
+                // Update top cards with today's real data
+                const todayBooked = stats.today_booked ?? '–';
+                const todayRemaining = stats.today_remaining ?? '–';
+                const total = stats.total ?? '–';
+                const el = (id) => document.getElementById(id);
+                if (el('analytics-today-booked')) el('analytics-today-booked').textContent = todayBooked;
+                if (el('analytics-today-remaining')) el('analytics-today-remaining').textContent = todayRemaining;
+                if (el('analytics-total')) el('analytics-total').textContent = total;
 
                 const trends = stats.daily_trends || [];
                 const tbody = document.getElementById('analytics-table-body');

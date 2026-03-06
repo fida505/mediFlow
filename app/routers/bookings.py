@@ -54,7 +54,18 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
 @router.get("/analytics")
 async def get_analytics(db: AsyncSession = Depends(get_db)):
     await init_db(db)
-    # Get total bookings
+    DAILY_LIMIT = 45
+
+    # Get today's date
+    from datetime import date
+    today = date.today().isoformat()
+
+    # Get today's bookings count
+    today_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
+    today_booked = today_res.fetchone()[0]
+    today_remaining = DAILY_LIMIT - today_booked
+
+    # Get total bookings (all time)
     total_res = await db.execute(text("SELECT COUNT(*) as count FROM dashboard_bookings"))
     total = total_res.fetchone()[0]
     
@@ -74,6 +85,9 @@ async def get_analytics(db: AsyncSession = Depends(get_db)):
     return {
         "total": total,
         "average_per_day": round(avg, 1),
+        "today_booked": today_booked,
+        "today_remaining": today_remaining,
+        "daily_limit": DAILY_LIMIT,
         "daily_trends": daily_data
     }
 
