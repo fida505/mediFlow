@@ -726,9 +726,6 @@
             height: 18px;
         }
 
-        background: var(--slot-available-border);
-        }
-
         .legend-dot.booked {
             background: var(--slot-booked-border);
         }
@@ -1522,7 +1519,7 @@
         <div class="content" id="main-content">
 
             <!-- ─── DASHBOARD PAGE ─── -->
-            <div id="page-dashboard">
+            <div id="page-dashboard" class="page-hidden">
 
                 <!-- Summary Cards -->
                 <div class="cards-row">
@@ -1546,8 +1543,9 @@
                             </svg>
                             Remaining Slots
                         </div>
-                        <div class="card-value" id="remaining-count">13</div>
-                        <div class="card-sub"><span class="warn">29% remaining</span> of 45</div>
+                        <div class="card-value" id="dashboard-remaining-count">–</div>
+                        <div class="card-sub"><span id="dashboard-remaining-pct">–</span> of <span
+                                class="max-limit-text">45</span></div>
                     </div>
                     <div class="card">
                         <div class="card-label">
@@ -1557,8 +1555,8 @@
                             </svg>
                             This Month
                         </div>
-                        <div class="card-value">748</div>
-                        <div class="card-sub"><strong>↑ 12%</strong> vs last month</div>
+                        <div class="card-value" id="dashboard-total-bookings">–</div>
+                        <div class="card-sub">Total ever since start</div>
                     </div>
                     <div class="card">
                         <div class="card-label">
@@ -1568,8 +1566,8 @@
                             </svg>
                             Avg / Day
                         </div>
-                        <div class="card-value">38.2</div>
-                        <div class="card-sub"><strong>85%</strong> utilization rate</div>
+                        <div class="card-value" id="dashboard-avg-daily">–</div>
+                        <div class="card-sub">Average appointments / day</div>
                     </div>
                 </div>
 
@@ -1580,7 +1578,7 @@
                         <div class="progress-count"><span id="progress-booked">32</span> / 45 slots filled</div>
                     </div>
                     <div class="progress-track">
-                        <div class="progress-fill warning" id="progress-fill" style="width: 71.1%"></div>
+                        <div class="progress-fill" id="dashboard-progress-fill" style="width: 0%"></div>
                     </div>
                     <div class="progress-ticks">
                         <span class="progress-tick">0</span>
@@ -1612,7 +1610,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="table-body">
+                        <tbody id="dashboard-table-body">
                         </tbody>
                     </table>
                 </div>
@@ -2000,7 +1998,7 @@
         //  NAVIGATION
         // ──────────────────────────────────────────
         function showPage(name) {
-            document.querySelectorAll('main > div[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
+            document.querySelectorAll('.content > div[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
             const target = document.getElementById(`page-${name}`);
@@ -2009,10 +2007,56 @@
             const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.onclick.toString().includes(name));
             if (nav) nav.classList.add('active');
 
-            if (window.innerWidth <= 1024) toggleSidebar();
+            if (window.innerWidth <= 1024) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+            }
 
+            if (name === 'dashboard') updateDashboard();
             if (name === 'analytics') renderAnalytics();
             if (name === 'slots') backToCalendar();
+        }
+
+        async function updateDashboard() {
+            try {
+                const res = await fetch(`${API_BASE}/bookings/analytics`);
+                const stats = await res.json();
+
+                document.getElementById('booked-count').textContent = stats.today_booked ?? 0;
+                document.getElementById('dashboard-remaining-count').textContent = stats.today_remaining ?? 0;
+                document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
+                document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
+
+                const pct = ((stats.today_booked / stats.daily_limit) * 100);
+                const fill = document.getElementById('dashboard-progress-fill');
+                if (fill) {
+                    fill.style.width = pct + '%';
+                    fill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+                }
+
+                const remPct = Math.round((stats.today_remaining / stats.daily_limit) * 100);
+                document.getElementById('dashboard-remaining-pct').textContent = `${remPct}% remaining`;
+                document.getElementById('progress-booked').textContent = stats.today_booked;
+
+                // Update table
+                const resBookings = await fetch(`${API_BASE}/bookings?date=${stats.today_date}`);
+                const bks = await resBookings.json();
+                const tbody = document.getElementById('dashboard-table-body');
+                if (tbody) {
+                    tbody.innerHTML = bks.map(b => `
+                        <tr>
+                            <td>
+                                <div style="font-weight:500">${b.patient_name}</div>
+                                <div style="font-size:11px;color:var(--text-muted)">ID: ${b.id}</div>
+                            </td>
+                            <td>${b.patient_phone || '–'}</td>
+                            <td>Slot #${b.slot_id}</td>
+                            <td><span class="status-pill booked">Confirmed</span></td>
+                            <td><button class="btn btn-ghost" onclick="showPage('slots'); viewSlot(${b.slot_id})">View</button></td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
+                }
+            } catch (err) { console.error("Dashboard update failed", err); }
         }
 
         // ──────────────────────────────────────────
@@ -2358,6 +2402,8 @@
             if (!document.getElementById('page-slots').classList.contains('page-hidden')) {
                 renderCalendar();
             }
+
+            showPage('dashboard');
         }
 
         function toggleSidebar() {
