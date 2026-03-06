@@ -7,14 +7,11 @@ from datetime import datetime
 
 router = APIRouter()
 
-class BookingCreate(BaseModel):
-    patient_name: str
-    phone: str
-    notes: str = ""
-    time: str
-    date: str  # Format: YYYY-MM-DD
+class SettingsUpdate(BaseModel):
+    daily_limit: int
 
 async def init_db(db: AsyncSession):
+    # Bookings table
     await db.execute(text("""
         CREATE TABLE IF NOT EXISTS dashboard_bookings (
             id TEXT PRIMARY KEY,
@@ -25,6 +22,21 @@ async def init_db(db: AsyncSession):
             date TEXT NOT NULL DEFAULT ''
         )
     """))
+    
+    # Settings table
+    await db.execute(text("""
+        CREATE TABLE IF NOT EXISTS dashboard_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """))
+    
+    # Seed default daily limit if not exists
+    res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
+    if not res.fetchone():
+        await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES ('daily_limit', '45')"))
+        await db.commit()
+
     # Check if date column exists (for migration)
     try:
         result = await db.execute(text("PRAGMA table_info(dashboard_bookings)"))
@@ -42,6 +54,11 @@ async def init_db(db: AsyncSession):
             pass
     await db.commit()
 
+async def get_daily_limit(db: AsyncSession) -> int:
+    res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
+    row = res.fetchone()
+    return int(row[0]) if row else 45
+
 @router.get("")
 async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     await init_db(db)
@@ -51,10 +68,39 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
         result = await db.execute(text("SELECT * FROM dashboard_bookings"))
     return [dict(row) for row in result.mappings().all()]
 
+@router.get("/settings")
+async def get_settings(db: AsyncSession = Depends(get_db)):
+    await init_db(db)
+    limit = await get_daily_limit(db)
+    return {"daily_limit": limit}
+
+@router.post("/settings")
+async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(get_db)):
+    await init_db(db)
+    await db.execute(text("UPDATE dashboard_settings SET value = :val WHERE key = 'daily_limit'"), {"val": str(settings.daily_limit)})
+    await db.commit()
+    return {"message": "Settings updated", "daily_limit": settings.daily_limit}
+
+@router.get("/month-stats")
+async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
+    """month format: YYYY-MM"""
+    await init_db(db)
+    limit = await get_daily_limit(db)
+    # Get daily counts for a specific month
+    res = await db.execute(text("""
+        SELECT date, COUNT(*) as count 
+        FROM dashboard_bookings 
+        WHERE date LIKE :pattern
+        GROUP BY date
+    """), {"pattern": f"{month}-%"})
+    
+    counts = {row.date: row.count for row in res}
+    return {"limit": limit, "counts": counts}
+
 @router.get("/analytics")
 async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     await init_db(db)
-    DAILY_LIMIT = 45
+    DAILY_LIMIT = await get_daily_limit(db)
 
     # Determine "today"
     if date:
@@ -91,6 +137,7 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         "today_booked": today_booked,
         "today_remaining": today_remaining,
         "daily_limit": DAILY_LIMIT,
+        "today_date": today,
         "daily_trends": daily_data
     }
 
