@@ -52,13 +52,16 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
     return [dict(row) for row in result.mappings().all()]
 
 @router.get("/analytics")
-async def get_analytics(db: AsyncSession = Depends(get_db)):
+async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     await init_db(db)
     DAILY_LIMIT = 45
 
-    # Get today's date
-    from datetime import date
-    today = date.today().isoformat()
+    # Determine "today"
+    if date:
+        today = date
+    else:
+        from datetime import date as pydate
+        today = pydate.today().isoformat()
 
     # Get today's bookings count
     today_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})

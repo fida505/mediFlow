@@ -2151,7 +2151,10 @@
         // ──────────────────────────────────────────
         async function renderAnalytics() {
             try {
-                const res = await fetch(`${API_BASE}/bookings/analytics`);
+                // Determine real-world today in user's browser
+                const realToday = new Date().toISOString().split('T')[0];
+                const cacheBuster = Date.now();
+                const res = await fetch(`${API_BASE}/bookings/analytics?date=${realToday}&_cb=${cacheBuster}`);
                 const stats = await res.json();
 
                 // Update top cards with today's real data
