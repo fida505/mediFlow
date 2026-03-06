@@ -26,14 +26,20 @@ async def init_db(db: AsyncSession):
         )
     """))
     # Check if date column exists (for migration)
-    result = await db.execute(text("PRAGMA table_info(dashboard_bookings)"))
-    cols = [row[1] for row in result.all()]
-    if 'date' not in cols:
-         # For Postgres/Supabase
-         try:
+    try:
+        result = await db.execute(text("PRAGMA table_info(dashboard_bookings)"))
+        cols = [row[1] for row in result.all()]
+        if 'date' not in cols:
+             try:
+                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
+             except:
+                pass
+    except:
+        # PRAGMA fails on Postgres. Just try to add column and ignore if exists.
+        try:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
-         except:
-            pass # SQLite might fail if column exists or PRAGMA didn't return correctly
+        except:
+            pass
     await db.commit()
 
 @router.get("")
