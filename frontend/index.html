@@ -17,6 +17,10 @@
             padding: 0;
         }
 
+        .page-hidden {
+            display: none !important;
+        }
+
         :root {
             --bg: #F4F6F9;
             --surface: #FFFFFF;
@@ -2044,6 +2048,7 @@
                 const resBookings = await fetch(`${API_BASE}/bookings?date=${stats.today_date}`);
                 if (resBookings.ok) {
                     const bks = await resBookings.json();
+                    appointments = bks; // Update global state so "View" works
                     const tbody = document.getElementById('dashboard-table-body');
                     if (tbody) {
                         tbody.innerHTML = bks.map(b => `
@@ -2055,7 +2060,7 @@
                                 <td>${b.patient_phone || '–'}</td>
                                 <td>Slot #${b.slot_id}</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
-                                <td><button class="btn btn-ghost" onclick="showPage('slots'); viewSlot(${b.slot_id})">View</button></td>
+                                <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id})">View</button></td>
                             </tr>
                         `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
                     }
@@ -2191,18 +2196,19 @@
 
         // ──────────────────────────────────────────
         //  SLOT GRID (STEP 2)
-        // ──────────────────────────────────────────
         async function fetchAppointments() {
             const dateStr = currentDate.toISOString().split('T')[0];
             try {
                 const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Server Error");
+                if (!res.ok) {
+                    throw new Error(data.detail || `Server Error (${res.status})`);
+                }
                 appointments = data;
                 renderSlotGrid();
             } catch (err) {
-                showToast(`Failed to load: ${err.message}`, "error");
-                console.error("Fetch error:", err);
+                showToast(`Load Error: ${err.message}`, "error");
+                console.error("Fetch Appointments Error:", err);
             }
         }
 
@@ -2219,13 +2225,14 @@
 
             // Update Progress Bar
             const pct = (booked / dynamicDailyLimit) * 100;
-            const progressFill = document.getElementById('slot-progress-fill');
+            const progressFill = document.getElementById('grid-progress-fill');
             if (progressFill) {
                 progressFill.style.width = pct + '%';
                 progressFill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
             }
-            const countDisplay = document.getElementById('slot-count-display');
-            if (countDisplay) countDisplay.textContent = `${booked} / ${dynamicDailyLimit} Booked`;
+
+            if (document.getElementById('slots-booked-count')) document.getElementById('slots-booked-count').textContent = booked;
+            if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
 
             let html = '<div class="slot-grid">';
             for (let i = 1; i <= dynamicDailyLimit; i++) {
