@@ -77,8 +77,8 @@ async def init_db(db: AsyncSession):
 
 async def get_daily_limit(db: AsyncSession) -> int:
     res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
-    row = res.fetchone()
-    return int(row[0]) if row else 45
+    row = res.mappings().first()
+    return int(row['value']) if row else 45
 
 @router.get("")
 async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_db)):
@@ -174,10 +174,17 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         daily_data = [dict(row) for row in daily_res.mappings().all()]
         
         # Calculate avg
-        avg = total / len(daily_data) if daily_data else 0
+        avg = round(total / len(daily_data), 1) if daily_data else 0
         
         return {
+            "today_date": today,
+            "today_booked": today_booked,
+            "today_remaining": today_remaining,
+            "daily_limit": DAILY_LIMIT,
             "total": total,
+            "average_per_day": avg,
+            "daily_trends": daily_data
+        }
             "average_per_day": round(avg, 1),
             "today_booked": today_booked,
             "today_remaining": today_remaining,
