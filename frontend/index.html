@@ -1610,7 +1610,7 @@
                                 <th>Time</th>
                                 <th>Patient</th>
                                 <th>Phone</th>
-                                <th>Notes</th>
+                                <th>Place</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -1886,9 +1886,9 @@
                         oninput="formatPhone(this)">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea class="form-input" id="field-notes"
-                        placeholder="Reason for visit, symptoms, follow-up info..."></textarea>
+                    <label class="form-label">Place *</label>
+                    <input type="text" class="form-input" id="field-place"
+                        placeholder="e.g. Riyadh, Jeddah, Home visit...">
                 </div>
             </div>
             <div class="modal-footer" id="modal-footer">
@@ -2061,6 +2061,7 @@
                                     <div style="font-size:11px;color:var(--text-muted)">ID: ${b.id}</div>
                                 </td>
                                 <td>${b.patient_phone || '–'}</td>
+                                <td>${b.notes || '–'}</td>
                                 <td>Slot #${b.slot_id}</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
                                 <td><button class="btn btn-ghost" onclick="viewFromDashboard('${stats.today_date}', ${b.slot_id})">View</button></td>
@@ -2293,7 +2294,7 @@
             document.getElementById('modal-slot-badge').textContent = `Slot #${slot}`;
             document.getElementById('field-name').value = '';
             document.getElementById('field-phone').value = '';
-            document.getElementById('field-notes').value = '';
+            document.getElementById('field-place').value = '';
             document.getElementById('modal-overlay').classList.add('open');
         }
 
@@ -2310,7 +2311,7 @@
             document.getElementById('modal-slot-badge').textContent = `Slot #${slotId}`;
             document.getElementById('field-name').value = appt.patient_name;
             document.getElementById('field-phone').value = appt.patient_phone;
-            document.getElementById('field-notes').value = appt.notes || '';
+            document.getElementById('field-place').value = appt.notes || '';
 
             // Allow editing or deletion
             document.getElementById('modal-footer').innerHTML = `
@@ -2332,7 +2333,7 @@
                 date: currentDate.toISOString().split('T')[0],
                 patient_name: document.getElementById('field-name').value.trim(),
                 patient_phone: document.getElementById('field-phone').value.trim(),
-                notes: document.getElementById('field-notes').value.trim()
+                notes: document.getElementById('field-place').value.trim()
             };
 
             if (!data.patient_name || !data.patient_phone) return showToast("Name and Phone required", "error");
