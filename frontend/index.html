@@ -1737,7 +1737,7 @@
 
                 <div class="slot-section">
                     <div class="slot-header">
-                        <div class="slot-header-title">Monthly Trend — February 2026</div>
+                        <div class="slot-header-title" id="analytics-month-label">Monthly Trend</div>
                         <div style="margin-left:auto;display:flex;gap:8px">
                             <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">← Jan</button>
                             <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">Mar →</button>
@@ -2435,10 +2435,48 @@
                     }).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">No data available</td></tr>';
                 }
 
-                // Simplified Chart logic for brevity in this merge
+                // Update month label
+                const d = new Date();
+                if (document.getElementById('analytics-month-label')) {
+                    document.getElementById('analytics-month-label').textContent = `Monthly Trend — ${months[d.getMonth()]} ${d.getFullYear()}`;
+                }
+
+                // Chart logic
                 const canvas = document.getElementById('trend-chart');
-                if (canvas && trends.length >= 2) {
-                    // (Chart rendering code)
+                if (canvas && trends.length >= 1) {
+                    const ctx = canvas.getContext('2d');
+                    if (window.myChart) window.myChart.destroy();
+
+                    const chartData = [...trends].reverse(); // Oldest first for chart
+                    window.myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: chartData.map(t => {
+                                const dt = new Date(t.date);
+                                return t.date ? `${dt.getDate()} ${months[dt.getMonth()].substring(0, 3)}` : '–';
+                            }),
+                            datasets: [{
+                                label: 'Bookings',
+                                data: chartData.map(t => t.count),
+                                borderColor: '#1e88e5',
+                                backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 2,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                                x: { grid: { display: false } }
+                            }
+                        }
+                    });
                 }
             } catch (err) { console.error("Analytics error:", err); }
         }
