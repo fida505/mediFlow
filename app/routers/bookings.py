@@ -10,6 +10,20 @@ router = APIRouter()
 class SettingsUpdate(BaseModel):
     daily_limit: int
 
+class BookingCreate(BaseModel):
+    patient_name: str
+    patient_phone: str
+    slot_id: int
+    date: str
+    notes: str = None
+
+class BookingUpdate(BaseModel):
+    patient_name: str = None
+    patient_phone: str = None
+    slot_id: int = None
+    date: str = None
+    notes: str = None
+
 async def init_db(db: AsyncSession):
     # Bookings table
     await db.execute(text("""
@@ -19,7 +33,8 @@ async def init_db(db: AsyncSession):
             phone TEXT NOT NULL,
             notes TEXT,
             time TEXT NOT NULL,
-            date TEXT NOT NULL DEFAULT ''
+            date TEXT NOT NULL DEFAULT '',
+            slot_id INTEGER
         )
     """))
     
@@ -37,21 +52,21 @@ async def init_db(db: AsyncSession):
         await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES ('daily_limit', '45')"))
         await db.commit()
 
-    # Check if date column exists (for migration)
+    # Migrations
     try:
         result = await db.execute(text("PRAGMA table_info(dashboard_bookings)"))
         cols = [row[1] for row in result.all()]
         if 'date' not in cols:
-             try:
-                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
-             except:
-                pass
-    except:
-        # PRAGMA fails on Postgres. Just try to add column and ignore if exists.
-        try:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
-        except:
-            pass
+        if 'slot_id' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
+    except:
+        # Fallback for Postgres
+        for col, type in [("date", "TEXT NOT NULL DEFAULT ''"), ("slot_id", "INTEGER")]:
+            try:
+                await db.execute(text(f"ALTER TABLE dashboard_bookings ADD COLUMN {col} {type}"))
+            except:
+                pass
     await db.commit()
 
 async def get_daily_limit(db: AsyncSession) -> int:
@@ -144,26 +159,65 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
 @router.post("")
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     await init_db(db)
-    # ID includes date to allow same time on different days
-    booking_id = f"appt-{booking.date}-{booking.time.replace(':', '-')}"
+    # ID includes date and slot to allow same slot on different days
+    booking_id = f"appt-{booking.date}-{booking.slot_id}"
     
     result = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
     if result.fetchone():
         raise HTTPException(status_code=400, detail="Slot already booked for this date")
         
     await db.execute(text("""
-        INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date)
-        VALUES (:id, :name, :phone, :notes, :time, :date)
+        INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id)
+        VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id)
     """), {
         "id": booking_id,
         "name": booking.patient_name,
-        "phone": booking.phone,
+        "phone": booking.patient_phone,
         "notes": booking.notes,
-        "time": booking.time,
-        "date": booking.date
+        "time": str(booking.slot_id), # Use slot_id as time for compatibility
+        "date": booking.date,
+        "slot_id": booking.slot_id
     })
     await db.commit()
     return {"message": "Booking created successfully"}
+
+@router.put("/{booking_id}")
+async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSession = Depends(get_db)):
+    await init_db(db)
+    # Get current booking
+    res = await db.execute(text("SELECT * FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
+    if not res.fetchone():
+        raise HTTPException(status_code=404, detail="Booking not found")
+        
+    # Build update query
+    updates = []
+    params = {"id": booking_id}
+    
+    if booking.patient_name is not None:
+        updates.append("patient_name = :name")
+        params["name"] = booking.patient_name
+    if booking.patient_phone is not None:
+        updates.append("phone = :phone")
+        params["phone"] = booking.patient_phone
+    if booking.notes is not None:
+        updates.append("notes = :notes")
+        params["notes"] = booking.notes
+    if booking.slot_id is not None:
+        updates.append("slot_id = :slot_id")
+        updates.append("time = :time")
+        params["slot_id"] = booking.slot_id
+        params["time"] = str(booking.slot_id)
+    if booking.date is not None:
+        updates.append("date = :date")
+        params["date"] = booking.date
+        
+    if not updates:
+        return {"message": "No changes made"}
+        
+    query = f"UPDATE dashboard_bookings SET {', '.join(updates)} WHERE id = :id"
+    await db.execute(text(query), params)
+    await db.commit()
+    return {"message": "Booking updated successfully"}
 
 @router.delete("/{booking_id}")
 async def delete_booking(booking_id: str, db: AsyncSession = Depends(get_db)):
