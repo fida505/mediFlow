@@ -736,8 +736,9 @@
 
         .slot-grid {
             display: grid;
-            grid-template-columns: 70px repeat(6, 1fr);
-            border-bottom: 1px solid var(--border-light);
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            padding: 10px 0;
         }
 
         .slot-grid-header {
@@ -1506,12 +1507,12 @@
             <div class="header-actions">
                 <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
                         class="real-time-dot"></span>Live</span>
-                <button class="btn btn-ghost" onclick="openModal(null)">
+                <button class="btn btn-primary" onclick="showPage('slots')">
                     <svg viewBox="0 0 24 24">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    Add Appointment
+                    New Booking
                 </button>
             </div>
         </header>
@@ -2211,7 +2212,10 @@
             // Update Progress Bar
             const pct = (booked / dynamicDailyLimit) * 100;
             const progressFill = document.getElementById('slot-progress-fill');
-            if (progressFill) progressFill.style.width = pct + '%';
+            if (progressFill) {
+                progressFill.style.width = pct + '%';
+                progressFill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+            }
             const countDisplay = document.getElementById('slot-count-display');
             if (countDisplay) countDisplay.textContent = `${booked} / ${dynamicDailyLimit} Booked`;
 
@@ -2220,16 +2224,16 @@
                 const appt = appointments.find(a => a.slot_id === i);
                 if (appt) {
                     html += `
-            <div class="slot booked" onclick="viewSlot(${i})">
-              <div class="slot-number">${i}</div>
-              <div class="slot-patient">${appt.patient_name}</div>
-            </div>`;
+                        <div class="slot-cell booked" onclick="viewSlot(${i})">
+                            <div style="font-size:10px; opacity:0.7">Slot ${i}</div>
+                            <div class="slot-patient">${appt.patient_name}</div>
+                        </div>`;
                 } else {
                     html += `
-            <div class="slot available" onclick="openModal(${i})">
-              <div class="slot-number">${i}</div>
-              <div class="slot-patient">Empty</div>
-            </div>`;
+                        <div class="slot-cell available" onclick="openModal(${i})">
+                            <div style="font-size:10px; opacity:0.7">Slot ${i}</div>
+                            <div style="font-weight:600">BOOK</div>
+                        </div>`;
                 }
             }
             html += '</div>';
