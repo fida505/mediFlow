@@ -2190,6 +2190,11 @@
 
             document.getElementById('slots-calendar-view').style.display = 'none';
             document.getElementById('slots-grid-view').style.display = 'block';
+
+            // Clear old data and show loading
+            const container = document.getElementById('slot-grid-container');
+            if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading slots...</div>';
+
             fetchAppointments();
         }
 
@@ -2214,6 +2219,8 @@
             } catch (err) {
                 showToast(`Load Error: ${err.message}`, "error");
                 console.error("Fetch Appointments Error:", err);
+                const container = document.getElementById('slot-grid-container');
+                if (container) container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red)">Failed to load: ${err.message}<br><button class="btn btn-ghost" style="margin-top:10px" onclick="fetchAppointments()">Retry</button></div>`;
             }
         }
 

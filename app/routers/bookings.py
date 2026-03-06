@@ -54,20 +54,26 @@ async def init_db(db: AsyncSession):
 
     # Migrations
     try:
-        result = await db.execute(text("PRAGMA table_info(dashboard_bookings)"))
-        cols = [row[1] for row in result.all()]
+        # Check columns for dashboard_bookings
+        res = await db.execute(text("SELECT * FROM dashboard_bookings LIMIT 0"))
+        cols = res.keys()
+        
         if 'date' not in cols:
-            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
-        if 'slot_id' not in cols:
-            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
-    except:
-        # Fallback for Postgres
-        for col, type in [("date", "TEXT NOT NULL DEFAULT ''"), ("slot_id", "INTEGER")]:
             try:
-                await db.execute(text(f"ALTER TABLE dashboard_bookings ADD COLUMN {col} {type}"))
-            except:
-                pass
-    await db.commit()
+                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
+            except Exception as e:
+                print(f"Migration error (date): {e}")
+                
+        if 'slot_id' not in cols:
+            try:
+                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
+            except Exception as e:
+                print(f"Migration error (slot_id): {e}")
+                
+        await db.commit()
+    except Exception as e:
+        print(f"Critical Migration error: {e}")
+        await db.rollback()
 
 async def get_daily_limit(db: AsyncSession) -> int:
     res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
@@ -130,7 +136,7 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
             GROUP BY date
         """), {"pattern": f"{month}-%"})
         
-        counts = {row.date: row.count for row in res}
+        counts = {row['date']: row['count'] for row in res.mappings().all()}
         return {"limit": limit, "counts": counts}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -150,12 +156,12 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
 
         # Get today's bookings count
         today_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
-        today_booked = today_res.fetchone()[0]
+        today_booked = today_res.scalar() or 0
         today_remaining = max(0, DAILY_LIMIT - today_booked)
-
+        
         # Get total bookings (all time)
-        total_res = await db.execute(text("SELECT COUNT(*) as count FROM dashboard_bookings"))
-        total = total_res.fetchone()[0]
+        total_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
+        total = total_res.scalar() or 0
         
         # Get daily counts for the last 30 days
         daily_res = await db.execute(text("""
