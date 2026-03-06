@@ -87,13 +87,13 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
         bookings_list = []
         for row in result.mappings().all():
             bookings_list.append({
-                "id": row.id,
-                "patient_name": row.patient_name,
-                "patient_phone": row.phone, # Map 'phone' column to 'patient_phone' for frontend consistency
-                "notes": row.notes,
-                "time": row.time,
-                "date": row.date,
-                "slot_id": row.slot_id
+                "id": row['id'],
+                "patient_name": row['patient_name'],
+                "patient_phone": row['phone'], # Map 'phone' column to 'patient_phone' for frontend consistency
+                "notes": row['notes'],
+                "time": row['time'],
+                "date": row['date'],
+                "slot_id": row['slot_id']
             })
         return bookings_list
     except Exception as e:

@@ -2025,8 +2025,10 @@
         async function updateDashboard() {
             try {
                 const res = await fetch(`${API_BASE}/bookings/analytics`);
-                if (!res.ok) throw new Error("Analytics failed");
                 const stats = await res.json();
+                if (!res.ok) {
+                    throw new Error(stats.detail || `Analytics failed (${res.status})`);
+                }
 
                 document.getElementById('booked-count').textContent = stats.today_booked ?? 0;
                 document.getElementById('dashboard-remaining-count').textContent = stats.today_remaining ?? 0;
@@ -2060,7 +2062,7 @@
                                 <td>${b.patient_phone || '–'}</td>
                                 <td>Slot #${b.slot_id}</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
-                                <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id})">View</button></td>
+                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${stats.today_date}', ${b.slot_id})">View</button></td>
                             </tr>
                         `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
                     }
@@ -2107,6 +2109,9 @@
                     await fetchSettings();
                     if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
                     else renderSlotGrid();
+                } else {
+                    const data = await res.json();
+                    showToast(`Update failed: ${data.detail || res.status}`, "error");
                 }
             } catch (err) { showToast("Update failed", "error"); }
         }
@@ -2214,6 +2219,19 @@
 
         function getBookedCount() {
             return appointments.length;
+        }
+
+        function viewFromDashboard(dateStr, slotId) {
+            currentDate = new Date(dateStr);
+            showPage('slots');
+            // Switch to grid view
+            document.getElementById('slots-calendar-view').style.display = 'none';
+            document.getElementById('slots-grid-view').style.display = 'block';
+
+            // Re-fetch for that day to populate appointments array
+            fetchAppointments().then(() => {
+                viewSlot(slotId);
+            });
         }
 
         function renderSlotGrid() {
