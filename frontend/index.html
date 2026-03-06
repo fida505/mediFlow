@@ -1766,7 +1766,7 @@
         let appointments = {};
         let currentEditId = null;
         let deleteTargetId = null;
-        let currentDate = new Date(2026, 2, 5); // March 5, 2026
+        let currentDate = new Date(); // Dynamic today's date
 
         // Generate time slots
         function generateSlots() {
@@ -2279,6 +2279,10 @@
         // ──────────────────────────────────────────
         //  INIT
         // ──────────────────────────────────────────
+        // Set initial date display text
+        const d = currentDate;
+        document.getElementById('slot-date-display').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+
         fetchAppointments();
 
         function toggleSidebar() {
