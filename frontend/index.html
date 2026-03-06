@@ -1832,6 +1832,7 @@
             users: { title: 'User Management', sub: '— Staff & Roles' },
         };
 
+        let analyticsInterval = null;
         function showPage(name, navEl) {
             document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
             document.getElementById('page-' + name).classList.remove('page-hidden');
@@ -1841,7 +1842,14 @@
             document.getElementById('page-title').textContent = meta.title || name;
             document.getElementById('page-sub').textContent = meta.sub || '';
             if (name === 'slots') renderSlotGrid();
-            if (name === 'analytics') renderAnalytics();
+            if (name === 'analytics') {
+                renderAnalytics();
+                // Auto-refresh every 30 seconds while on analytics
+                if (analyticsInterval) clearInterval(analyticsInterval);
+                analyticsInterval = setInterval(renderAnalytics, 30000);
+            } else {
+                if (analyticsInterval) { clearInterval(analyticsInterval); analyticsInterval = null; }
+            }
             if (name === 'dashboard') renderTable();
         }
 
@@ -2034,6 +2042,10 @@
                 showToast("Appointment booked", "success");
                 closeModal();
                 fetchAppointments();
+                // Refresh analytics if that page is open
+                if (!document.getElementById('page-analytics').classList.contains('page-hidden')) {
+                    renderAnalytics();
+                }
 
             } catch (err) {
                 showToast("Server error", "error");
