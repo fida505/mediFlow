@@ -1512,7 +1512,7 @@
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    New Booking
+                    Add Appointment
                 </button>
             </div>
         </header>
@@ -2021,6 +2021,7 @@
         async function updateDashboard() {
             try {
                 const res = await fetch(`${API_BASE}/bookings/analytics`);
+                if (!res.ok) throw new Error("Analytics failed");
                 const stats = await res.json();
 
                 document.getElementById('booked-count').textContent = stats.today_booked ?? 0;
@@ -2041,21 +2042,23 @@
 
                 // Update table
                 const resBookings = await fetch(`${API_BASE}/bookings?date=${stats.today_date}`);
-                const bks = await resBookings.json();
-                const tbody = document.getElementById('dashboard-table-body');
-                if (tbody) {
-                    tbody.innerHTML = bks.map(b => `
-                        <tr>
-                            <td>
-                                <div style="font-weight:500">${b.patient_name}</div>
-                                <div style="font-size:11px;color:var(--text-muted)">ID: ${b.id}</div>
-                            </td>
-                            <td>${b.patient_phone || '–'}</td>
-                            <td>Slot #${b.slot_id}</td>
-                            <td><span class="status-pill booked">Confirmed</span></td>
-                            <td><button class="btn btn-ghost" onclick="showPage('slots'); viewSlot(${b.slot_id})">View</button></td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
+                if (resBookings.ok) {
+                    const bks = await resBookings.json();
+                    const tbody = document.getElementById('dashboard-table-body');
+                    if (tbody) {
+                        tbody.innerHTML = bks.map(b => `
+                            <tr>
+                                <td>
+                                    <div style="font-weight:500">${b.patient_name}</div>
+                                    <div style="font-size:11px;color:var(--text-muted)">ID: ${b.id}</div>
+                                </td>
+                                <td>${b.patient_phone || '–'}</td>
+                                <td>Slot #${b.slot_id}</td>
+                                <td><span class="status-pill booked">Confirmed</span></td>
+                                <td><button class="btn btn-ghost" onclick="showPage('slots'); viewSlot(${b.slot_id})">View</button></td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
+                    }
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
         }
@@ -2193,9 +2196,14 @@
             const dateStr = currentDate.toISOString().split('T')[0];
             try {
                 const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
-                appointments = await res.json();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Server Error");
+                appointments = data;
                 renderSlotGrid();
-            } catch (err) { showToast("Failed to load bookings", "error"); }
+            } catch (err) {
+                showToast(`Failed to load: ${err.message}`, "error");
+                console.error("Fetch error:", err);
+            }
         }
 
         function getBookedCount() {
