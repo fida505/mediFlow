@@ -185,13 +185,6 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             "average_per_day": avg,
             "daily_trends": daily_data
         }
-            "average_per_day": round(avg, 1),
-            "today_booked": today_booked,
-            "today_remaining": today_remaining,
-            "daily_limit": DAILY_LIMIT,
-            "today_date": today,
-            "daily_trends": daily_data
-        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
 
