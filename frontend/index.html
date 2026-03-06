@@ -1536,8 +1536,8 @@
                             </svg>
                             Booked Today
                         </div>
-                        <div class="card-value" id="booked-count">32</div>
-                        <div class="card-sub"><strong>↑ 4</strong> since yesterday</div>
+                        <div class="card-value" id="booked-count">–</div>
+                        <div class="card-sub">Daily appointment count</div>
                     </div>
                     <div class="card">
                         <div class="card-label">
@@ -1558,10 +1558,10 @@
                                 <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                                 <polyline points="17 6 23 6 23 12" />
                             </svg>
-                            This Month
+                            Total Bookings
                         </div>
                         <div class="card-value" id="dashboard-total-bookings">–</div>
-                        <div class="card-sub">Total ever since start</div>
+                        <div class="card-sub">All-time total count</div>
                     </div>
                     <div class="card">
                         <div class="card-label">
@@ -1572,7 +1572,7 @@
                             Avg / Day
                         </div>
                         <div class="card-value" id="dashboard-avg-daily">–</div>
-                        <div class="card-sub">Average appointments / day</div>
+                        <div class="card-sub">Average per day</div>
                     </div>
                 </div>
 
@@ -2024,7 +2024,8 @@
 
         async function updateDashboard() {
             try {
-                const res = await fetch(`${API_BASE}/bookings/analytics`);
+                const cb = Date.now();
+                const res = await fetch(`${API_BASE}/bookings/analytics?_cb=${cb}`);
                 const stats = await res.json();
                 if (!res.ok) {
                     throw new Error(stats.detail || `Analytics failed (${res.status})`);
@@ -2075,7 +2076,8 @@
         // ──────────────────────────────────────────
         async function fetchSettings() {
             try {
-                const res = await fetch(`${API_BASE}/bookings/settings`);
+                const cb = Date.now();
+                const res = await fetch(`${API_BASE}/bookings/settings?_cb=${cb}`);
                 const data = await res.json();
                 dynamicDailyLimit = data.daily_limit;
                 // Update UI elements that show capacity
@@ -2135,9 +2137,10 @@
 
             // Fetch month stats
             const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+            const cb = Date.now();
             let stats = {};
             try {
-                const res = await fetch(`${API_BASE}/bookings/month-stats?month=${monthStr}`);
+                const res = await fetch(`${API_BASE}/bookings/month-stats?month=${monthStr}&_cb=${cb}`);
                 const data = await res.json();
                 stats = data.counts || {};
             } catch (e) { console.error(e); }
@@ -2354,7 +2357,10 @@
                     showToast(currentEditingId ? "Appointment updated" : "Appointment booked!", "success");
                     closeModal();
                     fetchAppointments();
+                    // Update all possible views to stay synced
+                    updateDashboard();
                     if (document.getElementById('page-analytics').classList.contains('active')) renderAnalytics();
+                    if (document.getElementById('page-slots').style.display !== 'none') renderCalendar();
                 } else {
                     const err = await res.json();
                     showToast(err.detail || "Error saving", "error");
@@ -2380,7 +2386,9 @@
                     closeConfirm();
                     closeModal();
                     fetchAppointments();
+                    updateDashboard();
                     if (document.getElementById('page-analytics').classList.contains('active')) renderAnalytics();
+                    if (document.getElementById('page-slots').style.display !== 'none') renderCalendar();
                 }
             } catch (e) { showToast("Delete failed", "error"); }
         }
