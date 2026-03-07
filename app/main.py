@@ -24,9 +24,9 @@ app.include_router(clinics.router, prefix="/clinics", tags=["clinics"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    # Lightweight ping — no DB hit, no conflicts with user requests
+    # Lightweight ping — no DB hit, accepts GET and HEAD (UptimeRobot uses HEAD)
     return {"status": "ok"}
 
 from fastapi.responses import FileResponse
