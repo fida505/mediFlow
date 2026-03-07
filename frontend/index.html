@@ -2132,12 +2132,12 @@
         //  SLOT TIMING HELPERS
         // ──────────────────────────────────────────
         function getSlotTimeRange(slotId) {
-            // Start at 9:00 AM (09:00)
-            const startHour = 9; 
+            // Start at 2:00 PM (14:00)
+            const startHour = 14; 
             const startMin = 0;
             const durationArr = 5; // 5 mins per slot
             
-            // Calculate minutes since 9:00 AM
+            // Calculate minutes since 2:00 PM
             const totalMinsStart = (slotId - 1) * durationArr;
             const totalMinsEnd = slotId * durationArr;
             
