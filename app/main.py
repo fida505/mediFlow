@@ -26,30 +26,8 @@ app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
 
 @app.get("/health")
 async def health_check():
-    from sqlalchemy import text
-    from app.db.session import engine
-    from app.config import settings
-    import socket
-    
-    # Mask URL for security
-    url = settings.DATABASE_URL
-    host = "no-host"
-    if "@" in url:
-        host_port = url.split("@")[-1].split("/")[0]
-        host = host_port.split(":")[0]
-    
-    resolved_ip = "unknown"
-    try:
-        resolved_ip = socket.gethostbyname(host)
-    except:
-        pass
-        
-    try:
-        async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected", "resolved_ip": resolved_ip}
-    except Exception as e:
-        return {"status": "error", "database": str(e), "resolved_ip": resolved_ip}
+    # Lightweight ping — no DB hit, no conflicts with user requests
+    return {"status": "ok"}
 
 from fastapi.responses import FileResponse
 
