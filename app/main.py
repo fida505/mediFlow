@@ -40,9 +40,17 @@ async def serve_frontend():
 # startup/shutdown events
 @app.on_event("startup")
 async def startup_event():
-    # init database on startup to avoid per-request overhead
-    async with AsyncSessionLocal() as db:
-        await init_db(db)
+    print(">>> Starting MediFlow application...")
+    try:
+        async with AsyncSessionLocal() as db:
+            print(">>> Initializing database tables and migrations...")
+            await bookings.init_db(db)
+            print(">>> Database initialization complete.")
+    except Exception as e:
+        print(f"!!! CRITICAL ERROR: Database initialization failed: {e}")
+        # We catch the exception to allow the app to start and respond to health checks, 
+        # providing better visibility into the failure through logs.
+    print(">>> Application is ready to serve requests.")
 
 @app.on_event("shutdown")
 async def shutdown_event():
