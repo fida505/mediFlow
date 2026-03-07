@@ -2038,6 +2038,11 @@
         let viewDate = new Date(); // For calendar month navigation
         let currentEditingId = null;
         let selectedSlot = null;
+
+        // Always use local date (not UTC) to avoid timezone bugs
+        function toLocalDateStr(date) {
+            return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
+        }
         let dynamicDailyLimit = 45; // Default
 
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -2288,7 +2293,7 @@
         // ──────────────────────────────────────────
         //  SLOT GRID (STEP 2)
         async function fetchAppointments() {
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = toLocalDateStr(currentDate);
             try {
                 const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
                 const data = await res.json();
@@ -2407,7 +2412,7 @@
         async function saveAppointment() {
             const data = {
                 slot_id: selectedSlot,
-                date: currentDate.toISOString().split('T')[0],
+                date: toLocalDateStr(currentDate),
                 patient_name: document.getElementById('field-name').value.trim(),
                 patient_phone: document.getElementById('field-phone').value.trim(),
                 notes: document.getElementById('field-place').value.trim()
