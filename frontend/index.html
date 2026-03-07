@@ -1582,7 +1582,6 @@
                     <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
                 Daily Slots
-                <span class="nav-badge">12</span>
             </div>
 
             <div class="nav-section-label">Reports</div>
@@ -1768,21 +1767,20 @@
 
             <!-- ─── SLOTS PAGE ─── -->
             <div id="page-slots" class="page-hidden">
-                <!-- STEP 1: CALENDAR VIEW -->
                 <div id="slots-calendar-view">
-                    <div class="progress-section" style="margin-bottom: 20px;">
-                        <div class="progress-header">
-                            <div class="progress-label">Clinic Settings</div>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px;">
-                            <span style="font-size: 13px; color: var(--text-muted);">Daily slot limit:</span>
-                            <input type="number" id="inline-daily-limit" min="1" max="200"
-                                style="width:80px;padding:5px 8px;border-radius:8px;border:1px solid var(--border-light);background:var(--surface-2);color:var(--text-primary);font-size:13px;text-align:center;"
-                                value="45">
-                            <button class="btn btn-primary" onclick="saveInlineLimit()"
-                                style="padding:5px 14px;font-size:12px;">Save</button>
-                            <span style="font-size:12px;color:var(--text-muted);">Current: <strong
-                                    id="display-daily-limit" style="color:var(--accent)">45</strong> slots/day</span>
+                    <div class="progress-section" style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">Daily Slot Management</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity (e.g., 45, 50 slots per day)</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px; background: white; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--accent-mid); box-shadow: 0 2px 8px rgba(27, 108, 168, 0.08);">
+                                <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Total Capacity:</label>
+                                <input type="number" id="inline-daily-limit" min="1" max="250"
+                                    style="width:70px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-weight:700; color:var(--accent); text-align:center; outline:none;"
+                                    value="45">
+                                <button class="btn btn-primary" onclick="saveInlineLimit()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">Update Slots</button>
+                            </div>
                         </div>
                     </div>
 
