@@ -1711,19 +1711,19 @@
                 <!-- Progress Bar -->
                 <div class="progress-section">
                     <div class="progress-header">
-                        <div class="progress-label">Daily Capacity — Thursday, 27 Feb 2026</div>
-                        <div class="progress-count"><span id="progress-booked">32</span> / 45 slots filled</div>
+                        <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...</div>
+                        <div class="progress-count"><span id="progress-booked">0</span> / <span class="max-limit-text">45</span> slots filled</div>
                     </div>
                     <div class="progress-track">
                         <div class="progress-fill" id="dashboard-progress-fill" style="width: 0%"></div>
                     </div>
-                    <div class="progress-ticks">
+                    <div class="progress-ticks" id="dashboard-progress-ticks">
                         <span class="progress-tick">0</span>
                         <span class="progress-tick">10</span>
                         <span class="progress-tick">20</span>
                         <span class="progress-tick">30</span>
-                        <span class="progress-tick" style="color:var(--amber);font-weight:600">40</span>
-                        <span class="progress-tick" style="color:var(--red);font-weight:600">45</span>
+                        <span class="progress-tick">40</span>
+                        <span class="progress-tick">45</span>
                     </div>
                 </div>
 
@@ -2214,8 +2214,30 @@
                 }
 
                 const remPct = limitNum > 0 ? Math.round(((stats.today_remaining || 0) / limitNum) * 100) : 0;
-                document.getElementById('dashboard-remaining-pct').textContent = `${remPct}% remaining`;
+                document.getElementById('dashboard-remaining-pct').textContent = `${remPct}%`;
                 document.getElementById('progress-booked').textContent = bookedNum;
+
+                // Sync all capacity labels on dashboard
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limitNum);
+                
+                // Update Dashboard Capacity Date Label
+                const dObj = new Date(localToday + 'T00:00:00'); // Safe local parse
+                const dateLabel = `Daily Capacity — ${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
+                if (document.getElementById('dashboard-capacity-date')) {
+                    document.getElementById('dashboard-capacity-date').textContent = dateLabel;
+                }
+
+                // Update Progress Ticks
+                const ticksContainer = document.getElementById('dashboard-progress-ticks');
+                if (ticksContainer) {
+                    const step = Math.ceil(limitNum / 4);
+                    let ticksHtml = `<span class="progress-tick">0</span>`;
+                    for (let i = 1; i < 4; i++) {
+                        ticksHtml += `<span class="progress-tick">${i * step}</span>`;
+                    }
+                    ticksHtml += `<span class="progress-tick" style="color:var(--red);font-weight:600">${limitNum}</span>`;
+                    ticksContainer.innerHTML = ticksHtml;
+                }
 
                 // Always fetch today's bookings using the LOCAL date
                 const resBookings = await fetch(`${API_BASE}/bookings?date=${localToday}&_cb=${cb}`);
