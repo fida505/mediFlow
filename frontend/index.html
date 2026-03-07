@@ -869,116 +869,92 @@
 
         .slot-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 10px;
-            padding: 10px 0;
-        }
-
-        .slot-grid-header {
-            display: contents;
-        }
-
-        .slot-col-header {
-            padding: 10px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-light);
-            text-align: center;
-        }
-
-        .slot-col-header:first-child {
-            text-align: left;
-            padding-left: 20px;
-        }
-
-        .time-label {
-            padding: 0 0 0 20px;
-            display: flex;
-            align-items: center;
-            font-family: 'DM Mono', monospace;
-            font-size: 11.5px;
-            color: var(--text-muted);
-            border-right: 1px solid var(--border-light);
-            background: #FAFBFD;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            padding: 16px 0;
         }
 
         .slot-cell {
-            border: 1px solid transparent;
-            margin: 3px;
-            border-radius: 5px;
-            min-height: 36px;
+            background: var(--surface-1);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 12px;
             cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            font-size: 11.5px;
-            font-weight: 500;
-            transition: all 0.12s;
+            align-items: center;
+            text-align: center;
+            min-height: 94px;
             position: relative;
             overflow: hidden;
+            gap: 4px;
         }
 
-        .slot-cell.available {
-            background: var(--slot-available);
-            border-color: var(--slot-available-border);
-            color: var(--green);
-        }
-
-        .slot-cell.available:hover {
-            background: #d0ede0;
-            border-color: #7cc0a0;
-            transform: scale(1.03);
-            z-index: 1;
-            box-shadow: 0 2px 8px rgba(15, 138, 95, 0.15);
+        .slot-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            border-color: var(--accent);
         }
 
         .slot-cell.booked {
-            background: var(--slot-booked);
-            border-color: var(--slot-booked-border);
-            color: var(--red);
-            cursor: pointer;
-            flex-direction: column;
-            gap: 1px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            border-color: var(--accent-light);
+            color: var(--accent);
         }
 
-        .slot-cell.booked:hover {
-            background: #fbd5d2;
-            border-color: #e99188;
-            transform: scale(1.03);
-            z-index: 1;
-            box-shadow: 0 2px 8px rgba(192, 57, 43, 0.12);
+        .slot-cell.available {
+            background: var(--surface);
+            color: var(--text-secondary);
         }
 
-        .slot-cell.disabled {
-            background: var(--slot-disabled);
-            border-color: var(--slot-disabled-border);
-            color: var(--text-muted);
-            cursor: not-allowed;
+        .slot-cell.available:hover {
+            background: #f8fafc;
+        }
+
+        .slot-num {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             opacity: 0.6;
+            margin-bottom: 2px;
+        }
+
+        .slot-time {
+            font-family: 'DM Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.04);
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .booked .slot-time {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
         }
 
         .slot-patient {
-            font-size: 10px;
             font-weight: 600;
-            color: var(--red);
-            white-space: nowrap;
+            font-size: 13px;
+            color: var(--text-main);
+            margin-top: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 90%;
-            text-align: center;
+            line-height: 1.2;
         }
 
-        .slot-phone {
-            font-size: 9.5px;
-            color: #e07070;
-            font-family: 'DM Mono', monospace;
-        }
-
-        .slot-row {
-            display: contents;
+        .slot-cell.available div[style*="font-weight:700"] {
+            font-size: 11px;
+            margin-top: 4px;
+            color: var(--accent);
+            opacity: 0.8;
         }
 
         /* ── MODAL ── */
@@ -2156,22 +2132,23 @@
         //  SLOT TIMING HELPERS
         // ──────────────────────────────────────────
         function getSlotTimeRange(slotId) {
-            // Start at 2:00 PM (14:00)
-            const startHour = 14; 
+            // Start at 9:00 AM (09:00)
+            const startHour = 9; 
             const startMin = 0;
             const durationArr = 5; // 5 mins per slot
             
-            // Calculate minutes since 2:00 PM
+            // Calculate minutes since 9:00 AM
             const totalMinsStart = (slotId - 1) * durationArr;
             const totalMinsEnd = slotId * durationArr;
             
             function formatTime(totalMins) {
-                let h = startHour + Math.floor((startMin + totalMins) / 60);
-                let m = (startMin + totalMins) % 60;
+                let currentTotal = startMin + totalMins;
+                let h = startHour + Math.floor(currentTotal / 60);
+                let m = currentTotal % 60;
                 let ampm = h >= 12 ? 'PM' : 'AM';
-                h = h % 12;
-                if (h === 0) h = 12;
-                return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+                let displayH = h % 12;
+                if (displayH === 0) displayH = 12;
+                return `${displayH}:${String(m).padStart(2, '0')} ${ampm}`;
             }
             
             return `${formatTime(totalMinsStart)} - ${formatTime(totalMinsEnd)}`;
@@ -2523,16 +2500,16 @@
                 if (appt) {
                     html += `
                         <div class="slot-cell booked" onclick="viewSlot(${i})">
-                            <div style="font-size:10px; opacity:0.7">Slot ${i}</div>
-                            <div style="font-size:10px; font-weight:600; margin-bottom: 2px;">${timeRange}</div>
+                            <div class="slot-num">Slot ${i}</div>
+                            <div class="slot-time">${timeRange}</div>
                             <div class="slot-patient">${appt.patient_name}</div>
                         </div>`;
                 } else {
                     html += `
                         <div class="slot-cell available" onclick="openModal(${i})">
-                            <div style="font-size:10px; opacity:0.7">Slot ${i}</div>
-                            <div style="font-size:10px; font-weight:600; margin-bottom: 2px;">${timeRange}</div>
-                            <div style="font-weight:700">BOOK</div>
+                            <div class="slot-num">Slot ${i}</div>
+                            <div class="slot-time">${timeRange}</div>
+                            <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
                         </div>`;
                 }
             }
@@ -2552,6 +2529,18 @@
             document.getElementById('field-name').value = '';
             document.getElementById('field-phone').value = '';
             document.getElementById('field-place').value = '';
+            
+            // Reset footer to default 
+            document.getElementById('modal-footer').innerHTML = `
+                <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAppointment()">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Save Appointment
+                </button>
+            `;
+            
             document.getElementById('modal-overlay').classList.add('open');
         }
 
