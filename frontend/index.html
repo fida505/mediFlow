@@ -2748,41 +2748,43 @@
                 const statusEl = document.getElementById('splash-status');
                 if (statusEl) statusEl.textContent = "Connecting to server...";
 
-                // Start fetching critical data
-                const settingsPromise = fetchSettings();
-                
                 const d = currentDate;
                 const displayEl = document.getElementById('slot-date-display');
                 if (displayEl) displayEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
 
                 // Set a timeout warning if server is slow (Render cold start)
                 const connectionWarning = setTimeout(() => {
-                    if (statusEl) statusEl.textContent = "Server is waking up, please wait standard boot time...";
-                }, 8000);
+                    if (statusEl) statusEl.textContent = "Server is waking up (Render free tier), please wait...";
+                }, 7000);
 
-                // Wait for critical settings
-                await settingsPromise;
+                // Fetch critical data
+                await fetchSettings();
                 clearTimeout(connectionWarning);
 
-                if (statusEl) statusEl.textContent = "Ready!";
+                if (statusEl) statusEl.textContent = "Setting up interface...";
 
-                // Initial render of calendar
-                if (!document.getElementById('page-slots').classList.contains('page-hidden')) {
-                    renderCalendar();
-                }
+                // Parallel render of initial views
+                const dashboardPromise = updateDashboard();
+                const calendarPromise = renderCalendar();
 
+                await Promise.all([dashboardPromise, calendarPromise]);
+
+                if (statusEl) statusEl.textContent = "App is ready!";
+
+                // Default view
                 showPage('slots');
 
                 // Fade out splash screen
                 setTimeout(() => {
                     const splash = document.getElementById('splash-screen');
                     if (splash) splash.classList.add('fade-out');
-                }, 400);
+                    setTimeout(() => { if(splash) splash.style.display = 'none'; }, 600);
+                }, 500);
 
             } catch (err) {
-                console.error("Init error:", err);
+                console.error("Init failed:", err);
                 const statusEl = document.getElementById('splash-status');
-                if (statusEl) statusEl.textContent = "Connection failed. Retrying...";
+                if (statusEl) statusEl.textContent = "Server connection lost. Retrying in 5s...";
                 setTimeout(init, 5000);
             }
         }

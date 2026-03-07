@@ -3,6 +3,8 @@ from app.core.logging import configure_logging
 from app.core.exceptions import register_exception_handlers
 from app.routers import clinics, admin, bookings
 from fastapi.staticfiles import StaticFiles
+from app.db.session import AsyncSessionLocal
+from app.routers.bookings import init_db
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -38,8 +40,9 @@ async def serve_frontend():
 # startup/shutdown events
 @app.on_event("startup")
 async def startup_event():
-    # init database, cache, celery, etc.
-    pass
+    # init database on startup to avoid per-request overhead
+    async with AsyncSessionLocal() as db:
+        await init_db(db)
 
 @app.on_event("shutdown")
 async def shutdown_event():

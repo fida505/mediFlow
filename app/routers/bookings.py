@@ -100,7 +100,6 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str) -> int:
 
 @router.get("")
 async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         if date:
             result = await db.execute(text("SELECT id, patient_name, phone, notes, time, date, slot_id FROM dashboard_bookings WHERE date = :date"), {"date": date})
@@ -125,13 +124,11 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
 
 @router.get("/settings")
 async def get_settings(db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     limit = await get_daily_limit(db)
     return {"daily_limit": limit}
 
 @router.post("/settings")
 async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         await db.execute(text("UPDATE dashboard_settings SET value = :val WHERE key = 'daily_limit'"), {"val": str(settings.daily_limit)})
         await db.commit()
@@ -143,7 +140,6 @@ async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(g
 @router.get("/month-stats")
 async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
     """month format: YYYY-MM"""
-    await init_db(db)
     global_limit = await get_daily_limit(db)
     try:
         # Get daily counts for a specific month
@@ -169,7 +165,6 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
 
 @router.get("/daily-limit")
 async def get_daily_limit_route(date: str = Query(...), db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     limit = await get_capacity_for_date(db, date)
     return {"date": date, "limit": limit}
 
@@ -179,7 +174,6 @@ class DailyLimitUpdate(BaseModel):
 
 @router.post("/daily-limit")
 async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         await db.execute(text("""
             INSERT INTO dashboard_daily_limit (date, limit_value) 
@@ -194,7 +188,6 @@ async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(
 
 @router.get("/analytics")
 async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         # Determine "today"
         if date:
@@ -243,7 +236,6 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
 
 @router.post("")
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         # ID includes date and slot to allow same slot on different days
         booking_id = f"appt-{booking.date}-{booking.slot_id}"
@@ -274,7 +266,6 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
 
 @router.put("/{booking_id}")
 async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         # Get current booking
         res = await db.execute(text("SELECT * FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
@@ -318,7 +309,6 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
 
 @router.delete("/{booking_id}")
 async def delete_booking(booking_id: str, db: AsyncSession = Depends(get_db)):
-    await init_db(db)
     try:
         await db.execute(text("DELETE FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         await db.commit()
