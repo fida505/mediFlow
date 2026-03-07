@@ -2277,6 +2277,7 @@
                 });
                 if (res.ok) {
                     showToast("Daily limit updated!", "success");
+                    dynamicDailyLimit = val;
                     // Refresh current view
                     await updateDashboard();
                     fetchAppointments();
@@ -2387,6 +2388,7 @@
                 const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}`);
                 const data = await res.json();
                 const limit = data.limit || 45;
+                dynamicDailyLimit = limit;
                 document.getElementById('inline-daily-limit').value = limit;
                 document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limit);
             } catch (err) { console.error("Error fetching daily limit:", err); }
