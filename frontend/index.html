@@ -1577,8 +1577,8 @@
                 </svg>
             </button>
             <div>
-                <span class="header-title" id="page-title">Dashboard</span>
-                <span class="header-sub" id="page-sub">— Today's Overview</span>
+                <span class="header-title" id="page-title">Daily Slots</span>
+                <span class="header-sub" id="page-sub">— Book & Manage Appointments</span>
             </div>
             <div class="header-actions">
                 <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
@@ -2101,6 +2101,19 @@
             if (name === 'dashboard') updateDashboard();
             if (name === 'analytics') renderAnalytics();
             if (name === 'slots') backToCalendar();
+
+            // Update header title
+            const titles = {
+                dashboard: ['Dashboard', "— Today's Overview"],
+                slots: ['Daily Slots', '— Book & Manage Appointments'],
+                analytics: ['Analytics', '— Monthly Report'],
+                users: ['Users', '— Manage Staff']
+            };
+            const t = titles[name] || [name, ''];
+            const titleEl = document.getElementById('page-title');
+            const subEl = document.getElementById('page-sub');
+            if (titleEl) titleEl.textContent = t[0];
+            if (subEl) subEl.textContent = t[1];
         }
 
         async function updateDashboard() {
