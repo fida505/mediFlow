@@ -8,7 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <style>
         *,
         *::before,
@@ -2767,48 +2767,44 @@
         //  INIT
         // ──────────────────────────────────────────
         async function init() {
+            const statusEl = document.getElementById('splash-status');
+            const splash = document.getElementById('splash-screen');
+            
             try {
-                const statusEl = document.getElementById('splash-status');
                 if (statusEl) statusEl.textContent = "Connecting to server...";
 
                 const d = currentDate;
                 const displayEl = document.getElementById('slot-date-display');
                 if (displayEl) displayEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
 
-                // Set a timeout warning if server is slow (Render cold start)
-                const connectionWarning = setTimeout(() => {
-                    if (statusEl) statusEl.textContent = "Server is waking up (Render free tier), please wait...";
-                }, 7000);
+                // Parallelize EVERYTHING for speed
+                const pSettings = fetchSettings();
+                const pDashboard = updateDashboard();
+                const pCalendar = renderCalendar();
 
-                // Fetch critical data
-                await fetchSettings();
-                clearTimeout(connectionWarning);
-
+                // Wait for settings first as they are critical
+                await pSettings;
                 if (statusEl) statusEl.textContent = "Setting up interface...";
+                
+                // Then wait for the rest
+                await Promise.all([pDashboard, pCalendar]);
 
-                // Parallel render of initial views
-                const dashboardPromise = updateDashboard();
-                const calendarPromise = renderCalendar();
-
-                await Promise.all([dashboardPromise, calendarPromise]);
-
-                if (statusEl) statusEl.textContent = "App is ready!";
+                if (statusEl) statusEl.textContent = "Ready!";
 
                 // Default view
                 showPage('slots');
 
-                // Fade out splash screen
-                setTimeout(() => {
-                    const splash = document.getElementById('splash-screen');
-                    if (splash) splash.classList.add('fade-out');
-                    setTimeout(() => { if(splash) splash.style.display = 'none'; }, 600);
-                }, 500);
-
             } catch (err) {
                 console.error("Init failed:", err);
-                const statusEl = document.getElementById('splash-status');
-                if (statusEl) statusEl.textContent = "Server connection lost. Retrying in 5s...";
-                setTimeout(init, 5000);
+                if (statusEl) statusEl.textContent = "Retrying connection...";
+            } finally {
+                // Ensure splash screen fades out even if there's a minor error
+                setTimeout(() => {
+                    if (splash) {
+                        splash.classList.add('fade-out');
+                        setTimeout(() => { splash.style.display = 'none'; }, 600);
+                    }
+                }, 400);
             }
         }
 

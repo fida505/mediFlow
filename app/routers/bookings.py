@@ -25,62 +25,53 @@ class BookingUpdate(BaseModel):
     notes: str = None
 
 async def init_db(db: AsyncSession):
-    # Bookings table
-    await db.execute(text("""
-        CREATE TABLE IF NOT EXISTS dashboard_bookings (
-            id TEXT PRIMARY KEY,
-            patient_name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            notes TEXT,
-            time TEXT NOT NULL,
-            date TEXT NOT NULL DEFAULT '',
-            slot_id INTEGER
-        )
-    """))
-    
-    # Settings table
-    await db.execute(text("""
-        CREATE TABLE IF NOT EXISTS dashboard_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )
-    """))
-
-    # Daily Specific Limits table
-    await db.execute(text("""
-        CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
-            date TEXT PRIMARY KEY,
-            limit_value INTEGER NOT NULL
-        )
-    """))
-    
-    # Seed default daily limit if not exists
-    res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
-    if not res.fetchone():
-        await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES ('daily_limit', '45')"))
-        await db.commit()
-
-    # Migrations
+    """Initializes tables and migrations in a single block for better startup speed."""
     try:
-        # Check columns for dashboard_bookings
+        # 1. Create tables
+        await db.execute(text("""
+            CREATE TABLE IF NOT EXISTS dashboard_bookings (
+                id TEXT PRIMARY KEY,
+                patient_name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                notes TEXT,
+                time TEXT NOT NULL,
+                date TEXT NOT NULL DEFAULT '',
+                slot_id INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS dashboard_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
+                date TEXT PRIMARY KEY,
+                limit_value INTEGER NOT NULL
+            );
+        """))
+        
+        # 2. Seed default daily limit
+        res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = 'daily_limit'"))
+        if not res.fetchone():
+            await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES ('daily_limit', '45')"))
+
+        # 3. Migrations (Check and Add columns)
+        # We use a safer approach for migrations in production
         res = await db.execute(text("SELECT * FROM dashboard_bookings LIMIT 0"))
         cols = res.keys()
         
         if 'date' not in cols:
-            try:
-                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
-            except Exception as e:
-                print(f"Migration error (date): {e}")
-                
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
         if 'slot_id' not in cols:
-            try:
-                await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
-            except Exception as e:
-                print(f"Migration error (slot_id): {e}")
-                
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
+            
+        # 4. Indexes for performance
+        await db.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);
+            CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);
+        """))
+        
         await db.commit()
     except Exception as e:
-        print(f"Critical Migration error: {e}")
+        print(f"!!! DB INIT/MIGRATION ERROR: {e}")
         await db.rollback()
 
 async def get_daily_limit(db: AsyncSession) -> int:
@@ -140,24 +131,27 @@ async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(g
 @router.get("/month-stats")
 async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
     """month format: YYYY-MM"""
-    global_limit = await get_daily_limit(db)
+    import asyncio
     try:
-        # Get daily counts for a specific month
-        res = await db.execute(text("""
+        # Parallelize global limit and monthly data fetches
+        global_limit_task = get_daily_limit(db)
+        counts_task = db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
             WHERE date LIKE :pattern
             GROUP BY date
         """), {"pattern": f"{month}-%"})
-        counts = {row['date']: row['count'] for row in res.mappings().all()}
-
-        # Get specific limits for this month
-        lim_res = await db.execute(text("""
+        limits_task = db.execute(text("""
             SELECT date, limit_value 
             FROM dashboard_daily_limit 
             WHERE date LIKE :pattern
         """), {"pattern": f"{month}-%"})
-        limits = {row['date']: row['limit_value'] for row in lim_res.mappings().all()}
+
+        results = await asyncio.gather(global_limit_task, counts_task, limits_task)
+        
+        global_limit = results[0]
+        counts = {row['date']: row['count'] for row in results[1].mappings().all()}
+        limits = {row['date']: row['limit_value'] for row in results[2].mappings().all()}
 
         return {"limit": global_limit, "counts": counts, "overrides": limits}
     except Exception as e:
@@ -189,48 +183,55 @@ async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(
 @router.get("/analytics")
 async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
+        import asyncio
+        from datetime import date as pydate
+        
         # Determine "today"
-        if date:
-            today = date
-        else:
-            from datetime import date as pydate
-            today = pydate.today().isoformat()
+        today = date if date else pydate.today().isoformat()
 
-        DAILY_LIMIT = await get_capacity_for_date(db, today)
-        GLOBAL_LIMIT = await get_daily_limit(db)
-
-        # Get today's bookings count
-        today_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
-        today_booked = today_res.scalar() or 0
-        today_remaining = max(0, DAILY_LIMIT - today_booked)
-        
-        # Get total bookings (all time)
-        total_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
-        total = total_res.scalar() or 0
-        
-        # Get daily counts for the last 30 days
-        daily_res = await db.execute(text("""
+        # Parallelize independent queries
+        capacity_task = get_capacity_for_date(db, today)
+        global_task = get_daily_limit(db)
+        today_booked_task = db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
+        total_booked_task = db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
+        trends_task = db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
             GROUP BY date 
             ORDER BY date DESC 
             LIMIT 30
         """))
-        daily_data = [dict(row) for row in daily_res.mappings().all()]
+
+        # Await all tasks concurrently
+        results = await asyncio.gather(
+            capacity_task, 
+            global_task, 
+            today_booked_task, 
+            total_booked_task, 
+            trends_task
+        )
+
+        daily_limit = results[0]
+        global_limit = results[1]
+        today_booked = results[2].scalar() or 0
+        total_total = results[3].scalar() or 0
+        daily_data = [dict(row) for row in results[4].mappings().all()]
         
-        # Calculate avg
-        avg = round(total / len(daily_data), 1) if daily_data else 0
+        today_remaining = max(0, daily_limit - today_booked)
+        avg = round(total_total / len(daily_data), 1) if daily_data else 0
         
         return {
             "today_date": today,
             "today_booked": today_booked,
             "today_remaining": today_remaining,
-            "daily_limit": DAILY_LIMIT,
-            "global_limit": GLOBAL_LIMIT,
-            "total": total,
+            "daily_limit": daily_limit,
+            "global_limit": global_limit,
+            "total": total_total,
             "average_per_day": avg,
             "daily_trends": daily_data
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
 
