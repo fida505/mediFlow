@@ -8,6 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *,
         *::before,
@@ -736,6 +737,85 @@
 
         .legend-dot.disabled {
             background: var(--slot-disabled-border);
+        }
+
+        /* ── PRINT STYLES ── */
+        @media print {
+
+            .sidebar,
+            .header,
+            .header-actions,
+            .btn,
+            .nav-item,
+            .progress-section,
+            .cards-row,
+            .date-nav,
+            .legend,
+            .sidebar-overlay,
+            .modal-overlay,
+            .confirm-overlay,
+            .toast-container {
+                display: none !important;
+            }
+
+            .main {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+
+            .content {
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            .slot-section {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .slot-header {
+                border-bottom: 2px solid #000 !important;
+                padding: 10px 0 !important;
+            }
+
+            .slot-header-title {
+                font-size: 20px !important;
+                color: #000 !important;
+            }
+
+            .mini-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .mini-table th,
+            .mini-table td {
+                border: 1px solid #ccc !important;
+                padding: 8px !important;
+                color: #000 !important;
+                background: #fff !important;
+            }
+
+            .mini-table th {
+                background: #eee !important;
+            }
+
+            .status-pill {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+                font-weight: bold !important;
+            }
+
+            tr td:last-child {
+                display: none !important;
+                /* Hide Actions column */
+            }
+
+            tr th:last-child {
+                display: none !important;
+                /* Hide Actions header */
+            }
         }
 
         .slot-grid {
@@ -1600,6 +1680,18 @@
                     <div class="slot-header">
                         <div class="slot-header-title">Today's Appointments</div>
                         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                            <button class="btn btn-ghost" onclick="printPatientList()"
+                                style="font-size:12px;padding:6px 10px">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                    <path
+                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
+                                    </path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                Print List
+                            </button>
                             <input type="text" class="form-input" placeholder="Search patient..."
                                 style="padding:6px 10px;font-size:12.5px;width:180px" oninput="filterTable(this.value)">
                         </div>
@@ -1628,15 +1720,7 @@
                     <div class="progress-section" style="margin-bottom: 20px;">
                         <div class="progress-header">
                             <div class="progress-label">Clinic Settings</div>
-                            <div class="settings-btn" onclick="openSettings()" title="Adjust Capacity">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path
-                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                                    </path>
-                                </svg>
-                            </div>
+                            <div class="progress-label">Clinic Settings</div>
                         </div>
                         <div style="font-size: 13px; color: var(--text-muted);">Current daily slot capacity: <strong
                                 id="display-daily-limit" style="color: var(--accent)">45</strong>. Select a date below
@@ -2359,9 +2443,9 @@
                     closeModal();
                     fetchAppointments();
                     // Update all possible views to stay synced
-                    updateDashboard();
-                    if (document.getElementById('page-analytics').classList.contains('active')) renderAnalytics();
-                    if (document.getElementById('page-slots').style.display !== 'none') renderCalendar();
+                    await updateDashboard();
+                    await renderAnalytics();
+                    if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
                 } else {
                     const err = await res.json();
                     showToast(err.detail || "Error saving", "error");
@@ -2387,9 +2471,9 @@
                     closeConfirm();
                     closeModal();
                     fetchAppointments();
-                    updateDashboard();
-                    if (document.getElementById('page-analytics').classList.contains('active')) renderAnalytics();
-                    if (document.getElementById('page-slots').style.display !== 'none') renderCalendar();
+                    await updateDashboard();
+                    await renderAnalytics();
+                    if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
                 }
             } catch (e) { showToast("Delete failed", "error"); }
         }
@@ -2481,6 +2565,19 @@
             } catch (err) { console.error("Analytics error:", err); }
         }
 
+        function printPatientList() {
+            window.print();
+        }
+
+        function filterTable(query) {
+            query = query.toLowerCase();
+            const rows = document.querySelectorAll('#dashboard-table-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
         // ──────────────────────────────────────────
         //  INIT
         // ──────────────────────────────────────────
@@ -2494,7 +2591,7 @@
                 renderCalendar();
             }
 
-            showPage('dashboard');
+            showPage('slots');
         }
 
         function toggleSidebar() {
