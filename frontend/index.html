@@ -1768,21 +1768,6 @@
             <!-- ─── SLOTS PAGE ─── -->
             <div id="page-slots" class="page-hidden">
                 <div id="slots-calendar-view">
-                    <div class="progress-section" style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-                            <div>
-                                <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">Daily Slot Management</div>
-                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity (e.g., 45, 50 slots per day)</div>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:12px; background: white; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--accent-mid); box-shadow: 0 2px 8px rgba(27, 108, 168, 0.08);">
-                                <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Total Capacity:</label>
-                                <input type="number" id="inline-daily-limit" min="1" max="250"
-                                    style="width:70px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-weight:700; color:var(--accent); text-align:center; outline:none;"
-                                    value="45">
-                                <button class="btn btn-primary" onclick="saveInlineLimit()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">Update Slots</button>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="slot-section">
                         <div class="calendar-container">
@@ -1815,6 +1800,22 @@
                             </svg>
                             Back to Calendar
                         </button>
+                    </div>
+
+                    <div class="progress-section" style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">Daily Slot Management</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity (e.g., 45, 50 slots per day)</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px; background: white; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--accent-mid); box-shadow: 0 2px 8px rgba(27, 108, 168, 0.08);">
+                                <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Total Capacity:</label>
+                                <input type="number" id="inline-daily-limit" min="1" max="250"
+                                    style="width:70px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-weight:700; color:var(--accent); text-align:center; outline:none;"
+                                    value="45">
+                                <button class="btn btn-primary" onclick="saveInlineLimit()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">Update Slots</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="progress-section">
@@ -2267,22 +2268,20 @@
 
         async function saveInlineLimit() {
             const val = parseInt(document.getElementById('inline-daily-limit').value);
-            if (!val || val < 1) return showToast('Enter a valid number', 'error');
+            const dateStr = toLocalDateStr(currentDate);
             try {
-                const res = await fetch(`${API_BASE}/bookings/settings`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ daily_limit: val })
+                const res = await fetch(`${API_BASE}/bookings/daily-limit`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ date: dateStr, limit: val })
                 });
                 if (res.ok) {
-                    showToast('Capacity updated!', 'success');
-                    await fetchSettings();
-                    renderCalendar();
-                } else {
-                    const d = await res.json();
-                    showToast(`Update failed: ${d.detail || res.status}`, 'error');
+                    showToast("Daily limit updated!", "success");
+                    // Refresh current view
+                    await updateDashboard();
+                    fetchAppointments();
                 }
-            } catch (err) { showToast('Update failed', 'error'); }
+            } catch (e) { showToast("Failed to update limit", "error"); }
         }
 
         async function saveSettings() {
@@ -2328,10 +2327,14 @@
             const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
             const cb = Date.now();
             let stats = {};
+            let overrides = {};
+            let globalLimit = 45;
             try {
                 const res = await fetch(`${API_BASE}/bookings/month-stats?month=${monthStr}&_cb=${cb}`);
                 const data = await res.json();
                 stats = data.counts || {};
+                overrides = data.overrides || {};
+                globalLimit = data.limit || 45;
             } catch (e) { console.error(e); }
 
             grid.innerHTML = '';
@@ -2352,7 +2355,7 @@
                 grid.appendChild(empty);
             }
 
-            const realToday = new Date().toISOString().split('T')[0];
+            const realToday = toLocalDateStr(new Date());
 
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayEl = document.createElement('div');
@@ -2361,7 +2364,8 @@
                 if (dateKey === realToday) dayEl.classList.add('today');
 
                 const booked = stats[dateKey] || 0;
-                const free = dynamicDailyLimit - booked;
+                const limit = overrides[dateKey] || globalLimit;
+                const free = limit - booked;
 
                 dayEl.innerHTML = `
                     <div class="day-num">${d}</div>
@@ -2374,9 +2378,19 @@
             }
         }
 
-        function selectDate(y, m, d) {
+        async function selectDate(y, m, d) {
             currentDate = new Date(y, m, d);
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = toLocalDateStr(currentDate);
+
+            // Fetch specific limit for this date
+            try {
+                const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}`);
+                const data = await res.json();
+                const limit = data.limit || 45;
+                document.getElementById('inline-daily-limit').value = limit;
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limit);
+            } catch (err) { console.error("Error fetching daily limit:", err); }
+
             document.getElementById('grid-current-date-text').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
             document.getElementById('slot-date-display').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
 

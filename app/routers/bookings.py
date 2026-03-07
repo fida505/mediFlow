@@ -45,6 +45,14 @@ async def init_db(db: AsyncSession):
             value TEXT NOT NULL
         )
     """))
+
+    # Daily Specific Limits table
+    await db.execute(text("""
+        CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
+            date TEXT PRIMARY KEY,
+            limit_value INTEGER NOT NULL
+        )
+    """))
     
     # Seed default daily limit if not exists
     res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
@@ -79,6 +87,16 @@ async def get_daily_limit(db: AsyncSession) -> int:
     res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
     row = res.mappings().first()
     return int(row['value']) if row else 45
+
+async def get_capacity_for_date(db: AsyncSession, date_str: str) -> int:
+    # Check for specific override first
+    res = await db.execute(text("SELECT limit_value FROM dashboard_daily_limit WHERE date = :date"), {"date": date_str})
+    row = res.mappings().first()
+    if row:
+        return int(row['limit_value'])
+    
+    # Fallback to global setting
+    return await get_daily_limit(db)
 
 @router.get("")
 async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_db)):
@@ -126,7 +144,7 @@ async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(g
 async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
     """month format: YYYY-MM"""
     await init_db(db)
-    limit = await get_daily_limit(db)
+    global_limit = await get_daily_limit(db)
     try:
         # Get daily counts for a specific month
         res = await db.execute(text("""
@@ -135,24 +153,58 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
             WHERE date LIKE :pattern
             GROUP BY date
         """), {"pattern": f"{month}-%"})
-        
         counts = {row['date']: row['count'] for row in res.mappings().all()}
-        return {"limit": limit, "counts": counts}
+
+        # Get specific limits for this month
+        lim_res = await db.execute(text("""
+            SELECT date, limit_value 
+            FROM dashboard_daily_limit 
+            WHERE date LIKE :pattern
+        """), {"pattern": f"{month}-%"})
+        limits = {row['date']: row['limit_value'] for row in lim_res.mappings().all()}
+
+        return {"limit": global_limit, "counts": counts, "overrides": limits}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/daily-limit")
+async def get_daily_limit_route(date: str = Query(...), db: AsyncSession = Depends(get_db)):
+    await init_db(db)
+    limit = await get_capacity_for_date(db, date)
+    return {"date": date, "limit": limit}
+
+class DailyLimitUpdate(BaseModel):
+    date: str
+    limit: int
+
+@router.post("/daily-limit")
+async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(get_db)):
+    await init_db(db)
+    try:
+        await db.execute(text("""
+            INSERT INTO dashboard_daily_limit (date, limit_value) 
+            VALUES (:date, :limit)
+            ON CONFLICT (date) DO UPDATE SET limit_value = EXCLUDED.limit_value
+        """), {"date": data.date, "limit": data.limit})
+        await db.commit()
+        return {"message": "Daily limit updated", "date": data.date, "limit": data.limit}
+    except Exception as e:
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/analytics")
 async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     await init_db(db)
     try:
-        DAILY_LIMIT = await get_daily_limit(db)
-
         # Determine "today"
         if date:
             today = date
         else:
             from datetime import date as pydate
             today = pydate.today().isoformat()
+
+        DAILY_LIMIT = await get_capacity_for_date(db, today)
+        GLOBAL_LIMIT = await get_daily_limit(db)
 
         # Get today's bookings count
         today_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
@@ -181,6 +233,7 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             "today_booked": today_booked,
             "today_remaining": today_remaining,
             "daily_limit": DAILY_LIMIT,
+            "global_limit": GLOBAL_LIMIT,
             "total": total,
             "average_per_day": avg,
             "daily_trends": daily_data
