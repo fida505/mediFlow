@@ -2100,8 +2100,10 @@
 
         async function updateDashboard() {
             try {
+                // Always use the CLIENT's local date, not the server's UTC date
+                const localToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
                 const cb = Date.now();
-                const res = await fetch(`${API_BASE}/bookings/analytics?_cb=${cb}`);
+                const res = await fetch(`${API_BASE}/bookings/analytics?date=${localToday}&_cb=${cb}`);
                 const stats = await res.json();
                 if (!res.ok) {
                     throw new Error(stats.detail || `Analytics failed (${res.status})`);
@@ -2112,37 +2114,36 @@
                 document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
                 document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
 
-                const pct = ((stats.today_booked / stats.daily_limit) * 100);
+                const bookedNum = stats.today_booked || 0;
+                const limitNum = stats.daily_limit || dynamicDailyLimit || 45;
+                const pct = limitNum > 0 ? ((bookedNum / limitNum) * 100) : 0;
                 const fill = document.getElementById('dashboard-progress-fill');
                 if (fill) {
-                    fill.style.width = pct + '%';
+                    fill.style.width = Math.min(pct, 100) + '%';
                     fill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
                 }
 
-                const remPct = Math.round((stats.today_remaining / stats.daily_limit) * 100);
+                const remPct = limitNum > 0 ? Math.round(((stats.today_remaining || 0) / limitNum) * 100) : 0;
                 document.getElementById('dashboard-remaining-pct').textContent = `${remPct}% remaining`;
-                document.getElementById('progress-booked').textContent = stats.today_booked;
+                document.getElementById('progress-booked').textContent = bookedNum;
 
-                // Update table
-                const resBookings = await fetch(`${API_BASE}/bookings?date=${stats.today_date}`);
+                // Always fetch today's bookings using the LOCAL date
+                const resBookings = await fetch(`${API_BASE}/bookings?date=${localToday}&_cb=${cb}`);
                 if (resBookings.ok) {
                     const bks = await resBookings.json();
-                    appointments = bks; // Update global state so "View" works
+                    appointments = bks;
                     const tbody = document.getElementById('dashboard-table-body');
                     if (tbody) {
-                        tbody.innerHTML = bks.map(b => `
+                        tbody.innerHTML = bks.length > 0 ? bks.map(b => `
                             <tr>
-                                <td>
-                                    <div style="font-weight:500">${b.patient_name}</div>
-                                    <div style="font-size:11px;color:var(--text-muted)">ID: ${b.id}</div>
-                                </td>
+                                <td><div style="font-weight:500">${b.patient_name}</div></td>
                                 <td>${b.patient_phone || '–'}</td>
                                 <td>${b.notes || '–'}</td>
                                 <td>Slot #${b.slot_id}</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
-                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${stats.today_date}', ${b.slot_id})">View</button></td>
+                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${localToday}', ${b.slot_id})">View</button></td>
                             </tr>
-                        `).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
+                        `).join('') : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
                     }
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
@@ -2475,7 +2476,7 @@
         // ──────────────────────────────────────────
         async function renderAnalytics() {
             try {
-                const realToday = new Date().toISOString().split('T')[0];
+                const realToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in client local time
                 const cacheBuster = Date.now();
                 const res = await fetch(`${API_BASE}/bookings/analytics?date=${realToday}&_cb=${cacheBuster}`);
                 const stats = await res.json();
