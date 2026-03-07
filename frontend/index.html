@@ -2466,6 +2466,7 @@
 
             if (document.getElementById('slots-booked-count')) document.getElementById('slots-booked-count').textContent = booked;
             if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
+            document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = dynamicDailyLimit);
 
             let html = '<div class="slot-grid">';
             for (let i = 1; i <= dynamicDailyLimit; i++) {
