@@ -18,12 +18,15 @@ else:
     
     # 2. Production SSL handling
     if settings.ENV == "production":
-        engine_kwargs["pool_size"] = 10
-        engine_kwargs["max_overflow"] = 20
+        engine_kwargs["pool_size"] = 2          # Free tier safe (was 10 - too many!)
+        engine_kwargs["max_overflow"] = 3        # Max 5 total connections (was 20!)
+        engine_kwargs["pool_timeout"] = 30       # Fail fast, don't hang forever
+        engine_kwargs["pool_pre_ping"] = True    # Auto-recover dead connections
         # Supabase pooler (pgBouncer) transaction mode requires statement_cache_size=0 for asyncpg
         engine_kwargs["connect_args"] = {
             "statement_cache_size": 0,
-            "prepared_statement_cache_size": 0
+            "prepared_statement_cache_size": 0,
+            "timeout": 20                        # DB connect timeout (seconds)
         }
         # Simple query param addition
         if "ssl=" not in url:
