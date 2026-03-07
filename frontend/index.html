@@ -1833,13 +1833,19 @@
                 <div class="slot-section">
                     <div class="slot-header">
                         <div class="slot-header-title">Daily Breakdown</div>
+                        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px" onclick="analyticsChangeMonth(-1)">← Prev</button>
+                            <span id="analytics-breakdown-month" style="font-size:13px;font-weight:600;color:var(--text-primary)">March 2026</span>
+                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px" onclick="analyticsChangeMonth(1)">Next →</button>
+                        </div>
                     </div>
-                    <table class="mini-table">
+                    <table class="mini-table" id="analytics-breakdown-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Bookings</th>
-                                <th>Remaining</th>
+                                <th>Day</th>
+                                <th style="text-align:center">Bookings</th>
+                                <th style="text-align:center">Remaining</th>
                                 <th>Utilization</th>
                             </tr>
                         </thead>
@@ -2518,12 +2524,29 @@
         }
 
         // ──────────────────────────────────────────
+        //  ANALYTICS STATE
+        // ──────────────────────────────────────────
+        let analyticsViewDate = new Date();
+
+        function analyticsChangeMonth(delta) {
+            analyticsViewDate.setMonth(analyticsViewDate.getMonth() + delta);
+            renderAnalytics();
+        }
+
+        // ──────────────────────────────────────────
         //  ANALYTICS
         // ──────────────────────────────────────────
         async function renderAnalytics() {
             try {
                 const realToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in client local time
                 const cacheBuster = Date.now();
+
+                // Use the analytics view month for the breakdown
+                const viewMonth = `${analyticsViewDate.getFullYear()}-${String(analyticsViewDate.getMonth()+1).padStart(2,'0')}`;
+                const monthLabel = `${months[analyticsViewDate.getMonth()]} ${analyticsViewDate.getFullYear()}`;
+                const monthLabelEl = document.getElementById('analytics-breakdown-month');
+                if (monthLabelEl) monthLabelEl.textContent = monthLabel;
+
                 const res = await fetch(`${API_BASE}/bookings/analytics?date=${realToday}&_cb=${cacheBuster}`);
                 const stats = await res.json();
 
@@ -2531,31 +2554,56 @@
                 if (document.getElementById('analytics-today-remaining')) document.getElementById('analytics-today-remaining').textContent = stats.today_remaining ?? '–';
                 if (document.getElementById('analytics-total')) document.getElementById('analytics-total').textContent = stats.total ?? '–';
 
-                const trends = stats.daily_trends || [];
+                // Filter trends to selected month
+                const allTrends = stats.daily_trends || [];
+                const trends = allTrends.filter(d => d.date && d.date.startsWith(viewMonth));
+                // Sort ascending by date
+                trends.sort((a, b) => a.date.localeCompare(b.date));
+
                 const tbody = document.getElementById('analytics-table-body');
                 if (tbody) {
-                    tbody.innerHTML = trends.map(d => {
-                        const count = d.count;
-                        const rem = dynamicDailyLimit - count;
-                        const util = ((count / dynamicDailyLimit) * 100).toFixed(0);
-                        const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
-                        const dateObj = new Date(d.date);
-                        const formattedDate = `${months[dateObj.getMonth()]} ${String(dateObj.getDate()).padStart(2, '0')}`;
-
-                        return `<tr>
-                            <td style="font-family:'DM Mono',monospace;font-size:12.5px">${formattedDate}</td>
-                            <td><strong>${count}</strong></td>
-                            <td style="color:${rem <= 0 ? 'var(--red)' : 'var(--green)'}">${rem}</td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:8px">
-                                    <div style="flex:1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border-light)">
-                                        <div style="height:100%;width:${util}%;background:${color};border-radius:99px"></div>
+                    if (trends.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)">No bookings in ${monthLabel}</td></tr>`;
+                    } else {
+                        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                        let totalBooked = 0;
+                        tbody.innerHTML = trends.map(d => {
+                            const count = d.count;
+                            totalBooked += count;
+                            const lim = dynamicDailyLimit || 45;
+                            const rem = Math.max(0, lim - count);
+                            const util = lim > 0 ? Math.min(100, Math.round((count / lim) * 100)) : 0;
+                            const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
+                            // Safe local date parse: split 'YYYY-MM-DD' manually to avoid UTC offset
+                            const [yr, mo, dy] = d.date.split('-').map(Number);
+                            const dateObj = new Date(yr, mo - 1, dy);
+                            const dayName = dayNames[dateObj.getDay()];
+                            const formattedDate = `${String(dy).padStart(2,'0')} ${months[mo-1].slice(0,3)} ${yr}`;
+                            const isToday = d.date === realToday;
+                            return `<tr style="${isToday ? 'background:rgba(99,102,241,0.07);' : ''}">
+                                <td style="font-family:'DM Mono',monospace;font-size:12.5px;white-space:nowrap">
+                                    ${formattedDate}${isToday ? ' <span style="font-size:10px;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px">TODAY</span>' : ''}
+                                </td>
+                                <td style="color:var(--text-muted);font-size:12px">${dayName}</td>
+                                <td style="text-align:center"><strong>${count}</strong></td>
+                                <td style="text-align:center;color:${rem <= 0 ? 'var(--red)' : 'var(--green)'}">${rem}</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <div style="flex:1;height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden">
+                                            <div style="height:100%;width:${util}%;background:${color};border-radius:99px"></div>
+                                        </div>
+                                        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);width:34px;text-align:right">${util}%</span>
                                     </div>
-                                    <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);width:32px;text-align:right">${util}%</span>
-                                </div>
-                            </td>
+                                </td>
+                            </tr>`;
+                        }).join('');
+                        // Append summary row
+                        tbody.innerHTML += `<tr style="border-top:2px solid var(--border-light);background:var(--surface-1)">
+                            <td colspan="2" style="font-weight:600;font-size:12.5px;padding-top:10px">Total – ${monthLabel}</td>
+                            <td style="text-align:center;font-weight:700">${totalBooked}</td>
+                            <td colspan="2"></td>
                         </tr>`;
-                    }).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">No data available</td></tr>';
+                    }
                 }
 
                 // Update month label

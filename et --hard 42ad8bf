@@ -1,0 +1,57 @@
+[33m7487b0a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Upgrade: Analytics Daily Breakdown with day name, status badge, and UTC date fix
+[33m42ad8bf[m Feature: Inline clinic capacity editor in Slots page
+[33mdacfbc3[m Fix: Dynamic header title per page + fix JS syntax error in showPage
+[33m576c7fc[m Critical Fix: Use local timezone for all date operations - fixes booking date mismatch
+[33mafe033b[m Critical Fix: Pass client local date to analytics - fixes IST timezone sync issue
+[33m78906f1[m UI Cleanup: Completely removed Settings from sidebar
+[33mca8fde5[m UI Refinement: Slots landing page, Print feature, and reliable Sync logic
+[33m5dd1e13[m Final Polish: Added Chart.js, dynamic analytics month, and fixed placeholders
+[33me84297d[m Emergency Fix: Resolved syntax error in get_analytics and restored backend functionality
+[33mdeae54b[m Final fix: Standardized all DB row access and fixed analytics data structure
+[33m3891d6c[m Rename Notes to Place in UI
+[33m067e332[m Fix dashboard and analytics cards update: added cache busters and view syncing
+[33m7c68df7[m Emergency fix: Robust migrations for slot_id, fixed mapping, and improved UI resilience
+[33md6e80c6[m Emergency fix: Backend mapping bugs, Frontend navigation and error handling improvements
+[33m1159b6b[m Fix page-hidden visibility, global appointments state, and fetch logic
+[33m2d46c21[m Rename button to Add Appointment and improve error handling
+[33m6afe7f4[m Fix missing booking option by synchronizing JS classes and CSS
+[33m9598afc[m Fix Internal Server Error, Dashboard visibility, and UI aesthetics
+[33mb9c120d[m Fix NameError BookingCreate and align frontend/backend field names
+[33m3268144[m Final verification: Refined Calendar UI and fixed capacity settings
+[33m778a15f[m Backend: added settings and month-stats for calendar and dynamic capacity
+[33me64339c[m Fix: Sync Slot Grid and Analytics by using dynamic local date for both
+[33m4195427[m Fix analytics stats by passing user date and disabling caching
+[33m01fb999[m Analytics: auto-refresh today stats after booking and every 30 seconds
+[33m9e52356[m Analytics: show today booked, remaining slots, and all-time total as live cards
+[33m4fed2b9[m Fix PRAGMA execution error on Postgres database initialization
+[33m55fd901[m Disable statement caching for asyncpg to fix pooler compatibility
+[33m2c0ad96[m Fix Render deployment timeout by using PORT environment variable
+[33mcb36770[m Fix slot grid lookup logic by including date in ID key
+[33m10fcebe[m Fix frontend root serving with explicit route
+[33mbe230f1[m Fix PostgreSQL migration syntax error
+[33mb5f2968[m Implement daily slots and real-time analytics
+[33m765c239[m Fix syntax error and improve DB connection logic
+[33m8261703[m Update health check for IP resolution debugging
+[33mb559fb8[m Robust DB connection handling with sslmode stripping
+[33m4217192[m Fix SSL parameter for asyncpg in production
+[33m6d4eae8[m Update health check with URL masking for diagnosis
+[33m35f6f87[m Configure SSL and improve DB connection reliability
+[33m3f519ea[m Add health check endpoint to debug DB connection
+[33m39a4b84[m Standardize API routes to fix Method Not Allowed error
+[33m9c6859e[m Fix database driver replacement bug
+[33m1c72ba6[m Implement mobile responsiveness
+[33m8c11a54[m Integrate frontend with backend
+[33mb5a9942[m Add Dockerfile and fixed config
+[33m0de1bba[m nil
+[33me313a78[m set python version to 3.11
+[33mcc5bf83[m set python version to 3.11
+[33m696a658[m set python version to 3.11
+[33m1773b48[m fix pydantic config error
+[33m22e278a[m fix fastapi pydantic compatibility
+[33m6e5fd95[m Update requirements.txt
+[33mb74e89f[m fix bookings routes
+[33mc0c1c2d[m remove database and log files
+[33m4b6a449[m add requirements
+[33m8aee14a[m add gitignore
+[33m8c7e731[m remove env file
+[33m64c56ac[m first commit
