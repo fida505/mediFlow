@@ -2579,15 +2579,20 @@
                 printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
             }
             if (printBody) {
-                printBody.innerHTML = appointments.length > 0 ? appointments.sort((a,b) => a.slot_id - b.slot_id).map(a => `
-                    <tr>
-                        <td style="text-align:center">#${a.slot_id}</td>
-                        <td>${getSlotTimeRange(a.slot_id)}</td>
-                        <td><strong>${a.patient_name}</strong></td>
-                        <td>${a.patient_phone}</td>
-                        <td>${a.notes || '-'}</td>
-                    </tr>
-                `).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;">No appointments booked for this date.</td></tr>';
+                let printHtml = '';
+                for (let i = 1; i <= dynamicDailyLimit; i++) {
+                    const appt = appointments.find(a => a.slot_id === i);
+                    printHtml += `
+                        <tr>
+                            <td style="text-align:center">#${i}</td>
+                            <td>${getSlotTimeRange(i)}</td>
+                            <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
+                            <td>${appt ? appt.patient_phone : '-'}</td>
+                            <td>${appt ? (appt.notes || '-') : '-'}</td>
+                        </tr>
+                    `;
+                }
+                printBody.innerHTML = printHtml;
             }
         }
 
