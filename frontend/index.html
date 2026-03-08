@@ -807,14 +807,25 @@
                 display: none !important;
             }
 
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
             .main {
                 margin-left: 0 !important;
                 padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
             }
 
             .content {
                 padding: 0 !important;
+                height: auto !important;
                 overflow: visible !important;
+                position: static !important;
             }
 
             .slot-section {
@@ -847,6 +858,10 @@
 
             .mini-table th {
                 background: #eee !important;
+            }
+
+            .mini-table tr {
+                page-break-inside: avoid !important;
             }
 
             .status-pill {
