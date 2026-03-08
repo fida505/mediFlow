@@ -865,6 +865,28 @@
                 display: none !important;
                 /* Hide Actions header */
             }
+
+            /* Slot Grid Printing */
+            .slot-grid {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            .slot-section {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .progress-section {
+                display: none !important;
+            }
+        }
+
+        .print-only {
+            display: none;
         }
 
         .slot-grid {
@@ -1810,7 +1832,22 @@
 
                     <div class="slot-section" style="margin-top: 20px;">
                         <div class="slot-header">
-                            <div class="slot-header-title">Slot Grid</div>
+                            <div class="slot-header-title">
+                                <span class="no-print">Slot Grid</span>
+                                <span class="print-only">Day Schedule — <span id="print-date-el"></span></span>
+                            </div>
+                            <button class="btn btn-ghost no-print" onclick="printPatientList()"
+                                style="font-size:12px;padding:6px 10px;margin-left:auto">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                    <path
+                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
+                                    </path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                Print Day Schedule
+                            </button>
                             <div class="legend">
                                 <div class="legend-item">
                                     <div class="legend-dot available"></div>Available
@@ -1828,6 +1865,24 @@
                         </div>
                         <div id="slot-grid-container" style="padding:12px 16px 16px">
                             <!-- Grid rendered by JS -->
+                        </div>
+
+                        <!-- Print-only List -->
+                        <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
+                            <table class="mini-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;">Slot</th>
+                                        <th style="width: 120px;">Time</th>
+                                        <th>Patient Name</th>
+                                        <th>Phone</th>
+                                        <th>Place/Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="print-slot-table-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2515,6 +2570,25 @@
             }
             html += '</div>';
             container.innerHTML = html;
+
+            // Populate Print Table
+            const printBody = document.getElementById('print-slot-table-body');
+            const printDateEl = document.getElementById('print-date-el');
+            if (printDateEl) {
+                const d = currentDate;
+                printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+            }
+            if (printBody) {
+                printBody.innerHTML = appointments.length > 0 ? appointments.sort((a,b) => a.slot_id - b.slot_id).map(a => `
+                    <tr>
+                        <td style="text-align:center">#${a.slot_id}</td>
+                        <td>${getSlotTimeRange(a.slot_id)}</td>
+                        <td><strong>${a.patient_name}</strong></td>
+                        <td>${a.patient_phone}</td>
+                        <td>${a.notes || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;">No appointments booked for this date.</td></tr>';
+            }
         }
 
         // ──────────────────────────────────────────
