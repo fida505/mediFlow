@@ -133,25 +133,23 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
     """month format: YYYY-MM"""
     import asyncio
     try:
-        # Parallelize global limit and monthly data fetches
-        global_limit_task = get_daily_limit(db)
-        counts_task = db.execute(text("""
+        # Run queries sequentially - AsyncSession does not support concurrent operations on the same session
+        global_limit = await get_daily_limit(db)
+        
+        counts_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
             WHERE date LIKE :pattern
             GROUP BY date
         """), {"pattern": f"{month}-%"})
-        limits_task = db.execute(text("""
+        counts = {row['date']: row['count'] for row in counts_res.mappings().all()}
+
+        limits_res = await db.execute(text("""
             SELECT date, limit_value 
             FROM dashboard_daily_limit 
             WHERE date LIKE :pattern
         """), {"pattern": f"{month}-%"})
-
-        results = await asyncio.gather(global_limit_task, counts_task, limits_task)
-        
-        global_limit = results[0]
-        counts = {row['date']: row['count'] for row in results[1].mappings().all()}
-        limits = {row['date']: row['limit_value'] for row in results[2].mappings().all()}
+        limits = {row['date']: row['limit_value'] for row in limits_res.mappings().all()}
 
         return {"limit": global_limit, "counts": counts, "overrides": limits}
     except Exception as e:
@@ -189,33 +187,24 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         # Determine "today"
         today = date if date else pydate.today().isoformat()
 
-        # Parallelize independent queries
-        capacity_task = get_capacity_for_date(db, today)
-        global_task = get_daily_limit(db)
-        today_booked_task = db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
-        total_booked_task = db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
-        trends_task = db.execute(text("""
+        # Run queries sequentially to avoid Session concurrency errors
+        daily_limit = await get_capacity_for_date(db, today)
+        global_limit = await get_daily_limit(db)
+        
+        today_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
+        today_booked = today_booked_res.scalar() or 0
+        
+        total_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
+        total_total = total_booked_res.scalar() or 0
+        
+        trends_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
             GROUP BY date 
             ORDER BY date DESC 
             LIMIT 30
         """))
-
-        # Await all tasks concurrently
-        results = await asyncio.gather(
-            capacity_task, 
-            global_task, 
-            today_booked_task, 
-            total_booked_task, 
-            trends_task
-        )
-
-        daily_limit = results[0]
-        global_limit = results[1]
-        today_booked = results[2].scalar() or 0
-        total_total = results[3].scalar() or 0
-        daily_data = [dict(row) for row in results[4].mappings().all()]
+        daily_data = [dict(row) for row in trends_res.mappings().all()]
         
         today_remaining = max(0, daily_limit - today_booked)
         avg = round(total_total / len(daily_data), 1) if daily_data else 0
@@ -230,8 +219,6 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             "average_per_day": avg,
             "daily_trends": daily_data
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
 
