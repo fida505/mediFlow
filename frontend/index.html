@@ -1723,8 +1723,16 @@
 
                 <!-- Progress Bar -->
                 <div class="progress-section">
-                    <div class="progress-header">
-                        <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...</div>
+                    <div class="progress-header" style="align-items: center;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button class="date-btn no-print" onclick="changeDashboardDate(-1)" style="width:26px; height:26px; border-radius:6px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            </button>
+                            <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...</div>
+                            <button class="date-btn no-print" onclick="changeDashboardDate(1)" style="width:26px; height:26px; border-radius:6px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </button>
+                        </div>
                         <div class="progress-count"><span id="progress-booked">0</span> / <span class="max-limit-text">45</span> slots filled</div>
                     </div>
                     <div class="progress-track">
@@ -1743,9 +1751,9 @@
                 <!-- Quick View Table -->
                 <div class="slot-section">
                     <div class="slot-header">
-                        <div class="slot-header-title">Today's Appointments</div>
+                        <div class="slot-header-title" id="dashboard-list-date">Today's Appointments</div>
                         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-                            <button class="btn btn-ghost" onclick="printPatientList()"
+                            <button class="btn btn-ghost no-print" onclick="printFromDashboard()"
                                 style="font-size:12px;padding:6px 10px">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
@@ -2154,6 +2162,7 @@
         let appointments = [];
         let currentDate = new Date();
         let viewDate = new Date(); // For calendar month navigation
+        let dashboardViewDate = new Date(); // Added for dashboard date navigation
         let currentEditingId = null;
         let selectedSlot = null;
 
@@ -2260,12 +2269,16 @@
             if (subEl) subEl.textContent = t[1];
         }
 
+        function changeDashboardDate(delta) {
+            dashboardViewDate.setDate(dashboardViewDate.getDate() + delta);
+            updateDashboard();
+        }
+
         async function updateDashboard() {
             try {
-                // Always use the CLIENT's local date, not the server's UTC date
-                const localToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+                const dateStr = toLocalDateStr(dashboardViewDate);
                 const cb = Date.now();
-                const res = await fetch(`${API_BASE}/bookings/analytics?date=${localToday}&_cb=${cb}`);
+                const res = await fetch(`${API_BASE}/bookings/analytics?date=${dateStr}&_cb=${cb}`);
                 const stats = await res.json();
                 if (!res.ok) {
                     throw new Error(stats.detail || `Analytics failed (${res.status})`);
@@ -2293,10 +2306,14 @@
                 document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limitNum);
                 
                 // Update Dashboard Capacity Date Label
-                const dObj = new Date(localToday + 'T00:00:00'); // Safe local parse
-                const dateLabel = `Daily Capacity — ${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
+                const dObj = new Date(dateStr + 'T00:00:00'); 
+                const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
                 if (document.getElementById('dashboard-capacity-date')) {
-                    document.getElementById('dashboard-capacity-date').textContent = dateLabel;
+                    document.getElementById('dashboard-capacity-date').textContent = `Daily Capacity — ${dateLabel}`;
+                }
+                if (document.getElementById('dashboard-list-date')) {
+                    const isToday = toLocalDateStr(new Date()) === dateStr;
+                    document.getElementById('dashboard-list-date').textContent = isToday ? "Today's Appointments" : `Appointments for ${dObj.getDate()} ${months[dObj.getMonth()]}`;
                 }
 
                 // Update Progress Ticks
@@ -2311,11 +2328,13 @@
                     ticksContainer.innerHTML = ticksHtml;
                 }
 
-                // Always fetch today's bookings using the LOCAL date
-                const resBookings = await fetch(`${API_BASE}/bookings?date=${localToday}&_cb=${cb}`);
+                const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
                 if (resBookings.ok) {
                     const bks = await resBookings.json();
-                    appointments = bks;
+                    
+                    // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
+                    appointments = bks; 
+
                     const tbody = document.getElementById('dashboard-table-body');
                     if (tbody) {
                         tbody.innerHTML = bks.length > 0 ? bks.map(b => `
@@ -2325,9 +2344,9 @@
                                 <td>${b.notes || '–'}</td>
                                 <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id)})</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
-                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${localToday}', ${b.slot_id})">View</button></td>
+                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id})">View</button></td>
                             </tr>
-                        `).join('') : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for today.</td></tr>';
+                        `).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</td></tr>`;
                     }
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
@@ -2865,7 +2884,24 @@
         }
 
         function printPatientList() {
+            // This function is used by the Slots page
+            // appointments array and currentDate are already set by fetchAppointments()
             window.print();
+        }
+
+        function printFromDashboard() {
+            // Dashboard uses dashboardViewDate instead of the global currentDate
+            // We temporarily sync them so the hidden print table (which uses currentDate) is correct
+            const originalDate = new Date(currentDate);
+            currentDate = new Date(dashboardViewDate);
+            
+            // Re-render the slot grid's hidden print table to ensure it has dashboard's data
+            renderSlotGrid(); 
+            
+            window.print();
+            
+            // Restore
+            currentDate = originalDate;
         }
 
         function filterTable(query) {
