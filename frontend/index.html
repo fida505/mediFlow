@@ -2376,7 +2376,7 @@
                 if (displayEl) displayEl.textContent = dynamicDailyLimit;
                 const inlineEl = document.getElementById('inline-daily-limit');
                 if (inlineEl) inlineEl.value = dynamicDailyLimit;
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = dynamicDailyLimit);
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = dynamicDailyLimit * doctors.length);
             } catch (err) { console.error("Settings error:", err); }
         }
 
@@ -2514,7 +2514,7 @@
                 const limit = data.limit || 45;
                 dynamicDailyLimit = limit;
                 document.getElementById('inline-daily-limit').value = limit;
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limit);
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limit * doctors.length);
             } catch (err) { console.error("Error fetching daily limit:", err); }
 
             document.getElementById('grid-current-date-text').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
