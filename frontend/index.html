@@ -1776,6 +1776,8 @@
                                 <th>Patient</th>
                                 <th>Phone</th>
                                 <th>Place</th>
+                                <th>Time</th>
+                                <th>Doctor</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -2165,6 +2167,12 @@
         let dashboardViewDate = new Date(); // Added for dashboard date navigation
         let currentEditingId = null;
         let selectedSlot = null;
+        let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
+        
+        const doctors = [
+            { id: 'dr_1', name: 'Doctor 1' },
+            { id: 'dr_2', name: 'Doctor 2' }
+        ];
 
         // Always use local date (not UTC) to avoid timezone bugs
         function toLocalDateStr(date) {
@@ -2284,26 +2292,25 @@
                     throw new Error(stats.detail || `Analytics failed (${res.status})`);
                 }
 
-                document.getElementById('booked-count').textContent = stats.today_booked ?? 0;
-                document.getElementById('dashboard-remaining-count').textContent = stats.today_remaining ?? 0;
-                document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
-                document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
-
                 const bookedNum = stats.today_booked || 0;
-                const limitNum = stats.daily_limit || dynamicDailyLimit || 45;
-                const pct = limitNum > 0 ? ((bookedNum / limitNum) * 100) : 0;
+                const perDoctorLimit = stats.daily_limit || dynamicDailyLimit || 45;
+                const totalClinicLimit = perDoctorLimit * doctors.length;
+                const pct = totalClinicLimit > 0 ? ((bookedNum / totalClinicLimit) * 100) : 0;
                 const fill = document.getElementById('dashboard-progress-fill');
                 if (fill) {
                     fill.style.width = Math.min(pct, 100) + '%';
                     fill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
                 }
 
-                const remPct = limitNum > 0 ? Math.round(((stats.today_remaining || 0) / limitNum) * 100) : 0;
+                const remTotal = Math.max(0, totalClinicLimit - bookedNum);
+                const remPct = totalClinicLimit > 0 ? Math.round((remTotal / totalClinicLimit) * 100) : 0;
+                document.getElementById('booked-count').textContent = bookedNum;
+                document.getElementById('dashboard-remaining-count').textContent = remTotal;
                 document.getElementById('dashboard-remaining-pct').textContent = `${remPct}%`;
                 document.getElementById('progress-booked').textContent = bookedNum;
 
                 // Sync all capacity labels on dashboard
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = limitNum);
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalClinicLimit);
                 
                 // Update Dashboard Capacity Date Label
                 const dObj = new Date(dateStr + 'T00:00:00'); 
@@ -2319,12 +2326,12 @@
                 // Update Progress Ticks
                 const ticksContainer = document.getElementById('dashboard-progress-ticks');
                 if (ticksContainer) {
-                    const step = Math.ceil(limitNum / 4);
+                    const step = Math.ceil(totalClinicLimit / 4);
                     let ticksHtml = `<span class="progress-tick">0</span>`;
                     for (let i = 1; i < 4; i++) {
                         ticksHtml += `<span class="progress-tick">${i * step}</span>`;
                     }
-                    ticksHtml += `<span class="progress-tick" style="color:var(--red);font-weight:600">${limitNum}</span>`;
+                    ticksHtml += `<span class="progress-tick" style="color:var(--red);font-weight:600">${totalClinicLimit}</span>`;
                     ticksContainer.innerHTML = ticksHtml;
                 }
 
@@ -2343,10 +2350,11 @@
                                 <td>${b.patient_phone || '–'}</td>
                                 <td>${b.notes || '–'}</td>
                                 <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id)})</td>
+                                <td>${doctors.find(d => d.id === b.doctor_id)?.name || 'Dr 1'}</td>
                                 <td><span class="status-pill booked">Confirmed</span></td>
-                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id})">View</button></td>
+                                <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
                             </tr>
-                        `).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</td></tr>`;
+                        `).join('') : `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</td></tr>`;
                     }
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
@@ -2549,7 +2557,7 @@
             return appointments.length;
         }
 
-        function viewFromDashboard(dateStr, slotId) {
+        function viewFromDashboard(dateStr, slotId, doctorId) {
             currentDate = new Date(dateStr);
             showPage('slots');
             // Switch to grid view
@@ -2558,19 +2566,20 @@
 
             // Re-fetch for that day to populate appointments array
             fetchAppointments().then(() => {
-                viewSlot(slotId);
+                viewSlot(slotId, doctorId);
             });
         }
 
         function renderSlotGrid() {
             const container = document.getElementById('slot-grid-container');
             if (!container) return;
+            
             const booked = getBookedCount();
-            const remaining = dynamicDailyLimit - booked;
-            const limitReached = booked >= dynamicDailyLimit;
-
-            // Update Progress Bar
-            const pct = (booked / dynamicDailyLimit) * 100;
+            const totalCapacity = dynamicDailyLimit * doctors.length;
+            const remaining = totalCapacity - booked;
+            
+            // Update Progress Bar (Total)
+            const pct = (booked / totalCapacity) * 100;
             const progressFill = document.getElementById('grid-progress-fill');
             if (progressFill) {
                 progressFill.style.width = pct + '%';
@@ -2579,33 +2588,49 @@
 
             if (document.getElementById('slots-booked-count')) document.getElementById('slots-booked-count').textContent = booked;
             if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
-            document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = dynamicDailyLimit);
+            document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCapacity);
 
-            let html = '<div class="slot-grid">';
-            for (let i = 1; i <= dynamicDailyLimit; i++) {
-                const appt = appointments.find(a => a.slot_id === i);
-                const timeRange = getSlotTimeRange(i);
+            let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
+            
+            doctors.forEach(doc => {
+                html += `
+                <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
+                        <h3 style="margin:0; font-size: 18px; color: var(--accent);">${doc.name}</h3>
+                        <div class="legend" style="margin:0">
+                            <div class="legend-item"><div class="legend-dot available"></div> Free</div>
+                            <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+                        </div>
+                    </div>
+                    <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
                 
-                if (appt) {
-                    html += `
-                        <div class="slot-cell booked" onclick="viewSlot(${i})">
-                            <div class="slot-num">Slot ${i}</div>
-                            <div class="slot-time">${timeRange}</div>
-                            <div class="slot-patient">${appt.patient_name}</div>
-                        </div>`;
-                } else {
-                    html += `
-                        <div class="slot-cell available" onclick="openModal(${i})">
-                            <div class="slot-num">Slot ${i}</div>
-                            <div class="slot-time">${timeRange}</div>
-                            <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
-                        </div>`;
+                for (let i = 1; i <= dynamicDailyLimit; i++) {
+                    const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                    const timeRange = getSlotTimeRange(i);
+                    
+                    if (appt) {
+                        html += `
+                            <div class="slot-cell booked" onclick="viewSlot(${i}, '${doc.id}')">
+                                <div class="slot-num">Slot ${i}</div>
+                                <div class="slot-time">${timeRange}</div>
+                                <div class="slot-patient">${appt.patient_name}</div>
+                            </div>`;
+                    } else {
+                        html += `
+                            <div class="slot-cell available" onclick="openModal(${i}, '${doc.id}')">
+                                <div class="slot-num">Slot ${i}</div>
+                                <div class="slot-time">${timeRange}</div>
+                                <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
+                            </div>`;
+                    }
                 }
-            }
+                html += `</div></div>`;
+            });
+            
             html += '</div>';
             container.innerHTML = html;
 
-            // Populate Print Table
+            // Populate Print Table (Combined)
             const printBody = document.getElementById('print-slot-table-body');
             const printDateEl = document.getElementById('print-date-el');
             if (printDateEl) {
@@ -2614,18 +2639,21 @@
             }
             if (printBody) {
                 let printHtml = '';
-                for (let i = 1; i <= dynamicDailyLimit; i++) {
-                    const appt = appointments.find(a => a.slot_id === i);
-                    printHtml += `
-                        <tr>
-                            <td style="text-align:center">#${i}</td>
-                            <td>${getSlotTimeRange(i)}</td>
-                            <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
-                            <td>${appt ? appt.patient_phone : '-'}</td>
-                            <td>${appt ? (appt.notes || '-') : '-'}</td>
-                        </tr>
-                    `;
-                }
+                doctors.forEach(doc => {
+                    printHtml += `<tr><td colspan="5" style="background:#f0f7ff; font-weight:bold; padding:12px; text-align:center;">${doc.name}</td></tr>`;
+                    for (let i = 1; i <= dynamicDailyLimit; i++) {
+                        const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                        printHtml += `
+                            <tr>
+                                <td style="text-align:center">#${i}</td>
+                                <td>${getSlotTimeRange(i)}</td>
+                                <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
+                                <td>${appt ? appt.patient_phone : '-'}</td>
+                                <td>${appt ? (appt.notes || '-') : '-'}</td>
+                            </tr>
+                        `;
+                    }
+                });
                 printBody.innerHTML = printHtml;
             }
         }
@@ -2633,11 +2661,13 @@
         // ──────────────────────────────────────────
         //  MODALS
         // ──────────────────────────────────────────
-        function openModal(slot) {
+        function openModal(slot, doctorId) {
             selectedSlot = slot;
+            selectedDoctor = doctorId;
             currentEditingId = null;
             const timeRange = getSlotTimeRange(slot);
-            document.getElementById('modal-title').textContent = "Add Appointment";
+            const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
+            document.getElementById('modal-title').textContent = "Add Appointment - " + docName;
             document.getElementById('modal-slot-badge').textContent = `Slot #${slot} (${timeRange})`;
             document.getElementById('field-name').value = '';
             document.getElementById('field-phone').value = '';
@@ -2661,13 +2691,15 @@
             document.getElementById('modal-overlay').classList.remove('open');
         }
 
-        function viewSlot(slotId) {
-            const appt = appointments.find(a => a.slot_id === slotId);
+        function viewSlot(slotId, doctorId) {
+            const appt = appointments.find(a => a.slot_id === slotId && a.doctor_id === doctorId);
             if (!appt) return;
             selectedSlot = slotId;
+            selectedDoctor = doctorId;
             currentEditingId = appt.id;
             const timeRange = getSlotTimeRange(slotId);
-            document.getElementById('modal-title').textContent = "Patient Details";
+            const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
+            document.getElementById('modal-title').textContent = "Patient Details - " + docName;
             document.getElementById('modal-slot-badge').textContent = `Slot #${slotId} (${timeRange})`;
             document.getElementById('field-name').value = appt.patient_name;
             document.getElementById('field-phone').value = appt.patient_phone;
@@ -2691,6 +2723,7 @@
             const data = {
                 slot_id: selectedSlot,
                 date: toLocalDateStr(currentDate),
+                doctor_id: selectedDoctor,
                 patient_name: document.getElementById('field-name').value.trim(),
                 patient_phone: document.getElementById('field-phone').value.trim(),
                 notes: document.getElementById('field-place').value.trim()

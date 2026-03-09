@@ -15,6 +15,7 @@ class BookingCreate(BaseModel):
     patient_phone: str
     slot_id: int
     date: str
+    doctor_id: str = "dr_1"
     notes: str = None
 
 class BookingUpdate(BaseModel):
@@ -22,6 +23,7 @@ class BookingUpdate(BaseModel):
     patient_phone: str = None
     slot_id: int = None
     date: str = None
+    doctor_id: str = None
     notes: str = None
 
 async def init_db(db: AsyncSession):
@@ -62,11 +64,14 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN date TEXT NOT NULL DEFAULT ''"))
         if 'slot_id' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
+        if 'doctor_id' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
             
         # 4. Indexes for performance
         await db.execute(text("""
             CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);
             CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);
+            CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);
         """))
         
         await db.commit()
@@ -90,12 +95,23 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str) -> int:
     return await get_daily_limit(db)
 
 @router.get("")
-async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_db)):
+async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
+        query = "SELECT id, patient_name, phone, notes, time, date, slot_id, doctor_id FROM dashboard_bookings"
+        conditions = []
+        params = {}
+        
         if date:
-            result = await db.execute(text("SELECT id, patient_name, phone, notes, time, date, slot_id FROM dashboard_bookings WHERE date = :date"), {"date": date})
-        else:
-            result = await db.execute(text("SELECT id, patient_name, phone, notes, time, date, slot_id FROM dashboard_bookings"))
+            conditions.append("date = :date")
+            params["date"] = date
+        if doctor_id:
+            conditions.append("doctor_id = :doctor_id")
+            params["doctor_id"] = doctor_id
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        result = await db.execute(text(query), params)
         
         # Explicit mapping to avoid any Row vs Mapping issues
         bookings_list = []
@@ -107,7 +123,8 @@ async def get_bookings(date: str = Query(None), db: AsyncSession = Depends(get_d
                 "notes": row['notes'],
                 "time": row['time'],
                 "date": row['date'],
-                "slot_id": row['slot_id']
+                "slot_id": row['slot_id'],
+                "doctor_id": row.get('doctor_id', 'dr_1')
             })
         return bookings_list
     except Exception as e:
@@ -225,16 +242,17 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
 @router.post("")
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     try:
-        # ID includes date and slot to allow same slot on different days
-        booking_id = f"appt-{booking.date}-{booking.slot_id}"
+        # ID includes date, doctor and slot to allow same slot on different days/doctors
+        doc_id = booking.doctor_id or "dr_1"
+        booking_id = f"appt-{booking.date}-{doc_id}-{booking.slot_id}"
         
         result = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         if result.fetchone():
-            raise HTTPException(status_code=400, detail="Slot already booked for this date")
+            raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id)
-            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id)
+            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id)
         """), {
             "id": booking_id,
             "name": booking.patient_name,
@@ -242,7 +260,8 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "notes": booking.notes or "",
             "time": str(booking.slot_id),
             "date": booking.date,
-            "slot_id": booking.slot_id
+            "slot_id": booking.slot_id,
+            "doctor_id": doc_id
         })
         await db.commit()
         return {"message": "Booking created successfully"}
