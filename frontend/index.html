@@ -1919,7 +1919,7 @@
                     <div class="card">
                         <div class="card-label">📅 Today's Bookings</div>
                         <div class="card-value" id="analytics-today-booked">–</div>
-                        <div class="card-sub">Out of 45 max slots</div>
+                        <div class="card-sub">Out of <span class="max-limit-text">90</span> max slots</div>
                     </div>
                     <div class="card">
                         <div class="card-label">✅ Slots Remaining Today</div>
@@ -2834,9 +2834,10 @@
                         tbody.innerHTML = trends.map(d => {
                             const count = d.count;
                             totalBooked += count;
-                            const lim = dynamicDailyLimit || 45;
-                            const rem = Math.max(0, lim - count);
-                            const util = lim > 0 ? Math.min(100, Math.round((count / lim) * 100)) : 0;
+                            const perDocLimit = dynamicDailyLimit || 45;
+                            const totalLim = perDocLimit * doctors.length;
+                            const rem = Math.max(0, totalLim - count);
+                            const util = totalLim > 0 ? Math.min(100, Math.round((count / totalLim) * 100)) : 0;
                             const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
                             // Safe local date parse: split 'YYYY-MM-DD' manually to avoid UTC offset
                             const [yr, mo, dy] = d.date.split('-').map(Number);
