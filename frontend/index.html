@@ -2486,8 +2486,9 @@
                 if (dateKey === realToday) dayEl.classList.add('today');
 
                 const booked = stats[dateKey] || 0;
-                const limit = overrides[dateKey] || globalLimit;
-                const free = limit - booked;
+                const perDocLimit = overrides[dateKey] || globalLimit;
+                const totalLimit = perDocLimit * doctors.length;
+                const free = totalLimit - booked;
 
                 dayEl.innerHTML = `
                     <div class="day-num">${d}</div>
