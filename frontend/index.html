@@ -1894,20 +1894,7 @@
 
                         <!-- Print-only List -->
                         <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
-                            <table class="mini-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 60px;">Slot</th>
-                                        <th style="width: 120px;">Time</th>
-                                        <th>Patient Name</th>
-                                        <th>Phone</th>
-                                        <th>Place/Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="print-slot-table-body">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
+                            <!-- Populated by JS -->
                         </div>
                     </div>
                 </div>
@@ -2633,31 +2620,51 @@
             html += '</div>';
             container.innerHTML = html;
 
-            // Populate Print Table (Combined)
-            const printBody = document.getElementById('print-slot-table-body');
+            // Populate Print Table (Separated by Doctor)
+            const printListContainer = document.getElementById('print-slot-list');
             const printDateEl = document.getElementById('print-date-el');
             if (printDateEl) {
                 const d = currentDate;
                 printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
             }
-            if (printBody) {
+            if (printListContainer) {
                 let printHtml = '';
-                doctors.forEach(doc => {
-                    printHtml += `<tr><td colspan="5" style="background:#f0f7ff; font-weight:bold; padding:12px; text-align:center;">${doc.name}</td></tr>`;
+                doctors.forEach((doc, index) => {
+                    const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
+                    printHtml += `
+                    <div style="${pageBreakStyle} margin-bottom: 40px;">
+                        <h2 style="font-size: 20px; color: var(--text-primary); margin-bottom: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 8px;">Schedule for ${doc.name}</h2>
+                        <table class="mini-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">Slot</th>
+                                    <th style="width: 120px;">Time</th>
+                                    <th>Patient Name</th>
+                                    <th>Phone</th>
+                                    <th>Place/Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
                     for (let i = 1; i <= dynamicDailyLimit; i++) {
                         const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
                         printHtml += `
-                            <tr>
-                                <td style="text-align:center">#${i}</td>
-                                <td>${getSlotTimeRange(i)}</td>
-                                <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
-                                <td>${appt ? appt.patient_phone : '-'}</td>
-                                <td>${appt ? (appt.notes || '-') : '-'}</td>
-                            </tr>
+                                <tr>
+                                    <td style="text-align:center">#${i}</td>
+                                    <td>${getSlotTimeRange(i)}</td>
+                                    <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
+                                    <td>${appt ? appt.patient_phone : '-'}</td>
+                                    <td>${appt ? (appt.notes || '-') : '-'}</td>
+                                </tr>
                         `;
                     }
+                    printHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                    `;
                 });
-                printBody.innerHTML = printHtml;
+                printListContainer.innerHTML = printHtml;
             }
         }
 
