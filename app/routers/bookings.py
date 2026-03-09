@@ -38,7 +38,8 @@ async def init_db(db: AsyncSession):
                 notes TEXT,
                 time TEXT NOT NULL,
                 date TEXT NOT NULL DEFAULT '',
-                slot_id INTEGER
+                slot_id INTEGER,
+                doctor_id TEXT NOT NULL DEFAULT 'dr_1'
             );
             CREATE TABLE IF NOT EXISTS dashboard_settings (
                 key TEXT PRIMARY KEY,
@@ -300,6 +301,9 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.date is not None:
             updates.append("date = :date")
             params["date"] = booking.date
+        if booking.doctor_id is not None:
+            updates.append("doctor_id = :doctor_id")
+            params["doctor_id"] = booking.doctor_id
             
         if not updates:
             return {"message": "No changes made"}
