@@ -791,6 +791,7 @@
         /* ── PRINT STYLES ── */
         @media print {
 
+            .content,
             .sidebar,
             .header,
             .header-actions,
@@ -1772,10 +1773,9 @@
                     <table class="mini-table" id="appointments-table">
                         <thead>
                             <tr>
-                                <th>Time</th>
                                 <th>Patient</th>
                                 <th>Phone</th>
-                                <th>Place</th>
+                                <th>Place/Notes</th>
                                 <th>Time</th>
                                 <th>Doctor</th>
                                 <th>Status</th>
@@ -1892,10 +1892,7 @@
                             <!-- Grid rendered by JS -->
                         </div>
 
-                        <!-- Print-only List -->
-                        <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
-                            <!-- Populated by JS -->
-                        </div>
+                        <!-- Print-only List moved to top level -->
                     </div>
                 </div>
             </div>
@@ -2049,6 +2046,12 @@
             </div>
 
         </div><!-- /content -->
+
+        <!-- Print-only List -->
+        <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
+            <!-- Populated by JS -->
+        </div>
+
     </main>
 
     <!-- ─── MODAL ─── -->
