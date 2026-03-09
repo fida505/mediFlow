@@ -41,10 +41,14 @@ async def init_db(db: AsyncSession):
                 slot_id INTEGER,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1'
             );
+        """))
+        await db.execute(text("""
             CREATE TABLE IF NOT EXISTS dashboard_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
+        """))
+        await db.execute(text("""
             CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
                 date TEXT PRIMARY KEY,
                 limit_value INTEGER NOT NULL
@@ -69,11 +73,9 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
             
         # 4. Indexes for performance
-        await db.execute(text("""
-            CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);
-            CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);
-            CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);
-        """))
+        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);"))
+        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);"))
+        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);"))
         
         await db.commit()
     except Exception as e:
