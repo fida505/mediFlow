@@ -2306,6 +2306,8 @@
                 const remPct = totalClinicLimit > 0 ? Math.round((remTotal / totalClinicLimit) * 100) : 0;
                 document.getElementById('booked-count').textContent = bookedNum;
                 document.getElementById('dashboard-remaining-count').textContent = remTotal;
+                document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
+                document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
                 document.getElementById('dashboard-remaining-pct').textContent = `${remPct}%`;
                 document.getElementById('progress-booked').textContent = bookedNum;
 
@@ -2816,7 +2818,12 @@
                 const stats = await res.json();
 
                 if (document.getElementById('analytics-today-booked')) document.getElementById('analytics-today-booked').textContent = stats.today_booked ?? '–';
-                if (document.getElementById('analytics-today-remaining')) document.getElementById('analytics-today-remaining').textContent = stats.today_remaining ?? '–';
+                if (document.getElementById('analytics-today-remaining')) {
+                    const booked = stats.today_booked || 0;
+                    const perDocLimit = stats.daily_limit || dynamicDailyLimit || 45;
+                    const totalLimit = perDocLimit * doctors.length;
+                    document.getElementById('analytics-today-remaining').textContent = Math.max(0, totalLimit - booked);
+                }
                 if (document.getElementById('analytics-total')) document.getElementById('analytics-total').textContent = stats.total ?? '–';
 
                 // Filter trends to selected month
