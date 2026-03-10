@@ -1751,7 +1751,7 @@
 
                 <!-- Quick View Table -->
                 <div class="slot-section">
-                    <div class="slot-header">
+                    <div class="slot-header" style="border-bottom:none; padding-bottom: 8px;">
                         <div class="slot-header-title" id="dashboard-list-date">Today's Appointments</div>
                         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
                             <button class="btn btn-ghost no-print" onclick="printFromDashboard()"
@@ -1769,6 +1769,11 @@
                             <input type="text" class="form-input" placeholder="Search patient..."
                                 style="padding:6px 10px;font-size:12.5px;width:180px" oninput="filterTable(this.value)">
                         </div>
+                    </div>
+                    <div class="dashboard-tabs no-print" style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
+                        <button class="btn btn-primary" id="tab-dashboard-all" onclick="setDashboardTab('all')" style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
+                        <button class="btn btn-ghost" id="tab-dashboard-dr_1" onclick="setDashboardTab('dr_1')" style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
+                        <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')" style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
                     </div>
                     <div id="dashboard-tables-container">
                         <!-- Populated by JS -->
@@ -2146,6 +2151,7 @@
         let currentEditingId = null;
         let selectedSlot = null;
         let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
+        let currentDashboardTab = 'all'; // Keeps track of active tab on dashboard
         
         const doctors = [
             { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
@@ -2321,54 +2327,89 @@
                     
                     // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
                     appointments = bks; 
-
-                    const container = document.getElementById('dashboard-tables-container');
-                    if (container) {
-                        if (bks.length === 0) {
-                            container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</div>`;
-                        } else {
-                            let html = '';
-                            doctors.forEach(doc => {
-                                const docBks = bks.filter(b => b.doctor_id === doc.id);
-                                if (docBks.length > 0) {
-                                    html += `
-                                    <div style="margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden;">
-                                        <div style="background: var(--surface-2); padding: 10px 16px; font-weight: 600; font-size: 13.5px; color: var(--text-primary); border-bottom: 1px solid var(--border-light);">
-                                            ${doc.name}
-                                        </div>
-                                        <table class="mini-table" style="margin-bottom: 0;">
-                                            <thead>
-                                                <tr>
-                                                    <th>Patient</th>
-                                                    <th>Phone</th>
-                                                    <th>Place/Notes</th>
-                                                    <th>Time</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${docBks.map(b => `
-                                                <tr>
-                                                    <td><div style="font-weight:500">${b.patient_name}</div></td>
-                                                    <td>${b.patient_phone || '–'}</td>
-                                                    <td>${b.notes || '–'}</td>
-                                                    <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id)})</td>
-                                                    <td><span class="status-pill booked">Confirmed</span></td>
-                                                    <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
-                                                </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    `;
-                                }
-                            });
-                            container.innerHTML = html;
-                        }
-                    }
+                    renderDashboardTables(bks, dateStr);
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
+        }
+
+        function setDashboardTab(tabId) {
+            currentDashboardTab = tabId;
+            
+            // Update button styles
+            document.querySelectorAll('.dashboard-tabs .btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-ghost');
+            });
+            const activeBtn = document.getElementById('tab-dashboard-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.remove('btn-ghost');
+                activeBtn.classList.add('btn-primary');
+            }
+            
+            // Re-render the tables with the currently fetched appointments array
+            renderDashboardTables(appointments, toLocalDateStr(dashboardViewDate));
+        }
+
+        function renderDashboardTables(bks, dateStr) {
+            const container = document.getElementById('dashboard-tables-container');
+            if (!container) return;
+            
+            let filteredDoctors = doctors;
+            let displayBks = bks;
+
+            if (currentDashboardTab !== 'all') {
+                filteredDoctors = doctors.filter(d => d.id === currentDashboardTab);
+                displayBks = bks.filter(b => b.doctor_id === currentDashboardTab);
+            }
+
+            if (bks.length === 0) {
+                container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</div>`;
+                return;
+            }
+            
+            if (displayBks.length === 0 && currentDashboardTab !== 'all') {
+                container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for selected doctor on ${dateStr}.</div>`;
+                return;
+            }
+
+            let html = '';
+            filteredDoctors.forEach(doc => {
+                const docBks = displayBks.filter(b => b.doctor_id === doc.id);
+                if (docBks.length > 0) {
+                    html += `
+                    <div style="margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden;">
+                        <div style="background: var(--surface-2); padding: 10px 16px; font-weight: 600; font-size: 13.5px; color: var(--text-primary); border-bottom: 1px solid var(--border-light);">
+                            ${doc.name}
+                        </div>
+                        <table class="mini-table" style="margin-bottom: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Phone</th>
+                                    <th>Place/Notes</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${docBks.map(b => `
+                                <tr>
+                                    <td><div style="font-weight:500">${b.patient_name}</div></td>
+                                    <td>${b.patient_phone || '–'}</td>
+                                    <td>${b.notes || '–'}</td>
+                                    <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id)})</td>
+                                    <td><span class="status-pill booked">Confirmed</span></td>
+                                    <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    `;
+                }
+            });
+            container.innerHTML = html;
         }
 
         // ──────────────────────────────────────────
