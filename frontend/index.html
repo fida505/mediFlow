@@ -1388,17 +1388,88 @@
             justify-content: flex-end;
         }
 
-        /* Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
+        /* ── LOGIN SCREEN ── */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            background: var(--accent);
+            color: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .login-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .login-form .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        #app-content {
+            display: none;
+            height: 100vh;
+            width: 100%;
         }
 
         .cards-row .card {
@@ -1556,886 +1627,910 @@
 </head>
 
 <body>
-    <!-- ── LOADING SPLASH ── -->
-    <div id="splash-screen" class="splash-screen">
-        <div class="logo-mark" style="width: 50px; height: 50px; margin-bottom: 24px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+    <!-- ─── LOGIN SCREEN ─── -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-logo">M</div>
+            <div class="login-title">MediFlow Login</div>
+            <div class="login-sub">Welcome back! Please enter your details.</div>
+
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="login-user" class="form-input" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-pass" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="login-btn" id="login-submit-btn">Login to Dashboard</button>
+            </form>
+
+            <div style="margin-top: 24px; font-size: 12px; color: var(--text-muted);">
+                Enter any username and password to log in.
+            </div>
         </div>
-        <div class="spinner"></div>
-        <div class="splash-text">MediFlow</div>
-        <div class="splash-sub" id="splash-status">Initializing secure connection...</div>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="logo-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                    <path d="M2 17l10 5 10-5" />
-                    <path d="M2 12l10 5 10-5" />
-                </svg>
-            </div>
-            <div class="logo-text">ClinicOS<span>Appointment System</span></div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Overview</div>
-            <div class="nav-item active" onclick="showPage('dashboard', this)">
-                <svg viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="14" y="14" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                </svg>
-                Dashboard
-            </div>
-            <div class="nav-item" onclick="showPage('slots', this)">
-                <svg viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                Daily Slots
-            </div>
-
-            <div class="nav-section-label">Reports</div>
-            <div class="nav-item" onclick="showPage('analytics', this)">
-                <svg viewBox="0 0 24 24">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-                Analytics
-            </div>
-
-            <div class="nav-section-label">Admin</div>
-            <div class="nav-item" onclick="showPage('users', this)">
-                <svg viewBox="0 0 24 24">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                Users
-            </div>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-card">
-                <div class="user-avatar">SA</div>
-                <div class="user-info">
-                    <div class="user-name">Dr. Sarah Al-Amin</div>
-                    <div class="user-role">Administrator</div>
-                </div>
-                <svg style="width:14px;height:14px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"
-                    viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="1" />
-                    <circle cx="19" cy="12" r="1" />
-                    <circle cx="5" cy="12" r="1" />
-                </svg>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-        <!-- HEADER -->
-        <header class="header">
-            <button class="header-menu-btn" onclick="toggleSidebar()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <div>
-                <span class="header-title" id="page-title">Daily Slots</span>
-                <span class="header-sub" id="page-sub">— Book & Manage Appointments</span>
-            </div>
-            <div class="header-actions">
-                <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
-                        class="real-time-dot"></span>Live</span>
-                <button class="btn btn-primary" onclick="showPage('slots')">
-                    <svg viewBox="0 0 24 24">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
+    <div id="app-content">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
                     </svg>
-                    Add Appointment
+                </div>
+                <div class="logo-text">ClinicOS<span>Appointment System</span></div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Overview</div>
+                <div class="nav-item active" onclick="showPage('dashboard', this)">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Dashboard
+                </div>
+                <div class="nav-item" onclick="showPage('slots', this)">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    Daily Slots
+                </div>
+
+                <div class="nav-section-label">Reports</div>
+                <div class="nav-item" onclick="showPage('analytics', this)">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Analytics
+                </div>
+
+                <div class="nav-section-label">Admin</div>
+                <div class="nav-item" onclick="showPage('users', this)">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    Users
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-card" style="cursor: pointer;" onclick="logout()" title="Click to Logout">
+                    <div class="user-avatar">AD</div>
+                    <div class="user-info">
+                        <div class="user-name">Admin User</div>
+                        <div class="user-role">Clinic Manager</div>
+                    </div>
+                    <svg style="width:16px;height:16px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"
+                        viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+
+            <!-- HEADER -->
+            <header class="header">
+                <button class="header-menu-btn" onclick="toggleSidebar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
                 </button>
-            </div>
-        </header>
-
-        <div class="content" id="main-content">
-
-            <!-- ─── DASHBOARD PAGE ─── -->
-            <div id="page-dashboard" class="page-hidden">
-
-                <!-- Summary Cards -->
-                <div class="cards-row">
-                    <div class="card">
-                        <div class="card-label">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="3" y="4" width="18" height="18" rx="2" />
-                                <line x1="3" y1="10" x2="21" y2="10" />
-                            </svg>
-                            Booked Today
-                        </div>
-                        <div class="card-value" id="booked-count">–</div>
-                        <div class="card-sub">Daily appointment count</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-label">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                            Remaining Slots
-                        </div>
-                        <div class="card-value" id="dashboard-remaining-count">–</div>
-                        <div class="card-sub"><span id="dashboard-remaining-pct">–</span> of <span
-                                class="max-limit-text">45</span></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-label">
-                            <svg viewBox="0 0 24 24">
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                                <polyline points="17 6 23 6 23 12" />
-                            </svg>
-                            Total Bookings
-                        </div>
-                        <div class="card-value" id="dashboard-total-bookings">–</div>
-                        <div class="card-sub">All-time total count</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-label">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                            </svg>
-                            Avg / Day
-                        </div>
-                        <div class="card-value" id="dashboard-avg-daily">–</div>
-                        <div class="card-sub">Average per day</div>
-                    </div>
+                <div>
+                    <span class="header-title" id="page-title">Daily Slots</span>
+                    <span class="header-sub" id="page-sub">— Book & Manage Appointments</span>
                 </div>
-
-                <!-- Progress Bar -->
-                <div class="progress-section">
-                    <div class="progress-header" style="align-items: center;">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="date-btn no-print" onclick="changeDashboardDate(-1)"
-                                style="width:26px; height:26px; border-radius:6px;">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
-                                    <polyline points="15 18 9 12 15 6"></polyline>
-                                </svg>
-                            </button>
-                            <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...</div>
-                            <button class="date-btn no-print" onclick="changeDashboardDate(1)"
-                                style="width:26px; height:26px; border-radius:6px;">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="progress-count"><span id="progress-booked">0</span> / <span
-                                class="max-limit-text">45</span> slots filled</div>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="dashboard-progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-ticks" id="dashboard-progress-ticks">
-                        <span class="progress-tick">0</span>
-                        <span class="progress-tick">10</span>
-                        <span class="progress-tick">20</span>
-                        <span class="progress-tick">30</span>
-                        <span class="progress-tick">40</span>
-                        <span class="progress-tick">45</span>
-                    </div>
-                </div>
-
-                <!-- Quick View Table -->
-                <div class="slot-section">
-                    <div class="slot-header" style="border-bottom:none; padding-bottom: 8px;">
-                        <div class="slot-header-title" id="dashboard-list-date">Today's Appointments</div>
-                        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-                            <button class="btn btn-ghost no-print" onclick="printFromDashboard()"
-                                style="font-size:12px;padding:6px 10px">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
-                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                    <path
-                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
-                                    </path>
-                                    <rect x="6" y="14" width="12" height="8"></rect>
-                                </svg>
-                                Print List
-                            </button>
-                            <input type="text" class="form-input" placeholder="Search patient..."
-                                style="padding:6px 10px;font-size:12.5px;width:180px" oninput="filterTable(this.value)">
-                        </div>
-                    </div>
-                    <div class="dashboard-tabs no-print"
-                        style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
-                        <button class="btn btn-primary" id="tab-dashboard-all" onclick="setDashboardTab('all')"
-                            style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
-                        <button class="btn btn-ghost" id="tab-dashboard-dr_1" onclick="setDashboardTab('dr_1')"
-                            style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
-                        <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')"
-                            style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
-                    </div>
-                    <div id="dashboard-tables-container">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- ─── SLOTS PAGE ─── -->
-            <div id="page-slots" class="page-hidden">
-                <div id="slots-calendar-view">
-
-                    <div class="slot-section">
-                        <div class="calendar-container">
-                            <div class="calendar-header">
-                                <button class="date-btn" onclick="changeMonth(-1)">
-                                    <svg viewBox="0 0 24 24">
-                                        <polyline points="15 18 9 12 15 6" />
-                                    </svg>
-                                </button>
-                                <div class="calendar-title" id="calendar-month-year">March 2026</div>
-                                <button class="date-btn" onclick="changeMonth(1)">
-                                    <svg viewBox="0 0 24 24">
-                                        <polyline points="9 18 15 12 9 6" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="calendar-grid" id="calendar-grid">
-                                <!-- Calendar days rendered here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STEP 2: SLOT GRID VIEW (Hidden by default) -->
-                <div id="slots-grid-view" style="display: none;">
-                    <div style="margin-bottom: 16px;">
-                        <button class="btn btn-ghost" onclick="backToCalendar()">
-                            <svg viewBox="0 0 24 24">
-                                <polyline points="15 18 9 12 15 6" />
-                            </svg>
-                            Back to Calendar
-                        </button>
-                    </div>
-
-                    <div class="progress-section"
-                        style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
-                        <div
-                            style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-                            <div>
-                                <div
-                                    style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
-                                    Daily Slot Management</div>
-                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity
-                                    (e.g., 45, 50 slots per day)</div>
-                            </div>
-                            <div id="doctor-capacity-inputs" style="display:flex; flex-direction:column; gap:8px;">
-                                <!-- Dr Buddies Capacity -->
-                                <div
-                                    style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                    <span
-                                        style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">DR
-                                        BUDDIES:</span>
-                                    <input type="number" id="inline-daily-limit-dr_1" class="form-input"
-                                        style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
-                                        value="0">
-                                </div>
-                                <!-- JMR Capacity -->
-                                <div
-                                    style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                    <span
-                                        style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">JMR:</span>
-                                    <input type="number" id="inline-daily-limit-dr_2" class="form-input"
-                                        style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
-                                        value="0">
-                                </div>
-                            </div>
-                            <button class="btn btn-primary" onclick="saveInlineLimit()"
-                                style="height: 42px; padding: 0 16px;">
-                                Update Slots
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="progress-section">
-                        <div class="progress-header">
-                            <div class="progress-label">Daily Capacity — <span id="grid-current-date-text">...</span>
-                            </div>
-                            <div class="progress-count"><span id="slots-booked-count">0</span> / <span
-                                    class="max-limit-text">45</span> booked · <span
-                                    style="color:var(--green);font-weight:600" id="slots-remaining-count">45
-                                    remaining</span></div>
-                        </div>
-                        <div class="progress-track">
-                            <div id="grid-progress-fill" class="progress-fill" style="width:0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="slot-section" style="margin-top: 20px;">
-                        <div class="slot-header">
-                            <div class="slot-header-title">
-                                <span class="no-print">Slot Grid</span>
-                                <span class="print-only">Day Schedule — <span id="print-date-el"></span></span>
-                            </div>
-                            <button class="btn btn-ghost no-print" onclick="printPatientList()"
-                                style="font-size:12px;padding:6px 10px;margin-left:auto">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
-                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                    <path
-                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
-                                    </path>
-                                    <rect x="6" y="14" width="12" height="8"></rect>
-                                </svg>
-                                Print Day Schedule
-                            </button>
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <div class="legend-dot available"></div>Available
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-dot booked"></div>Booked
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-dot disabled"></div>Disabled
-                                </div>
-                            </div>
-                            <div class="date-nav">
-                                <div class="date-display" id="slot-date-display">...</div>
-                            </div>
-                        </div>
-                        <div class="dashboard-tabs no-print"
-                            style="display:flex; gap: 8px; padding: 12px 16px 0 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
-                            <button class="btn btn-primary" id="tab-slots-all" onclick="setSlotsTab('all')"
-                                style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
-                            <button class="btn btn-ghost" id="tab-slots-dr_1" onclick="setSlotsTab('dr_1')"
-                                style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
-                            <button class="btn btn-ghost" id="tab-slots-dr_2" onclick="setSlotsTab('dr_2')"
-                                style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
-                        </div>
-                        <div id="slot-grid-container" style="padding:12px 16px 16px">
-                            <!-- Grid rendered by JS -->
-                        </div>
-
-                        <!-- Print-only List moved to top level -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- ─── ANALYTICS PAGE ─── -->
-            <div id="page-analytics" class="page-hidden">
-                <div class="cards-row" style="grid-template-columns: repeat(3, 1fr)">
-                    <div class="card">
-                        <div class="card-label">📅 Today's Bookings</div>
-                        <div class="card-value" id="analytics-today-booked">–</div>
-                        <div class="card-sub">Out of <span class="max-limit-text">90</span> max slots</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-label">✅ Slots Remaining Today</div>
-                        <div class="card-value" id="analytics-today-remaining">–</div>
-                        <div class="card-sub">Still available for today</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-label">📊 All-Time Total Bookings</div>
-                        <div class="card-value" id="analytics-total">–</div>
-                        <div class="card-sub">Since the clinic started using this app</div>
-                    </div>
-                </div>
-
-                <div class="slot-section">
-                    <div class="slot-header">
-                        <div class="slot-header-title" id="analytics-month-label">Monthly Trend</div>
-                        <div style="margin-left:auto;display:flex;gap:8px">
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">← Jan</button>
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">Mar →</button>
-                        </div>
-                    </div>
-                    <div style="padding:24px">
-                        <canvas id="trend-chart" height="200" style="width:100%"></canvas>
-                    </div>
-                </div>
-
-                <div class="slot-section">
-                    <div class="slot-header">
-                        <div class="slot-header-title">Daily Breakdown</div>
-                        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
-                                onclick="analyticsChangeMonth(-1)">← Prev</button>
-                            <span id="analytics-breakdown-month"
-                                style="font-size:13px;font-weight:600;color:var(--text-primary)">March 2026</span>
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
-                                onclick="analyticsChangeMonth(1)">Next →</button>
-                        </div>
-                    </div>
-                    <table class="mini-table" id="analytics-breakdown-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Day</th>
-                                <th style="text-align:center">Bookings</th>
-                                <th style="text-align:center">Remaining</th>
-                                <th>Utilization</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analytics-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ─── USERS PAGE ─── -->
-            <div id="page-users" class="page-hidden">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-                    <div style="font-size:14px;font-weight:600">Staff Members</div>
-                    <button class="btn btn-primary" style="font-size:12.5px"
-                        onclick="showToast('User invite sent!','success')">
+                <div class="header-actions">
+                    <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
+                            class="real-time-dot"></span>Live</span>
+                    <button class="btn btn-primary" onclick="showPage('slots')">
                         <svg viewBox="0 0 24 24">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
-                        Invite User
+                        Add Appointment
                     </button>
                 </div>
-                <div class="slot-section">
-                    <table class="mini-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px">
-                                        <div class="user-avatar" style="width:28px;height:28px;font-size:11px">SA</div>
-                                        Dr. Sarah Al-Amin
-                                    </div>
-                                </td>
-                                <td style="color:var(--text-secondary)">s.alamin@clinic.com</td>
-                                <td><span class="status-pill booked">Admin</span></td>
-                                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Jan
-                                    2025</td>
-                                <td><button class="btn btn-ghost"
-                                        style="font-size:11.5px;padding:4px 10px">Edit</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px">
-                                        <div class="user-avatar"
-                                            style="width:28px;height:28px;font-size:11px;background:var(--green)">MR
-                                        </div>Mohammed Raza
-                                    </div>
-                                </td>
-                                <td style="color:var(--text-secondary)">m.raza@clinic.com</td>
-                                <td><span class="status-pill available">Staff</span></td>
-                                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Mar
-                                    2025</td>
-                                <td><button class="btn btn-ghost"
-                                        style="font-size:11.5px;padding:4px 10px">Edit</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px">
-                                        <div class="user-avatar"
-                                            style="width:28px;height:28px;font-size:11px;background:#7D5BA6">FK</div>
-                                        Fatima Khan
-                                    </div>
-                                </td>
-                                <td style="color:var(--text-secondary)">f.khan@clinic.com</td>
-                                <td><span class="status-pill available">Staff</span></td>
-                                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Jun
-                                    2025</td>
-                                <td><button class="btn btn-ghost"
-                                        style="font-size:11.5px;padding:4px 10px">Edit</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px">
-                                        <div class="user-avatar"
-                                            style="width:28px;height:28px;font-size:11px;background:#B45309">AH</div>
-                                        Dr. Aisha Habib
-                                    </div>
-                                </td>
-                                <td style="color:var(--text-secondary)">a.habib@clinic.com</td>
-                                <td><span class="status-pill"
-                                        style="background:var(--amber-light);color:var(--amber)">Doctor</span>
-                                </td>
-                                <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">Sep
-                                    2025</td>
-                                <td><button class="btn btn-ghost"
-                                        style="font-size:11.5px;padding:4px 10px">Edit</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            </header>
+
+            <div class="content" id="main-content">
+
+                <!-- ─── DASHBOARD PAGE ─── -->
+                <div id="page-dashboard" class="page-hidden">
+
+                    <!-- Summary Cards -->
+                    <div class="cards-row">
+                        <div class="card">
+                            <div class="card-label">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                Booked Today
+                            </div>
+                            <div class="card-value" id="booked-count">–</div>
+                            <div class="card-sub">Daily appointment count</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-label">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                Remaining Slots
+                            </div>
+                            <div class="card-value" id="dashboard-remaining-count">–</div>
+                            <div class="card-sub"><span id="dashboard-remaining-pct">–</span> of <span
+                                    class="max-limit-text">45</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-label">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                    <polyline points="17 6 23 6 23 12" />
+                                </svg>
+                                Total Bookings
+                            </div>
+                            <div class="card-value" id="dashboard-total-bookings">–</div>
+                            <div class="card-sub">All-time total count</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-label">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                </svg>
+                                Avg / Day
+                            </div>
+                            <div class="card-value" id="dashboard-avg-daily">–</div>
+                            <div class="card-sub">Average per day</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-section">
+                        <div class="progress-header" style="align-items: center;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <button class="date-btn no-print" onclick="changeDashboardDate(-1)"
+                                    style="width:26px; height:26px; border-radius:6px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...
+                                </div>
+                                <button class="date-btn no-print" onclick="changeDashboardDate(1)"
+                                    style="width:26px; height:26px; border-radius:6px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="progress-count"><span id="progress-booked">0</span> / <span
+                                    class="max-limit-text">45</span> slots filled</div>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="dashboard-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-ticks" id="dashboard-progress-ticks">
+                            <span class="progress-tick">0</span>
+                            <span class="progress-tick">10</span>
+                            <span class="progress-tick">20</span>
+                            <span class="progress-tick">30</span>
+                            <span class="progress-tick">40</span>
+                            <span class="progress-tick">45</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick View Table -->
+                    <div class="slot-section">
+                        <div class="slot-header" style="border-bottom:none; padding-bottom: 8px;">
+                            <div class="slot-header-title" id="dashboard-list-date">Today's Appointments</div>
+                            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                                <button class="btn btn-ghost no-print" onclick="printFromDashboard()"
+                                    style="font-size:12px;padding:6px 10px">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                        <path
+                                            d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
+                                        </path>
+                                        <rect x="6" y="14" width="12" height="8"></rect>
+                                    </svg>
+                                    Print List
+                                </button>
+                                <input type="text" class="form-input" placeholder="Search patient..."
+                                    style="padding:6px 10px;font-size:12.5px;width:180px"
+                                    oninput="filterTable(this.value)">
+                            </div>
+                        </div>
+                        <div class="dashboard-tabs no-print"
+                            style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
+                            <button class="btn btn-primary" id="tab-dashboard-all" onclick="setDashboardTab('all')"
+                                style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
+                            <button class="btn btn-ghost" id="tab-dashboard-dr_1" onclick="setDashboardTab('dr_1')"
+                                style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
+                            <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')"
+                                style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
+                        </div>
+                        <div id="dashboard-tables-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
                 </div>
+
+                <!-- ─── SLOTS PAGE ─── -->
+                <div id="page-slots" class="page-hidden">
+                    <div id="slots-calendar-view">
+
+                        <div class="slot-section">
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <button class="date-btn" onclick="changeMonth(-1)">
+                                        <svg viewBox="0 0 24 24">
+                                            <polyline points="15 18 9 12 15 6" />
+                                        </svg>
+                                    </button>
+                                    <div class="calendar-title" id="calendar-month-year">March 2026</div>
+                                    <button class="date-btn" onclick="changeMonth(1)">
+                                        <svg viewBox="0 0 24 24">
+                                            <polyline points="9 18 15 12 9 6" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="calendar-grid" id="calendar-grid">
+                                    <!-- Calendar days rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: SLOT GRID VIEW (Hidden by default) -->
+                    <div id="slots-grid-view" style="display: none;">
+                        <div style="margin-bottom: 16px;">
+                            <button class="btn btn-ghost" onclick="backToCalendar()">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="15 18 9 12 15 6" />
+                                </svg>
+                                Back to Calendar
+                            </button>
+                        </div>
+
+                        <div class="progress-section"
+                            style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
+                            <div
+                                style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                                <div>
+                                    <div
+                                        style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
+                                        Daily Slot Management</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic
+                                        capacity
+                                        (e.g., 45, 50 slots per day)</div>
+                                </div>
+                                <div id="doctor-capacity-inputs" style="display:flex; flex-direction:column; gap:8px;">
+                                    <!-- Dr Buddies Capacity -->
+                                    <div
+                                        style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
+                                        <span
+                                            style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">DR
+                                            BUDDIES:</span>
+                                        <input type="number" id="inline-daily-limit-dr_1" class="form-input"
+                                            style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
+                                            value="0">
+                                    </div>
+                                    <!-- JMR Capacity -->
+                                    <div
+                                        style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
+                                        <span
+                                            style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">JMR:</span>
+                                        <input type="number" id="inline-daily-limit-dr_2" class="form-input"
+                                            style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
+                                            value="0">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveInlineLimit()"
+                                    style="height: 42px; padding: 0 16px;">
+                                    Update Slots
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <div class="progress-label">Daily Capacity — <span
+                                        id="grid-current-date-text">...</span>
+                                </div>
+                                <div class="progress-count"><span id="slots-booked-count">0</span> / <span
+                                        class="max-limit-text">45</span> booked · <span
+                                        style="color:var(--green);font-weight:600" id="slots-remaining-count">45
+                                        remaining</span></div>
+                            </div>
+                            <div class="progress-track">
+                                <div id="grid-progress-fill" class="progress-fill" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="slot-section" style="margin-top: 20px;">
+                            <div class="slot-header">
+                                <div class="slot-header-title">
+                                    <span class="no-print">Slot Grid</span>
+                                    <span class="print-only">Day Schedule — <span id="print-date-el"></span></span>
+                                </div>
+                                <button class="btn btn-ghost no-print" onclick="printPatientList()"
+                                    style="font-size:12px;padding:6px 10px;margin-left:auto">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                        <path
+                                            d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
+                                        </path>
+                                        <rect x="6" y="14" width="12" height="8"></rect>
+                                    </svg>
+                                    Print Day Schedule
+                                </button>
+                                <div class="legend">
+                                    <div class="legend-item">
+                                        <div class="legend-dot available"></div>Available
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot booked"></div>Booked
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot disabled"></div>Disabled
+                                    </div>
+                                </div>
+                                <div class="date-nav">
+                                    <div class="date-display" id="slot-date-display">...</div>
+                                </div>
+                            </div>
+                            <div class="dashboard-tabs no-print"
+                                style="display:flex; gap: 8px; padding: 12px 16px 0 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
+                                <button class="btn btn-primary" id="tab-slots-all" onclick="setSlotsTab('all')"
+                                    style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
+                                <button class="btn btn-ghost" id="tab-slots-dr_1" onclick="setSlotsTab('dr_1')"
+                                    style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
+                                <button class="btn btn-ghost" id="tab-slots-dr_2" onclick="setSlotsTab('dr_2')"
+                                    style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
+                            </div>
+                            <div id="slot-grid-container" style="padding:12px 16px 16px">
+                                <!-- Grid rendered by JS -->
+                            </div>
+
+                            <!-- Print-only List moved to top level -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── ANALYTICS PAGE ─── -->
+                <div id="page-analytics" class="page-hidden">
+                    <div class="cards-row" style="grid-template-columns: repeat(3, 1fr)">
+                        <div class="card">
+                            <div class="card-label">📅 Today's Bookings</div>
+                            <div class="card-value" id="analytics-today-booked">–</div>
+                            <div class="card-sub">Out of <span class="max-limit-text">90</span> max slots</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-label">✅ Slots Remaining Today</div>
+                            <div class="card-value" id="analytics-today-remaining">–</div>
+                            <div class="card-sub">Still available for today</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-label">📊 All-Time Total Bookings</div>
+                            <div class="card-value" id="analytics-total">–</div>
+                            <div class="card-sub">Since the clinic started using this app</div>
+                        </div>
+                    </div>
+
+                    <div class="slot-section">
+                        <div class="slot-header">
+                            <div class="slot-header-title" id="analytics-month-label">Monthly Trend</div>
+                            <div style="margin-left:auto;display:flex;gap:8px">
+                                <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">← Jan</button>
+                                <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px">Mar →</button>
+                            </div>
+                        </div>
+                        <div style="padding:24px">
+                            <canvas id="trend-chart" height="200" style="width:100%"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="slot-section">
+                        <div class="slot-header">
+                            <div class="slot-header-title">Daily Breakdown</div>
+                            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                                <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
+                                    onclick="analyticsChangeMonth(-1)">← Prev</button>
+                                <span id="analytics-breakdown-month"
+                                    style="font-size:13px;font-weight:600;color:var(--text-primary)">March 2026</span>
+                                <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
+                                    onclick="analyticsChangeMonth(1)">Next →</button>
+                            </div>
+                        </div>
+                        <table class="mini-table" id="analytics-breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th style="text-align:center">Bookings</th>
+                                    <th style="text-align:center">Remaining</th>
+                                    <th>Utilization</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ─── USERS PAGE ─── -->
+                <div id="page-users" class="page-hidden">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                        <div style="font-size:14px;font-weight:600">Staff Members</div>
+                        <button class="btn btn-primary" style="font-size:12.5px"
+                            onclick="showToast('User invite sent!','success')">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Invite User
+                        </button>
+                    </div>
+                    <div class="slot-section">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <div class="user-avatar" style="width:28px;height:28px;font-size:11px">SA
+                                            </div>
+                                            Dr. Sarah Al-Amin
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-secondary)">s.alamin@clinic.com</td>
+                                    <td><span class="status-pill booked">Admin</span></td>
+                                    <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">
+                                        Jan
+                                        2025</td>
+                                    <td><button class="btn btn-ghost"
+                                            style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <div class="user-avatar"
+                                                style="width:28px;height:28px;font-size:11px;background:var(--green)">MR
+                                            </div>Mohammed Raza
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-secondary)">m.raza@clinic.com</td>
+                                    <td><span class="status-pill available">Staff</span></td>
+                                    <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">
+                                        Mar
+                                        2025</td>
+                                    <td><button class="btn btn-ghost"
+                                            style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <div class="user-avatar"
+                                                style="width:28px;height:28px;font-size:11px;background:#7D5BA6">FK
+                                            </div>
+                                            Fatima Khan
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-secondary)">f.khan@clinic.com</td>
+                                    <td><span class="status-pill available">Staff</span></td>
+                                    <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">
+                                        Jun
+                                        2025</td>
+                                    <td><button class="btn btn-ghost"
+                                            style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <div class="user-avatar"
+                                                style="width:28px;height:28px;font-size:11px;background:#B45309">AH
+                                            </div>
+                                            Dr. Aisha Habib
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-secondary)">a.habib@clinic.com</td>
+                                    <td><span class="status-pill"
+                                            style="background:var(--amber-light);color:var(--amber)">Doctor</span>
+                                    </td>
+                                    <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px">
+                                        Sep
+                                        2025</td>
+                                    <td><button class="btn btn-ghost"
+                                            style="font-size:11.5px;padding:4px 10px">Edit</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+
+            <!-- Print-only List -->
+            <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
+                <!-- Populated by JS -->
             </div>
 
-        </div><!-- /content -->
+        </main>
 
-        <!-- Print-only List -->
-        <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
-            <!-- Populated by JS -->
+        <!-- ─── MODAL ─── -->
+        <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+            <div class="modal">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title" id="modal-title">Add Appointment</div>
+                        <div class="modal-slot-badge" id="modal-slot-badge"></div>
+                    </div>
+                    <button class="modal-close" onclick="closeModal()">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Patient Name *</label>
+                        <input type="text" class="form-input" id="field-name" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-input" id="field-phone" placeholder="+966 5X XXX XXXX"
+                            oninput="formatPhone(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Place *</label>
+                        <input type="text" class="form-input" id="field-place"
+                            placeholder="e.g. Riyadh, Jeddah, Home visit...">
+                    </div>
+                </div>
+                <div class="modal-footer" id="modal-footer">
+                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveAppointment()">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Save Appointment
+                    </button>
+                </div>
+            </div>
         </div>
 
-    </main>
-
-    <!-- ─── MODAL ─── -->
-    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <div class="modal-title" id="modal-title">Add Appointment</div>
-                    <div class="modal-slot-badge" id="modal-slot-badge"></div>
-                </div>
-                <button class="modal-close" onclick="closeModal()">
+        <!-- ─── CONFIRM DIALOG ─── -->
+        <div class="confirm-overlay" id="confirm-overlay">
+            <div class="confirm-box">
+                <div class="confirm-icon">
                     <svg viewBox="0 0 24 24">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Patient Name *</label>
-                    <input type="text" class="form-input" id="field-name" placeholder="Full name">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Phone Number *</label>
-                    <input type="tel" class="form-input" id="field-phone" placeholder="+966 5X XXX XXXX"
-                        oninput="formatPhone(this)">
+                <div class="confirm-title">Cancel Appointment?</div>
+                <div class="confirm-desc" id="confirm-desc">This will free up the slot and cannot be undone.</div>
+                <div class="confirm-actions">
+                    <button class="btn btn-ghost" onclick="closeConfirm()">Keep It</button>
+                    <button class="btn btn-danger" onclick="confirmDelete()">Yes, Cancel</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Place *</label>
-                    <input type="text" class="form-input" id="field-place"
-                        placeholder="e.g. Riyadh, Jeddah, Home visit...">
-                </div>
-            </div>
-            <div class="modal-footer" id="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveAppointment()">
-                    <svg viewBox="0 0 24 24">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Save Appointment
-                </button>
             </div>
         </div>
-    </div>
 
-    <!-- ─── CONFIRM DIALOG ─── -->
-    <div class="confirm-overlay" id="confirm-overlay">
-        <div class="confirm-box">
-            <div class="confirm-icon">
-                <svg viewBox="0 0 24 24">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-            </div>
-            <div class="confirm-title">Cancel Appointment?</div>
-            <div class="confirm-desc" id="confirm-desc">This will free up the slot and cannot be undone.</div>
-            <div class="confirm-actions">
-                <button class="btn btn-ghost" onclick="closeConfirm()">Keep It</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">Yes, Cancel</button>
+        <!-- ─── SETTINGS MODAL ─── -->
+        <div class="modal-overlay" id="settings-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Clinic Settings</div>
+                        <div class="modal-sub">Set your daily booking capacity</div>
+                    </div>
+                    <button class="modal-close" onclick="closeSettings()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">DR BUDDIES Dr Iyad Mohammed - Limit</label>
+                        <input type="number" id="field-daily-limit-dr_1" class="form-input" placeholder="e.g. 45">
+                    </div>
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="form-label">JMR Dr Iyad Mohammed - Limit</label>
+                        <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 45">
+                    </div>
+                    <div
+                        style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
+                        Standard capacity is 45 slots per doctor. These settings apply globally as defaults.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        Save Settings
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- ─── SETTINGS MODAL ─── -->
-    <div class="modal-overlay" id="settings-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <div class="modal-title">Clinic Settings</div>
-                    <div class="modal-sub">Set your daily booking capacity</div>
-                </div>
-                <button class="modal-close" onclick="closeSettings()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">DR BUDDIES Dr Iyad Mohammed - Limit</label>
-                    <input type="number" id="field-daily-limit-dr_1" class="form-input" placeholder="e.g. 45">
-                </div>
-                <div class="form-group" style="margin-top: 16px;">
-                    <label class="form-label">JMR Dr Iyad Mohammed - Limit</label>
-                    <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 45">
-                </div>
-                <div
-                    style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
-                    Standard capacity is 45 slots per doctor. These settings apply globally as defaults.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveSettings()">
-                    Save Settings
-                </button>
-            </div>
-        </div>
-    </div>
+        <!-- ─── TOASTS ─── -->
+        <div class="toast-container" id="toast-container"></div>
 
-    <!-- ─── TOASTS ─── -->
-    <div class="toast-container" id="toast-container"></div>
+        <script>
+            // ──────────────────────────────────────────
+            //  GLOBAL STATE & CONSTANTS
+            // ──────────────────────────────────────────
+            const API_BASE = "https://drbuddiesclinicbooking.onrender.com";
+            let appointments = [];
+            let currentDate = new Date();
+            let viewDate = new Date(); // For calendar month navigation
+            let dashboardViewDate = new Date(); // Added for dashboard date navigation
+            let currentEditingId = null;
+            let selectedSlot = null;
+            let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
+            let currentDashboardTab = 'all'; // Keeps track of active tab on dashboard
+            let currentSlotsTab = 'all'; // Keeps track of active tab on slots page
 
-    <script>
-        // ──────────────────────────────────────────
-        //  GLOBAL STATE & CONSTANTS
-        // ──────────────────────────────────────────
-        const API_BASE = "https://drbuddiesclinicbooking.onrender.com";
-        let appointments = [];
-        let currentDate = new Date();
-        let viewDate = new Date(); // For calendar month navigation
-        let dashboardViewDate = new Date(); // Added for dashboard date navigation
-        let currentEditingId = null;
-        let selectedSlot = null;
-        let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
-        let currentDashboardTab = 'all'; // Keeps track of active tab on dashboard
-        let currentSlotsTab = 'all'; // Keeps track of active tab on slots page
+            const doctors = [
+                { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
+                { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' }
+            ];
 
-        const doctors = [
-            { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
-            { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' }
-        ];
+            // Always use local date (not UTC) to avoid timezone bugs
+            function toLocalDateStr(date) {
+                return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
+            }
+            let dynamicDailyLimit = { dr_1: 45, dr_2: 45 };
+            // Default
 
-        // Always use local date (not UTC) to avoid timezone bugs
-        function toLocalDateStr(date) {
-            return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
-        }
-        let dynamicDailyLimit = { dr_1: 45, dr_2: 45 };
-        // Default
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-        // ──────────────────────────────────────────
-        //  PHONE FORMAT
-        // ──────────────────────────────────────────
-        function formatPhone(input) {
-            let val = input.value.replace(/\D/g, '');
-            if (val.startsWith('966')) val = '+' + val;
-            else if (val.startsWith('05')) val = '+966 ' + val.slice(1);
-            input.value = val;
-        }
-
-        // ──────────────────────────────────────────
-        //  TOAST
-        // ──────────────────────────────────────────
-        function showToast(msg, type = 'info') {
-            const icons = {
-                success: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
-                error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-                info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-            };
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `${icons[type] || icons.info} ${msg}`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // ──────────────────────────────────────────
-        //  SLOT TIMING HELPERS
-        // ──────────────────────────────────────────
-        function getSlotTimeRange(slotId) {
-            // Start at 2:00 PM (14:00)
-            const startHour = 14;
-            const startMin = 0;
-            const durationArr = 5; // 5 mins per slot
-
-            // Calculate minutes since 2:00 PM
-            const totalMinsStart = (slotId - 1) * durationArr;
-            const totalMinsEnd = slotId * durationArr;
-
-            function formatTime(totalMins) {
-                let currentTotal = startMin + totalMins;
-                let h = startHour + Math.floor(currentTotal / 60);
-                let m = currentTotal % 60;
-                let ampm = h >= 12 ? 'PM' : 'AM';
-                let displayH = h % 12;
-                if (displayH === 0) displayH = 12;
-                return `${displayH}:${String(m).padStart(2, '0')} ${ampm}`;
+            // ──────────────────────────────────────────
+            //  PHONE FORMAT
+            // ──────────────────────────────────────────
+            function formatPhone(input) {
+                let val = input.value.replace(/\D/g, '');
+                if (val.startsWith('966')) val = '+' + val;
+                else if (val.startsWith('05')) val = '+966 ' + val.slice(1);
+                input.value = val;
             }
 
-            return `${formatTime(totalMinsStart)} - ${formatTime(totalMinsEnd)}`;
-        }
-
-        // ──────────────────────────────────────────
-        //  NAVIGATION
-        // ──────────────────────────────────────────
-        function showPage(name) {
-            document.querySelectorAll('.content > div[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            const target = document.getElementById(`page-${name}`);
-            if (target) target.classList.remove('page-hidden');
-
-            const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.onclick.toString().includes(name));
-            if (nav) nav.classList.add('active');
-
-            if (window.innerWidth <= 1024) {
-                const sidebar = document.querySelector('.sidebar');
-                if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+            // ──────────────────────────────────────────
+            //  TOAST
+            // ──────────────────────────────────────────
+            function showToast(msg, type = 'info') {
+                const icons = {
+                    success: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+                    error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+                    info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+                };
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `${icons[type] || icons.info} ${msg}`;
+                container.appendChild(toast);
+                requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
 
-            if (name === 'dashboard') updateDashboard();
-            if (name === 'analytics') renderAnalytics();
-            if (name === 'slots') backToCalendar();
+            // ──────────────────────────────────────────
+            //  SLOT TIMING HELPERS
+            // ──────────────────────────────────────────
+            function getSlotTimeRange(slotId) {
+                // Start at 2:00 PM (14:00)
+                const startHour = 14;
+                const startMin = 0;
+                const durationArr = 5; // 5 mins per slot
 
-            // Update header title
-            const titles = {
-                dashboard: ['Dashboard', "— Today's Overview"],
-                slots: ['Daily Slots', '— Book & Manage Appointments'],
-                analytics: ['Analytics', '— Monthly Report'],
-                users: ['Users', '— Manage Staff']
-            };
-            const t = titles[name] || [name, ''];
-            const titleEl = document.getElementById('page-title');
-            const subEl = document.getElementById('page-sub');
-            if (titleEl) titleEl.textContent = t[0];
-            if (subEl) subEl.textContent = t[1];
-        }
+                // Calculate minutes since 2:00 PM
+                const totalMinsStart = (slotId - 1) * durationArr;
+                const totalMinsEnd = slotId * durationArr;
 
-        function changeDashboardDate(delta) {
-            dashboardViewDate.setDate(dashboardViewDate.getDate() + delta);
-            updateDashboard();
-        }
-
-        async function updateDashboard() {
-            try {
-                const dateStr = toLocalDateStr(dashboardViewDate);
-                const cb = Date.now();
-                const res = await fetch(`${API_BASE}/bookings/analytics?date=${dateStr}&_cb=${cb}`);
-                const stats = await res.json();
-                if (!res.ok) {
-                    throw new Error(stats.detail || `Analytics failed (${res.status})`);
+                function formatTime(totalMins) {
+                    let currentTotal = startMin + totalMins;
+                    let h = startHour + Math.floor(currentTotal / 60);
+                    let m = currentTotal % 60;
+                    let ampm = h >= 12 ? 'PM' : 'AM';
+                    let displayH = h % 12;
+                    if (displayH === 0) displayH = 12;
+                    return `${displayH}:${String(m).padStart(2, '0')} ${ampm}`;
                 }
 
-                const bookedNum = stats.today_booked || 0;
-                const perDoctorLimit = stats.daily_limit || dynamicDailyLimit || 45;
-                const totalClinicLimit = perDoctorLimit * doctors.length;
-                const pct = totalClinicLimit > 0 ? ((bookedNum / totalClinicLimit) * 100) : 0;
-                const fill = document.getElementById('dashboard-progress-fill');
-                if (fill) {
-                    fill.style.width = Math.min(pct, 100) + '%';
-                    fill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+                return `${formatTime(totalMinsStart)} - ${formatTime(totalMinsEnd)}`;
+            }
+
+            // ──────────────────────────────────────────
+            //  NAVIGATION
+            // ──────────────────────────────────────────
+            function showPage(name) {
+                document.querySelectorAll('.content > div[id^="page-"]').forEach(p => p.classList.add('page-hidden'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+                const target = document.getElementById(`page-${name}`);
+                if (target) target.classList.remove('page-hidden');
+
+                const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => n.onclick.toString().includes(name));
+                if (nav) nav.classList.add('active');
+
+                if (window.innerWidth <= 1024) {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
                 }
 
-                const remTotal = Math.max(0, totalClinicLimit - bookedNum);
-                const remPct = totalClinicLimit > 0 ? Math.round((remTotal / totalClinicLimit) * 100) : 0;
-                document.getElementById('booked-count').textContent = bookedNum;
-                document.getElementById('dashboard-remaining-count').textContent = remTotal;
-                document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
-                document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
-                document.getElementById('dashboard-remaining-pct').textContent = `${remPct}%`;
-                document.getElementById('progress-booked').textContent = bookedNum;
+                if (name === 'dashboard') updateDashboard();
+                if (name === 'analytics') renderAnalytics();
+                if (name === 'slots') backToCalendar();
 
-                // Sync all capacity labels on dashboard
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalClinicLimit);
+                // Update header title
+                const titles = {
+                    dashboard: ['Dashboard', "— Today's Overview"],
+                    slots: ['Daily Slots', '— Book & Manage Appointments'],
+                    analytics: ['Analytics', '— Monthly Report'],
+                    users: ['Users', '— Manage Staff']
+                };
+                const t = titles[name] || [name, ''];
+                const titleEl = document.getElementById('page-title');
+                const subEl = document.getElementById('page-sub');
+                if (titleEl) titleEl.textContent = t[0];
+                if (subEl) subEl.textContent = t[1];
+            }
 
-                // Update Dashboard Capacity Date Label
-                const dObj = new Date(dateStr + 'T00:00:00');
-                const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
-                if (document.getElementById('dashboard-capacity-date')) {
-                    document.getElementById('dashboard-capacity-date').textContent = `Daily Capacity — ${dateLabel}`;
-                }
-                if (document.getElementById('dashboard-list-date')) {
-                    const isToday = toLocalDateStr(new Date()) === dateStr;
-                    document.getElementById('dashboard-list-date').textContent = isToday ? "Today's Appointments" : `Appointments for ${dObj.getDate()} ${months[dObj.getMonth()]}`;
-                }
+            function changeDashboardDate(delta) {
+                dashboardViewDate.setDate(dashboardViewDate.getDate() + delta);
+                updateDashboard();
+            }
 
-                // Update Progress Ticks
-                const ticksContainer = document.getElementById('dashboard-progress-ticks');
-                if (ticksContainer) {
-                    const step = Math.ceil(totalClinicLimit / 4);
-                    let ticksHtml = `<span class="progress-tick">0</span>`;
-                    for (let i = 1; i < 4; i++) {
-                        ticksHtml += `<span class="progress-tick">${i * step}</span>`;
+            async function updateDashboard() {
+                try {
+                    const dateStr = toLocalDateStr(dashboardViewDate);
+                    const cb = Date.now();
+                    const res = await fetch(`${API_BASE}/bookings/analytics?date=${dateStr}&_cb=${cb}`);
+                    const stats = await res.json();
+                    if (!res.ok) {
+                        throw new Error(stats.detail || `Analytics failed (${res.status})`);
                     }
-                    ticksHtml += `<span class="progress-tick" style="color:var(--red);font-weight:600">${totalClinicLimit}</span>`;
-                    ticksContainer.innerHTML = ticksHtml;
+
+                    const bookedNum = stats.today_booked || 0;
+                    const perDoctorLimit = stats.daily_limit || dynamicDailyLimit || 45;
+                    const totalClinicLimit = perDoctorLimit * doctors.length;
+                    const pct = totalClinicLimit > 0 ? ((bookedNum / totalClinicLimit) * 100) : 0;
+                    const fill = document.getElementById('dashboard-progress-fill');
+                    if (fill) {
+                        fill.style.width = Math.min(pct, 100) + '%';
+                        fill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+                    }
+
+                    const remTotal = Math.max(0, totalClinicLimit - bookedNum);
+                    const remPct = totalClinicLimit > 0 ? Math.round((remTotal / totalClinicLimit) * 100) : 0;
+                    document.getElementById('booked-count').textContent = bookedNum;
+                    document.getElementById('dashboard-remaining-count').textContent = remTotal;
+                    document.getElementById('dashboard-total-bookings').textContent = stats.total ?? 0;
+                    document.getElementById('dashboard-avg-daily').textContent = stats.average_per_day ?? 0;
+                    document.getElementById('dashboard-remaining-pct').textContent = `${remPct}%`;
+                    document.getElementById('progress-booked').textContent = bookedNum;
+
+                    // Sync all capacity labels on dashboard
+                    document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalClinicLimit);
+
+                    // Update Dashboard Capacity Date Label
+                    const dObj = new Date(dateStr + 'T00:00:00');
+                    const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
+                    if (document.getElementById('dashboard-capacity-date')) {
+                        document.getElementById('dashboard-capacity-date').textContent = `Daily Capacity — ${dateLabel}`;
+                    }
+                    if (document.getElementById('dashboard-list-date')) {
+                        const isToday = toLocalDateStr(new Date()) === dateStr;
+                        document.getElementById('dashboard-list-date').textContent = isToday ? "Today's Appointments" : `Appointments for ${dObj.getDate()} ${months[dObj.getMonth()]}`;
+                    }
+
+                    // Update Progress Ticks
+                    const ticksContainer = document.getElementById('dashboard-progress-ticks');
+                    if (ticksContainer) {
+                        const step = Math.ceil(totalClinicLimit / 4);
+                        let ticksHtml = `<span class="progress-tick">0</span>`;
+                        for (let i = 1; i < 4; i++) {
+                            ticksHtml += `<span class="progress-tick">${i * step}</span>`;
+                        }
+                        ticksHtml += `<span class="progress-tick" style="color:var(--red);font-weight:600">${totalClinicLimit}</span>`;
+                        ticksContainer.innerHTML = ticksHtml;
+                    }
+
+                    const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
+                    if (resBookings.ok) {
+                        const bks = await resBookings.json();
+
+                        // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
+                        appointments = bks;
+                        renderDashboardTables(bks, dateStr);
+                    }
+                } catch (err) { console.error("Dashboard update failed", err); }
+            }
+
+            function setDashboardTab(tabId) {
+                currentDashboardTab = tabId;
+
+                // Update button styles
+                document.querySelectorAll('.dashboard-tabs .btn').forEach(btn => {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-ghost');
+                });
+                const activeBtn = document.getElementById('tab-dashboard-' + tabId);
+                if (activeBtn) {
+                    activeBtn.classList.remove('btn-ghost');
+                    activeBtn.classList.add('btn-primary');
                 }
 
-                const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
-                if (resBookings.ok) {
-                    const bks = await resBookings.json();
+                // Re-render the tables with the currently fetched appointments array
+                renderDashboardTables(appointments, toLocalDateStr(dashboardViewDate));
+            }
 
-                    // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
-                    appointments = bks;
-                    renderDashboardTables(bks, dateStr);
+            function renderDashboardTables(bks, dateStr) {
+                const container = document.getElementById('dashboard-tables-container');
+                if (!container) return;
+
+                let filteredDoctors = doctors;
+                let displayBks = bks;
+
+                if (currentDashboardTab !== 'all') {
+                    filteredDoctors = doctors.filter(d => d.id === currentDashboardTab);
+                    displayBks = bks.filter(b => b.doctor_id === currentDashboardTab);
                 }
-            } catch (err) { console.error("Dashboard update failed", err); }
-        }
 
-        function setDashboardTab(tabId) {
-            currentDashboardTab = tabId;
+                if (bks.length === 0) {
+                    container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</div>`;
+                    return;
+                }
 
-            // Update button styles
-            document.querySelectorAll('.dashboard-tabs .btn').forEach(btn => {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-ghost');
-            });
-            const activeBtn = document.getElementById('tab-dashboard-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.remove('btn-ghost');
-                activeBtn.classList.add('btn-primary');
-            }
+                if (displayBks.length === 0 && currentDashboardTab !== 'all') {
+                    container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for selected doctor on ${dateStr}.</div>`;
+                    return;
+                }
 
-            // Re-render the tables with the currently fetched appointments array
-            renderDashboardTables(appointments, toLocalDateStr(dashboardViewDate));
-        }
-
-        function renderDashboardTables(bks, dateStr) {
-            const container = document.getElementById('dashboard-tables-container');
-            if (!container) return;
-
-            let filteredDoctors = doctors;
-            let displayBks = bks;
-
-            if (currentDashboardTab !== 'all') {
-                filteredDoctors = doctors.filter(d => d.id === currentDashboardTab);
-                displayBks = bks.filter(b => b.doctor_id === currentDashboardTab);
-            }
-
-            if (bks.length === 0) {
-                container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</div>`;
-                return;
-            }
-
-            if (displayBks.length === 0 && currentDashboardTab !== 'all') {
-                container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for selected doctor on ${dateStr}.</div>`;
-                return;
-            }
-
-            let html = '';
-            filteredDoctors.forEach(doc => {
-                const docBks = displayBks.filter(b => b.doctor_id === doc.id);
-                if (docBks.length > 0) {
-                    html += `
+                let html = '';
+                filteredDoctors.forEach(doc => {
+                    const docBks = displayBks.filter(b => b.doctor_id === doc.id);
+                    if (docBks.length > 0) {
+                        html += `
                     <div style="margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden;">
                         <div style="background: var(--surface-2); padding: 10px 16px; font-weight: 600; font-size: 13.5px; color: var(--text-primary); border-bottom: 1px solid var(--border-light);">
                             ${doc.name}
@@ -2466,302 +2561,302 @@
                         </table>
                     </div>
                     `;
-                }
-            });
-            container.innerHTML = html;
-        }
-
-        // ──────────────────────────────────────────
-        //  SETTINGS
-        // ──────────────────────────────────────────
-        async function fetchSettings() {
-            try {
-                const cb = Date.now();
-                const res = await fetch(`${API_BASE}/bookings/settings?_cb=${cb}`);
-                const data = await res.json();
-
-                if (data.doctor_limits) {
-                    dynamicDailyLimit = data.doctor_limits;
-                }
-
-                // Update all UI elements that show total capacity
-                let totalCap = 0;
-                doctors.forEach(doc => {
-                    totalCap += (dynamicDailyLimit[doc.id] || 0);
+                    }
                 });
+                container.innerHTML = html;
+            }
 
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCap);
-            } catch (err) { console.error("Settings error:", err); }
-        }
+            // ──────────────────────────────────────────
+            //  SETTINGS
+            // ──────────────────────────────────────────
+            async function fetchSettings() {
+                try {
+                    const cb = Date.now();
+                    const res = await fetch(`${API_BASE}/bookings/settings?_cb=${cb}`);
+                    const data = await res.json();
 
-        function openSettings() {
-            doctors.forEach(doc => {
-                const input = document.getElementById(`field-daily-limit-${doc.id}`);
-                if (input) input.value = dynamicDailyLimit[doc.id] || 45;
-            });
-            document.getElementById('settings-overlay').classList.add('open');
-        }
+                    if (data.doctor_limits) {
+                        dynamicDailyLimit = data.doctor_limits;
+                    }
 
-        function closeSettings() {
-            document.getElementById('settings-overlay').classList.remove('open');
-        }
+                    // Update all UI elements that show total capacity
+                    let totalCap = 0;
+                    doctors.forEach(doc => {
+                        totalCap += (dynamicDailyLimit[doc.id] || 0);
+                    });
 
-        async function saveInlineLimit() {
-            const dateStr = toLocalDateStr(currentDate);
-            try {
+                    document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCap);
+                } catch (err) { console.error("Settings error:", err); }
+            }
+
+            function openSettings() {
+                doctors.forEach(doc => {
+                    const input = document.getElementById(`field-daily-limit-${doc.id}`);
+                    if (input) input.value = dynamicDailyLimit[doc.id] || 45;
+                });
+                document.getElementById('settings-overlay').classList.add('open');
+            }
+
+            function closeSettings() {
+                document.getElementById('settings-overlay').classList.remove('open');
+            }
+
+            async function saveInlineLimit() {
+                const dateStr = toLocalDateStr(currentDate);
+                try {
+                    for (const doc of doctors) {
+                        const val = parseInt(document.getElementById(`inline-daily-limit-${doc.id}`).value);
+                        if (isNaN(val)) continue;
+
+                        await fetch(`${API_BASE}/bookings/daily-limit`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ date: dateStr, doctor_id: doc.id, limit: val })
+                        });
+                        dynamicDailyLimit[doc.id] = val;
+                    }
+                    showToast("Capacity updated for this date!", "success");
+                    await updateDashboard();
+                    fetchAppointments();
+                } catch (e) { showToast("Failed to update limit", "error"); }
+            }
+
+            async function saveSettings() {
+                const doctor_limits = {};
                 for (const doc of doctors) {
-                    const val = parseInt(document.getElementById(`inline-daily-limit-${doc.id}`).value);
-                    if (isNaN(val)) continue;
+                    const val = parseInt(document.getElementById(`field-daily-limit-${doc.id}`).value);
+                    if (isNaN(val) || val < 1) return showToast(`Enter a valid number for ${doc.name}`, "error");
+                    doctor_limits[doc.id] = val;
+                }
 
-                    await fetch(`${API_BASE}/bookings/daily-limit`, {
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/settings`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ date: dateStr, doctor_id: doc.id, limit: val })
+                        body: JSON.stringify({ doctor_limits })
                     });
-                    dynamicDailyLimit[doc.id] = val;
-                }
-                showToast("Capacity updated for this date!", "success");
-                await updateDashboard();
-                fetchAppointments();
-            } catch (e) { showToast("Failed to update limit", "error"); }
-        }
-
-        async function saveSettings() {
-            const doctor_limits = {};
-            for (const doc of doctors) {
-                const val = parseInt(document.getElementById(`field-daily-limit-${doc.id}`).value);
-                if (isNaN(val) || val < 1) return showToast(`Enter a valid number for ${doc.name}`, "error");
-                doctor_limits[doc.id] = val;
+                    if (res.ok) {
+                        showToast("Global capacity updated!", "success");
+                        closeSettings();
+                        await fetchSettings();
+                        if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
+                        else renderSlotGrid();
+                    } else {
+                        const data = await res.json();
+                        showToast(`Update failed: ${data.detail || res.status}`, "error");
+                    }
+                } catch (err) { showToast("Update failed", "error"); }
             }
 
-            try {
-                const res = await fetch(`${API_BASE}/bookings/settings`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ doctor_limits })
-                });
-                if (res.ok) {
-                    showToast("Global capacity updated!", "success");
-                    closeSettings();
-                    await fetchSettings();
-                    if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
-                    else renderSlotGrid();
-                } else {
+            // ──────────────────────────────────────────
+            //  CALENDAR (STEP 1)
+            // ──────────────────────────────────────────
+            function changeMonth(delta) {
+                viewDate.setMonth(viewDate.getMonth() + delta);
+                renderCalendar();
+            }
+
+            async function renderCalendar() {
+                const grid = document.getElementById('calendar-grid');
+                const title = document.getElementById('calendar-month-year');
+                if (!grid || !title) return;
+
+                const month = viewDate.getMonth();
+                const year = viewDate.getFullYear();
+                title.textContent = `${months[month]} ${year}`;
+
+                const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+                const cb = Date.now();
+                let stats = {};
+                let overrides = {};
+                let doctorLimits = {};
+
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/month-stats?month=${monthStr}&_cb=${cb}`);
                     const data = await res.json();
-                    showToast(`Update failed: ${data.detail || res.status}`, "error");
-                }
-            } catch (err) { showToast("Update failed", "error"); }
-        }
+                    stats = data.counts || {};
+                    overrides = data.overrides || {};
+                    doctorLimits = data.doctor_limits || { dr_1: 45, dr_2: 45 };
+                } catch (e) { console.error(e); }
 
-        // ──────────────────────────────────────────
-        //  CALENDAR (STEP 1)
-        // ──────────────────────────────────────────
-        function changeMonth(delta) {
-            viewDate.setMonth(viewDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        async function renderCalendar() {
-            const grid = document.getElementById('calendar-grid');
-            const title = document.getElementById('calendar-month-year');
-            if (!grid || !title) return;
-
-            const month = viewDate.getMonth();
-            const year = viewDate.getFullYear();
-            title.textContent = `${months[month]} ${year}`;
-
-            const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
-            const cb = Date.now();
-            let stats = {};
-            let overrides = {};
-            let doctorLimits = {};
-
-            try {
-                const res = await fetch(`${API_BASE}/bookings/month-stats?month=${monthStr}&_cb=${cb}`);
-                const data = await res.json();
-                stats = data.counts || {};
-                overrides = data.overrides || {};
-                doctorLimits = data.doctor_limits || { dr_1: 45, dr_2: 45 };
-            } catch (e) { console.error(e); }
-
-            grid.innerHTML = '';
-            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d => {
-                const label = document.createElement('div');
-                label.className = 'calendar-day-label';
-                label.textContent = d;
-                grid.appendChild(label);
-            });
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            for (let i = 0; i < firstDay; i++) {
-                const empty = document.createElement('div');
-                empty.className = 'calendar-day empty';
-                grid.appendChild(empty);
-            }
-
-            const realToday = toLocalDateStr(new Date());
-
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dayEl = document.createElement('div');
-                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                dayEl.className = 'calendar-day';
-                if (dateKey === realToday) dayEl.classList.add('today');
-
-                const booked = stats[dateKey] || 0;
-
-                // Calculate total capacity for this specific day (handle individual overrides)
-                let totalCapacityForDay = 0;
-                const overridesForDay = overrides[dateKey] || {};
-
-                doctors.forEach(doc => {
-                    const limit = overridesForDay[doc.id] || doctorLimits[doc.id] || 45;
-                    totalCapacityForDay += limit;
+                grid.innerHTML = '';
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d => {
+                    const label = document.createElement('div');
+                    label.className = 'calendar-day-label';
+                    label.textContent = d;
+                    grid.appendChild(label);
                 });
 
-                const free = totalCapacityForDay - booked;
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-                dayEl.innerHTML = `
+                for (let i = 0; i < firstDay; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'calendar-day empty';
+                    grid.appendChild(empty);
+                }
+
+                const realToday = toLocalDateStr(new Date());
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayEl = document.createElement('div');
+                    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    dayEl.className = 'calendar-day';
+                    if (dateKey === realToday) dayEl.classList.add('today');
+
+                    const booked = stats[dateKey] || 0;
+
+                    // Calculate total capacity for this specific day (handle individual overrides)
+                    let totalCapacityForDay = 0;
+                    const overridesForDay = overrides[dateKey] || {};
+
+                    doctors.forEach(doc => {
+                        const limit = overridesForDay[doc.id] || doctorLimits[doc.id] || 45;
+                        totalCapacityForDay += limit;
+                    });
+
+                    const free = totalCapacityForDay - booked;
+
+                    dayEl.innerHTML = `
                     <div class="day-num">${d}</div>
                     <div class="day-stat ${free <= 0 ? 'full' : booked > 0 ? 'free' : 'none'}">
                         ${free <= 0 ? 'FULL' : free + ' Free'}
                     </div>
                 `;
-                dayEl.onclick = () => selectDate(year, month, d);
-                grid.appendChild(dayEl);
+                    dayEl.onclick = () => selectDate(year, month, d);
+                    grid.appendChild(dayEl);
+                }
             }
-        }
 
-        async function selectDate(y, m, d) {
-            currentDate = new Date(y, m, d);
-            const dateStr = toLocalDateStr(currentDate);
+            async function selectDate(y, m, d) {
+                currentDate = new Date(y, m, d);
+                const dateStr = toLocalDateStr(currentDate);
 
-            // Fetch specific limits for this date for all doctors
-            try {
-                let totalDayLimit = 0;
-                for (const doc of doctors) {
-                    const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
-                    const data = await res.json();
-                    const limit = data.limit || 45;
-                    dynamicDailyLimit[doc.id] = limit;
+                // Fetch specific limits for this date for all doctors
+                try {
+                    let totalDayLimit = 0;
+                    for (const doc of doctors) {
+                        const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
+                        const data = await res.json();
+                        const limit = data.limit || 45;
+                        dynamicDailyLimit[doc.id] = limit;
 
-                    const input = document.getElementById(`inline-daily-limit-${doc.id}`);
-                    if (input) input.value = limit;
+                        const input = document.getElementById(`inline-daily-limit-${doc.id}`);
+                        if (input) input.value = limit;
 
-                    totalDayLimit += limit;
-                }
-                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalDayLimit);
-            } catch (err) { console.error("Error fetching daily limits:", err); }
+                        totalDayLimit += limit;
+                    }
+                    document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalDayLimit);
+                } catch (err) { console.error("Error fetching daily limits:", err); }
 
-            document.getElementById('grid-current-date-text').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
-            document.getElementById('slot-date-display').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
+                document.getElementById('grid-current-date-text').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
+                document.getElementById('slot-date-display').textContent = `${days[currentDate.getDay()]}, ${d} ${months[m]}`;
 
-            document.getElementById('slots-calendar-view').style.display = 'none';
-            document.getElementById('slots-grid-view').style.display = 'block';
+                document.getElementById('slots-calendar-view').style.display = 'none';
+                document.getElementById('slots-grid-view').style.display = 'block';
 
-            const container = document.getElementById('slot-grid-container');
-            if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading slots...</div>';
-
-            fetchAppointments();
-        }
-
-        function backToCalendar() {
-            document.getElementById('slots-grid-view').style.display = 'none';
-            document.getElementById('slots-calendar-view').style.display = 'block';
-            renderCalendar();
-        }
-
-        // ──────────────────────────────────────────
-        //  SLOT GRID (STEP 2)
-        async function fetchAppointments() {
-            const dateStr = toLocalDateStr(currentDate);
-            try {
-                const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.detail || `Server Error (${res.status})`);
-                }
-                appointments = data;
-                renderSlotGrid();
-            } catch (err) {
-                showToast(`Load Error: ${err.message}`, "error");
-                console.error("Fetch Appointments Error:", err);
                 const container = document.getElementById('slot-grid-container');
-                if (container) container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red)">Failed to load: ${err.message}<br><button class="btn btn-ghost" style="margin-top:10px" onclick="fetchAppointments()">Retry</button></div>`;
-            }
-        }
+                if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading slots...</div>';
 
-        function getBookedCount() {
-            return appointments.length;
-        }
-
-        function viewFromDashboard(dateStr, slotId, doctorId) {
-            currentDate = new Date(dateStr);
-            showPage('slots');
-            // Switch to grid view
-            document.getElementById('slots-calendar-view').style.display = 'none';
-            document.getElementById('slots-grid-view').style.display = 'block';
-
-            // Re-fetch for that day to populate appointments array
-            fetchAppointments().then(() => {
-                viewSlot(slotId, doctorId);
-            });
-        }
-
-        function setSlotsTab(tabId) {
-            currentSlotsTab = tabId;
-
-            // Update button styles
-            document.querySelectorAll('#page-slots .dashboard-tabs .btn').forEach(btn => {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-ghost');
-            });
-            const activeBtn = document.getElementById('tab-slots-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.remove('btn-ghost');
-                activeBtn.classList.add('btn-primary');
+                fetchAppointments();
             }
 
-            // Re-render the grids
-            renderSlotGrid();
-        }
-
-        function renderSlotGrid() {
-            const container = document.getElementById('slot-grid-container');
-            if (!container) return;
-
-            const booked = getBookedCount();
-
-            let totalCapacity = 0;
-            doctors.forEach(doc => {
-                totalCapacity += (dynamicDailyLimit[doc.id] || 45);
-            });
-
-            const remaining = totalCapacity - booked;
-
-            // Update Progress Bar (Total)
-            const pct = (totalCapacity > 0) ? (booked / totalCapacity) * 100 : 0;
-            const progressFill = document.getElementById('grid-progress-fill');
-            if (progressFill) {
-                progressFill.style.width = pct + '%';
-                progressFill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+            function backToCalendar() {
+                document.getElementById('slots-grid-view').style.display = 'none';
+                document.getElementById('slots-calendar-view').style.display = 'block';
+                renderCalendar();
             }
 
-            if (document.getElementById('slots-booked-count')) document.getElementById('slots-booked-count').textContent = booked;
-            if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
-            document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCapacity);
-
-            let filteredDoctors = doctors;
-            if (currentSlotsTab !== 'all') {
-                filteredDoctors = doctors.filter(d => d.id === currentSlotsTab);
+            // ──────────────────────────────────────────
+            //  SLOT GRID (STEP 2)
+            async function fetchAppointments() {
+                const dateStr = toLocalDateStr(currentDate);
+                try {
+                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data.detail || `Server Error (${res.status})`);
+                    }
+                    appointments = data;
+                    renderSlotGrid();
+                } catch (err) {
+                    showToast(`Load Error: ${err.message}`, "error");
+                    console.error("Fetch Appointments Error:", err);
+                    const container = document.getElementById('slot-grid-container');
+                    if (container) container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red)">Failed to load: ${err.message}<br><button class="btn btn-ghost" style="margin-top:10px" onclick="fetchAppointments()">Retry</button></div>`;
+                }
             }
 
-            let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
+            function getBookedCount() {
+                return appointments.length;
+            }
 
-            filteredDoctors.forEach(doc => {
-                const docLimit = dynamicDailyLimit[doc.id] || 45;
-                html += `
+            function viewFromDashboard(dateStr, slotId, doctorId) {
+                currentDate = new Date(dateStr);
+                showPage('slots');
+                // Switch to grid view
+                document.getElementById('slots-calendar-view').style.display = 'none';
+                document.getElementById('slots-grid-view').style.display = 'block';
+
+                // Re-fetch for that day to populate appointments array
+                fetchAppointments().then(() => {
+                    viewSlot(slotId, doctorId);
+                });
+            }
+
+            function setSlotsTab(tabId) {
+                currentSlotsTab = tabId;
+
+                // Update button styles
+                document.querySelectorAll('#page-slots .dashboard-tabs .btn').forEach(btn => {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-ghost');
+                });
+                const activeBtn = document.getElementById('tab-slots-' + tabId);
+                if (activeBtn) {
+                    activeBtn.classList.remove('btn-ghost');
+                    activeBtn.classList.add('btn-primary');
+                }
+
+                // Re-render the grids
+                renderSlotGrid();
+            }
+
+            function renderSlotGrid() {
+                const container = document.getElementById('slot-grid-container');
+                if (!container) return;
+
+                const booked = getBookedCount();
+
+                let totalCapacity = 0;
+                doctors.forEach(doc => {
+                    totalCapacity += (dynamicDailyLimit[doc.id] || 45);
+                });
+
+                const remaining = totalCapacity - booked;
+
+                // Update Progress Bar (Total)
+                const pct = (totalCapacity > 0) ? (booked / totalCapacity) * 100 : 0;
+                const progressFill = document.getElementById('grid-progress-fill');
+                if (progressFill) {
+                    progressFill.style.width = pct + '%';
+                    progressFill.className = 'progress-fill ' + (pct > 90 ? 'danger' : pct > 70 ? 'warning' : '');
+                }
+
+                if (document.getElementById('slots-booked-count')) document.getElementById('slots-booked-count').textContent = booked;
+                if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
+                document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCapacity);
+
+                let filteredDoctors = doctors;
+                if (currentSlotsTab !== 'all') {
+                    filteredDoctors = doctors.filter(d => d.id === currentSlotsTab);
+                }
+
+                let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
+
+                filteredDoctors.forEach(doc => {
+                    const docLimit = dynamicDailyLimit[doc.id] || 45;
+                    html += `
                 <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
                         <h3 style="margin:0; font-size: 18px; color: var(--accent);">${doc.name}</h3>
@@ -2773,44 +2868,44 @@
                     </div>
                     <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
 
-                for (let i = 1; i <= docLimit; i++) {
-                    const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
-                    const timeRange = getSlotTimeRange(i);
+                    for (let i = 1; i <= docLimit; i++) {
+                        const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                        const timeRange = getSlotTimeRange(i);
 
-                    if (appt) {
-                        html += `
+                        if (appt) {
+                            html += `
                             <div class="slot-cell booked" onclick="viewSlot(${i}, '${doc.id}')">
                                 <div class="slot-num">Slot ${i}</div>
                                 <div class="slot-time">${timeRange}</div>
                                 <div class="slot-patient">${appt.patient_name}</div>
                             </div>`;
-                    } else {
-                        html += `
+                        } else {
+                            html += `
                             <div class="slot-cell available" onclick="openModal(${i}, '${doc.id}')">
                                 <div class="slot-num">Slot ${i}</div>
                                 <div class="slot-time">${timeRange}</div>
                                 <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
                             </div>`;
+                        }
                     }
+                    html += `</div></div>`;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+
+                // Populate Print Table (Separated by Doctor)
+                const printListContainer = document.getElementById('print-slot-list');
+                const printDateEl = document.getElementById('print-date-el');
+                if (printDateEl) {
+                    const d = currentDate;
+                    printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
                 }
-                html += `</div></div>`;
-            });
-
-            html += '</div>';
-            container.innerHTML = html;
-
-            // Populate Print Table (Separated by Doctor)
-            const printListContainer = document.getElementById('print-slot-list');
-            const printDateEl = document.getElementById('print-date-el');
-            if (printDateEl) {
-                const d = currentDate;
-                printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-            }
-            if (printListContainer) {
-                let printHtml = '';
-                doctors.forEach((doc, index) => {
-                    const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
-                    printHtml += `
+                if (printListContainer) {
+                    let printHtml = '';
+                    doctors.forEach((doc, index) => {
+                        const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
+                        printHtml += `
                     <div style="${pageBreakStyle} margin-bottom: 40px;">
                         <h2 style="font-size: 20px; color: var(--text-primary); margin-bottom: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 8px;">Schedule for ${doc.name}</h2>
                         <table class="mini-table" style="width: 100%;">
@@ -2825,10 +2920,10 @@
                             </thead>
                             <tbody>
                     `;
-                    const docLimit = dynamicDailyLimit[doc.id] || 45;
-                    for (let i = 1; i <= docLimit; i++) {
-                        const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
-                        printHtml += `
+                        const docLimit = dynamicDailyLimit[doc.id] || 45;
+                        for (let i = 1; i <= docLimit; i++) {
+                            const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                            printHtml += `
                                 <tr>
                                     <td style="text-align:center">#${i}</td>
                                     <td>${getSlotTimeRange(i)}</td>
@@ -2837,34 +2932,34 @@
                                     <td>${appt ? (appt.notes || '-') : '-'}</td>
                                 </tr>
                         `;
-                    }
-                    printHtml += `
+                        }
+                        printHtml += `
                             </tbody>
                         </table>
                     </div>
                     `;
-                });
-                printListContainer.innerHTML = printHtml;
+                    });
+                    printListContainer.innerHTML = printHtml;
+                }
             }
-        }
 
-        // ──────────────────────────────────────────
-        //  MODALS
-        // ──────────────────────────────────────────
-        function openModal(slot, doctorId) {
-            selectedSlot = slot;
-            selectedDoctor = doctorId;
-            currentEditingId = null;
-            const timeRange = getSlotTimeRange(slot);
-            const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
-            document.getElementById('modal-title').textContent = "Add Appointment - " + docName;
-            document.getElementById('modal-slot-badge').textContent = `Slot #${slot} (${timeRange})`;
-            document.getElementById('field-name').value = '';
-            document.getElementById('field-phone').value = '';
-            document.getElementById('field-place').value = '';
+            // ──────────────────────────────────────────
+            //  MODALS
+            // ──────────────────────────────────────────
+            function openModal(slot, doctorId) {
+                selectedSlot = slot;
+                selectedDoctor = doctorId;
+                currentEditingId = null;
+                const timeRange = getSlotTimeRange(slot);
+                const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
+                document.getElementById('modal-title').textContent = "Add Appointment - " + docName;
+                document.getElementById('modal-slot-badge').textContent = `Slot #${slot} (${timeRange})`;
+                document.getElementById('field-name').value = '';
+                document.getElementById('field-phone').value = '';
+                document.getElementById('field-place').value = '';
 
-            // Reset footer to default 
-            document.getElementById('modal-footer').innerHTML = `
+                // Reset footer to default 
+                document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveAppointment()">
                     <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2">
@@ -2874,175 +2969,175 @@
                 </button>
             `;
 
-            document.getElementById('modal-overlay').classList.add('open');
-        }
+                document.getElementById('modal-overlay').classList.add('open');
+            }
 
-        function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('open');
-        }
+            function closeModal() {
+                document.getElementById('modal-overlay').classList.remove('open');
+            }
 
-        function viewSlot(slotId, doctorId) {
-            const appt = appointments.find(a => a.slot_id === slotId && a.doctor_id === doctorId);
-            if (!appt) return;
-            selectedSlot = slotId;
-            selectedDoctor = doctorId;
-            currentEditingId = appt.id;
-            const timeRange = getSlotTimeRange(slotId);
-            const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
-            document.getElementById('modal-title').textContent = "Patient Details - " + docName;
-            document.getElementById('modal-slot-badge').textContent = `Slot #${slotId} (${timeRange})`;
-            document.getElementById('field-name').value = appt.patient_name;
-            document.getElementById('field-phone').value = appt.patient_phone;
-            document.getElementById('field-place').value = appt.notes || '';
+            function viewSlot(slotId, doctorId) {
+                const appt = appointments.find(a => a.slot_id === slotId && a.doctor_id === doctorId);
+                if (!appt) return;
+                selectedSlot = slotId;
+                selectedDoctor = doctorId;
+                currentEditingId = appt.id;
+                const timeRange = getSlotTimeRange(slotId);
+                const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
+                document.getElementById('modal-title').textContent = "Patient Details - " + docName;
+                document.getElementById('modal-slot-badge').textContent = `Slot #${slotId} (${timeRange})`;
+                document.getElementById('field-name').value = appt.patient_name;
+                document.getElementById('field-phone').value = appt.patient_phone;
+                document.getElementById('field-place').value = appt.notes || '';
 
-            // Allow editing or deletion
-            document.getElementById('modal-footer').innerHTML = `
+                // Allow editing or deletion
+                document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-danger" style="margin-right:auto" onclick="openConfirm()">Cancel Appt</button>
                 <button class="btn btn-ghost" onclick="closeModal()">Close</button>
                 <button class="btn btn-primary" onclick="saveAppointment()">Update</button>
             `;
-            document.getElementById('modal-overlay').classList.add('open');
-        }
+                document.getElementById('modal-overlay').classList.add('open');
+            }
 
-        function handleOverlayClick(e) {
-            if (e.target.id === 'modal-overlay') closeModal();
-            if (e.target.id === 'settings-overlay') closeSettings();
-        }
+            function handleOverlayClick(e) {
+                if (e.target.id === 'modal-overlay') closeModal();
+                if (e.target.id === 'settings-overlay') closeSettings();
+            }
 
-        async function saveAppointment() {
-            const data = {
-                slot_id: selectedSlot,
-                date: toLocalDateStr(currentDate),
-                doctor_id: selectedDoctor,
-                patient_name: document.getElementById('field-name').value.trim(),
-                patient_phone: document.getElementById('field-phone').value.trim(),
-                notes: document.getElementById('field-place').value.trim()
-            };
+            async function saveAppointment() {
+                const data = {
+                    slot_id: selectedSlot,
+                    date: toLocalDateStr(currentDate),
+                    doctor_id: selectedDoctor,
+                    patient_name: document.getElementById('field-name').value.trim(),
+                    patient_phone: document.getElementById('field-phone').value.trim(),
+                    notes: document.getElementById('field-place').value.trim()
+                };
 
-            if (!data.patient_name || !data.patient_phone) return showToast("Name and Phone required", "error");
+                if (!data.patient_name || !data.patient_phone) return showToast("Name and Phone required", "error");
 
-            try {
-                let res;
-                if (currentEditingId) {
-                    res = await fetch(`${API_BASE}/bookings/${currentEditingId}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data)
-                    });
-                } else {
-                    res = await fetch(`${API_BASE}/bookings`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data)
-                    });
-                }
-
-                if (res.ok) {
-                    showToast(currentEditingId ? "Appointment updated" : "Appointment booked!", "success");
-                    closeModal();
-                    fetchAppointments();
-                    // Update all possible views to stay synced
-                    await updateDashboard();
-                    await renderAnalytics();
-                    if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || "Error saving", "error");
-                }
-            } catch (e) { showToast("Connection failed", "error"); }
-        }
-
-        // ──────────────────────────────────────────
-        //  DELETE
-        // ──────────────────────────────────────────
-        function openConfirm() {
-            document.getElementById('confirm-overlay').classList.add('open');
-        }
-        function closeConfirm() {
-            document.getElementById('confirm-overlay').classList.remove('open');
-        }
-        async function confirmDelete() {
-            if (!currentEditingId) return;
-            try {
-                const res = await fetch(`${API_BASE}/bookings/${currentEditingId}`, { method: "DELETE" });
-                if (res.ok) {
-                    showToast("Appointment canceled", "success");
-                    closeConfirm();
-                    closeModal();
-                    fetchAppointments();
-                    await updateDashboard();
-                    await renderAnalytics();
-                    if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
-                }
-            } catch (e) { showToast("Delete failed", "error"); }
-        }
-
-        // ──────────────────────────────────────────
-        //  ANALYTICS STATE
-        // ──────────────────────────────────────────
-        let analyticsViewDate = new Date();
-
-        function analyticsChangeMonth(delta) {
-            analyticsViewDate.setMonth(analyticsViewDate.getMonth() + delta);
-            renderAnalytics();
-        }
-
-        // ──────────────────────────────────────────
-        //  ANALYTICS
-        // ──────────────────────────────────────────
-        async function renderAnalytics() {
-            try {
-                const realToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in client local time
-                const cacheBuster = Date.now();
-
-                // Use the analytics view month for the breakdown
-                const viewMonth = `${analyticsViewDate.getFullYear()}-${String(analyticsViewDate.getMonth() + 1).padStart(2, '0')}`;
-                const monthLabel = `${months[analyticsViewDate.getMonth()]} ${analyticsViewDate.getFullYear()}`;
-                const monthLabelEl = document.getElementById('analytics-breakdown-month');
-                if (monthLabelEl) monthLabelEl.textContent = monthLabel;
-
-                const res = await fetch(`${API_BASE}/bookings/analytics?date=${realToday}&_cb=${cacheBuster}`);
-                const stats = await res.json();
-
-                if (document.getElementById('analytics-today-booked')) document.getElementById('analytics-today-booked').textContent = stats.today_booked ?? '–';
-                if (document.getElementById('analytics-today-remaining')) {
-                    document.getElementById('analytics-today-remaining').textContent = stats.today_remaining ?? '–';
-                }
-                if (document.getElementById('analytics-total')) document.getElementById('analytics-total').textContent = stats.total ?? '–';
-
-                // Filter trends to selected month
-                const allTrends = stats.daily_trends || [];
-                const trends = allTrends.filter(d => d.date && d.date.startsWith(viewMonth));
-                // Sort ascending by date
-                trends.sort((a, b) => a.date.localeCompare(b.date));
-
-                const tbody = document.getElementById('analytics-table-body');
-                if (tbody) {
-                    if (trends.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)">No bookings in ${monthLabel}</td></tr>`;
+                try {
+                    let res;
+                    if (currentEditingId) {
+                        res = await fetch(`${API_BASE}/bookings/${currentEditingId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data)
+                        });
                     } else {
-                        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                        let totalBooked = 0;
-                        tbody.innerHTML = trends.map(d => {
-                            const count = d.count;
-                            totalBooked += count;
+                        res = await fetch(`${API_BASE}/bookings`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data)
+                        });
+                    }
 
-                            // Calculate total capacity for this day (sum of doctors)
-                            let totalLim = 0;
-                            doctors.forEach(doc => {
-                                totalLim += (dynamicDailyLimit[doc.id] || 45);
-                            });
+                    if (res.ok) {
+                        showToast(currentEditingId ? "Appointment updated" : "Appointment booked!", "success");
+                        closeModal();
+                        fetchAppointments();
+                        // Update all possible views to stay synced
+                        await updateDashboard();
+                        await renderAnalytics();
+                        if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || "Error saving", "error");
+                    }
+                } catch (e) { showToast("Connection failed", "error"); }
+            }
 
-                            const rem = Math.max(0, totalLim - count);
-                            const util = totalLim > 0 ? Math.min(100, Math.round((count / totalLim) * 100)) : 0;
-                            const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
-                            // Safe local date parse: split 'YYYY-MM-DD' manually to avoid UTC offset
-                            const [yr, mo, dy] = d.date.split('-').map(Number);
-                            const dateObj = new Date(yr, mo - 1, dy);
-                            const dayName = dayNames[dateObj.getDay()];
-                            const formattedDate = `${String(dy).padStart(2, '0')} ${months[mo - 1].slice(0, 3)} ${yr}`;
-                            const isToday = d.date === realToday;
-                            return `<tr style="${isToday ? 'background:rgba(99,102,241,0.07);' : ''}">
+            // ──────────────────────────────────────────
+            //  DELETE
+            // ──────────────────────────────────────────
+            function openConfirm() {
+                document.getElementById('confirm-overlay').classList.add('open');
+            }
+            function closeConfirm() {
+                document.getElementById('confirm-overlay').classList.remove('open');
+            }
+            async function confirmDelete() {
+                if (!currentEditingId) return;
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${currentEditingId}`, { method: "DELETE" });
+                    if (res.ok) {
+                        showToast("Appointment canceled", "success");
+                        closeConfirm();
+                        closeModal();
+                        fetchAppointments();
+                        await updateDashboard();
+                        await renderAnalytics();
+                        if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
+                    }
+                } catch (e) { showToast("Delete failed", "error"); }
+            }
+
+            // ──────────────────────────────────────────
+            //  ANALYTICS STATE
+            // ──────────────────────────────────────────
+            let analyticsViewDate = new Date();
+
+            function analyticsChangeMonth(delta) {
+                analyticsViewDate.setMonth(analyticsViewDate.getMonth() + delta);
+                renderAnalytics();
+            }
+
+            // ──────────────────────────────────────────
+            //  ANALYTICS
+            // ──────────────────────────────────────────
+            async function renderAnalytics() {
+                try {
+                    const realToday = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in client local time
+                    const cacheBuster = Date.now();
+
+                    // Use the analytics view month for the breakdown
+                    const viewMonth = `${analyticsViewDate.getFullYear()}-${String(analyticsViewDate.getMonth() + 1).padStart(2, '0')}`;
+                    const monthLabel = `${months[analyticsViewDate.getMonth()]} ${analyticsViewDate.getFullYear()}`;
+                    const monthLabelEl = document.getElementById('analytics-breakdown-month');
+                    if (monthLabelEl) monthLabelEl.textContent = monthLabel;
+
+                    const res = await fetch(`${API_BASE}/bookings/analytics?date=${realToday}&_cb=${cacheBuster}`);
+                    const stats = await res.json();
+
+                    if (document.getElementById('analytics-today-booked')) document.getElementById('analytics-today-booked').textContent = stats.today_booked ?? '–';
+                    if (document.getElementById('analytics-today-remaining')) {
+                        document.getElementById('analytics-today-remaining').textContent = stats.today_remaining ?? '–';
+                    }
+                    if (document.getElementById('analytics-total')) document.getElementById('analytics-total').textContent = stats.total ?? '–';
+
+                    // Filter trends to selected month
+                    const allTrends = stats.daily_trends || [];
+                    const trends = allTrends.filter(d => d.date && d.date.startsWith(viewMonth));
+                    // Sort ascending by date
+                    trends.sort((a, b) => a.date.localeCompare(b.date));
+
+                    const tbody = document.getElementById('analytics-table-body');
+                    if (tbody) {
+                        if (trends.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)">No bookings in ${monthLabel}</td></tr>`;
+                        } else {
+                            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                            let totalBooked = 0;
+                            tbody.innerHTML = trends.map(d => {
+                                const count = d.count;
+                                totalBooked += count;
+
+                                // Calculate total capacity for this day (sum of doctors)
+                                let totalLim = 0;
+                                doctors.forEach(doc => {
+                                    totalLim += (dynamicDailyLimit[doc.id] || 45);
+                                });
+
+                                const rem = Math.max(0, totalLim - count);
+                                const util = totalLim > 0 ? Math.min(100, Math.round((count / totalLim) * 100)) : 0;
+                                const color = util >= 100 ? 'var(--red)' : util >= 80 ? 'var(--amber)' : 'var(--green)';
+                                // Safe local date parse: split 'YYYY-MM-DD' manually to avoid UTC offset
+                                const [yr, mo, dy] = d.date.split('-').map(Number);
+                                const dateObj = new Date(yr, mo - 1, dy);
+                                const dayName = dayNames[dateObj.getDay()];
+                                const formattedDate = `${String(dy).padStart(2, '0')} ${months[mo - 1].slice(0, 3)} ${yr}`;
+                                const isToday = d.date === realToday;
+                                return `<tr style="${isToday ? 'background:rgba(99,102,241,0.07);' : ''}">
                                 <td style="font-family:'DM Mono',monospace;font-size:12.5px;white-space:nowrap">
                                     ${formattedDate}${isToday ? ' <span style="font-size:10px;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px">TODAY</span>' : ''}
                                 </td>
@@ -3058,155 +3153,212 @@
                                     </div>
                                 </td>
                             </tr>`;
-                        }).join('');
-                        // Append summary row
-                        tbody.innerHTML += `<tr style="border-top:2px solid var(--border-light);background:var(--surface-1)">
+                            }).join('');
+                            // Append summary row
+                            tbody.innerHTML += `<tr style="border-top:2px solid var(--border-light);background:var(--surface-1)">
                             <td colspan="2" style="font-weight:600;font-size:12.5px;padding-top:10px">Total – ${monthLabel}</td>
                             <td style="text-align:center;font-weight:700">${totalBooked}</td>
                             <td colspan="2"></td>
                         </tr>`;
-                    }
-                }
-
-                // Update month label
-                const d = new Date();
-                if (document.getElementById('analytics-month-label')) {
-                    document.getElementById('analytics-month-label').textContent = `Monthly Trend — ${months[d.getMonth()]} ${d.getFullYear()}`;
-                }
-
-                // Chart logic
-                const canvas = document.getElementById('trend-chart');
-                if (canvas && trends.length >= 1) {
-                    const ctx = canvas.getContext('2d');
-                    if (window.myChart) window.myChart.destroy();
-
-                    const chartData = [...trends].reverse(); // Oldest first for chart
-                    window.myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: chartData.map(t => {
-                                const dt = new Date(t.date);
-                                return t.date ? `${dt.getDate()} ${months[dt.getMonth()].substring(0, 3)}` : '–';
-                            }),
-                            datasets: [{
-                                label: 'Bookings',
-                                data: chartData.map(t => t.count),
-                                borderColor: '#1e88e5',
-                                backgroundColor: 'rgba(30, 136, 229, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                borderWidth: 2,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#fff'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                                x: { grid: { display: false } }
-                            }
                         }
-                    });
-                }
-            } catch (err) { console.error("Analytics error:", err); }
-        }
-
-        function printPatientList() {
-            // This function is used by the Slots page
-            // appointments array and currentDate are already set by fetchAppointments()
-            window.print();
-        }
-
-        function printFromDashboard() {
-            // Dashboard uses dashboardViewDate instead of the global currentDate
-            // We temporarily sync them so the hidden print table (which uses currentDate) is correct
-            const originalDate = new Date(currentDate);
-            currentDate = new Date(dashboardViewDate);
-
-            // Re-render the slot grid's hidden print table to ensure it has dashboard's data
-            renderSlotGrid();
-
-            window.print();
-
-            // Restore
-            currentDate = originalDate;
-        }
-
-        function filterTable(query) {
-            query = query.toLowerCase();
-            const rows = document.querySelectorAll('#dashboard-tables-container tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
-        }
-
-        // ──────────────────────────────────────────
-        //  INIT
-        // ──────────────────────────────────────────
-        async function init() {
-            const statusEl = document.getElementById('splash-status');
-            const splash = document.getElementById('splash-screen');
-
-            try {
-                if (statusEl) statusEl.textContent = "Connecting to server...";
-
-                const d = currentDate;
-                const displayEl = document.getElementById('slot-date-display');
-                if (displayEl) displayEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
-
-                // Parallelize EVERYTHING for speed
-                const pSettings = fetchSettings();
-                const pDashboard = updateDashboard();
-                const pCalendar = renderCalendar();
-
-                // Wait for settings first as they are critical
-                await pSettings;
-                if (statusEl) statusEl.textContent = "Setting up interface...";
-
-                // Then wait for the rest
-                await Promise.all([pDashboard, pCalendar]);
-
-                if (statusEl) statusEl.textContent = "Ready!";
-
-                // Default view
-                showPage('slots');
-
-            } catch (err) {
-                console.error("Init failed:", err);
-                if (statusEl) statusEl.textContent = "Retrying connection...";
-            } finally {
-                // Ensure splash screen fades out even if there's a minor error
-                setTimeout(() => {
-                    if (splash) {
-                        splash.classList.add('fade-out');
-                        setTimeout(() => { splash.style.display = 'none'; }, 600);
                     }
-                }, 400);
+
+                    // Update month label
+                    const d = new Date();
+                    if (document.getElementById('analytics-month-label')) {
+                        document.getElementById('analytics-month-label').textContent = `Monthly Trend — ${months[d.getMonth()]} ${d.getFullYear()}`;
+                    }
+
+                    // Chart logic
+                    const canvas = document.getElementById('trend-chart');
+                    if (canvas && trends.length >= 1) {
+                        const ctx = canvas.getContext('2d');
+                        if (window.myChart) window.myChart.destroy();
+
+                        const chartData = [...trends].reverse(); // Oldest first for chart
+                        window.myChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: chartData.map(t => {
+                                    const dt = new Date(t.date);
+                                    return t.date ? `${dt.getDate()} ${months[dt.getMonth()].substring(0, 3)}` : '–';
+                                }),
+                                datasets: [{
+                                    label: 'Bookings',
+                                    data: chartData.map(t => t.count),
+                                    borderColor: '#1e88e5',
+                                    backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                                    fill: true,
+                                    tension: 0.4,
+                                    borderWidth: 2,
+                                    pointRadius: 4,
+                                    pointBackgroundColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                                    x: { grid: { display: false } }
+                                }
+                            }
+                        });
+                    }
+                } catch (err) { console.error("Analytics error:", err); }
             }
-        }
 
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar) sidebar.classList.toggle('open');
-            if (overlay) overlay.classList.toggle('open');
-        }
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                closeModal();
-                closeConfirm();
-                closeSettings();
+            function printPatientList() {
+                // This function is used by the Slots page
+                // appointments array and currentDate are already set by fetchAppointments()
+                window.print();
             }
-        });
 
-        init();
-    </script>
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+            function printFromDashboard() {
+                // Dashboard uses dashboardViewDate instead of the global currentDate
+                // We temporarily sync them so the hidden print table (which uses currentDate) is correct
+                const originalDate = new Date(currentDate);
+                currentDate = new Date(dashboardViewDate);
+
+                // Re-render the slot grid's hidden print table to ensure it has dashboard's data
+                renderSlotGrid();
+
+                window.print();
+
+                // Restore
+                currentDate = originalDate;
+            }
+
+            function filterTable(query) {
+                query = query.toLowerCase();
+                const rows = document.querySelectorAll('#dashboard-tables-container tbody tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            }
+
+            // ──────────────────────────────────────────
+            //  INIT
+            // ──────────────────────────────────────────
+            async function init() {
+                const statusEl = document.getElementById('splash-status');
+                const splash = document.getElementById('splash-screen');
+
+                try {
+                    if (statusEl) statusEl.textContent = "Connecting to server...";
+
+                    const d = currentDate;
+                    const displayEl = document.getElementById('slot-date-display');
+                    if (displayEl) displayEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+
+                    // Parallelize EVERYTHING for speed
+                    const pSettings = fetchSettings();
+                    const pDashboard = updateDashboard();
+                    const pCalendar = renderCalendar();
+
+                    // Wait for settings first as they are critical
+                    await pSettings;
+                    if (statusEl) statusEl.textContent = "Setting up interface...";
+
+                    // Then wait for the rest
+                    await Promise.all([pDashboard, pCalendar]);
+
+                    if (statusEl) statusEl.textContent = "Ready!";
+
+                    // Default view
+                    showPage('slots');
+
+                } catch (err) {
+                    console.error("Init failed:", err);
+                    if (statusEl) statusEl.textContent = "Retrying connection...";
+                } finally {
+                    // Ensure splash screen fades out even if there's a minor error
+                    setTimeout(() => {
+                        if (splash) {
+                            splash.classList.add('fade-out');
+                            setTimeout(() => { splash.style.display = 'none'; }, 600);
+                        }
+                    }, 400);
+                }
+            }
+
+            function toggleSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (sidebar) sidebar.classList.toggle('open');
+                if (overlay) overlay.classList.toggle('open');
+            }
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    closeConfirm();
+                    closeSettings();
+                }
+            });
+
+            // ─── AUTH CHECK & INIT ───
+            (function () {
+                const token = localStorage.getItem('mediflow_token');
+                if (token) {
+                    const loginOverlay = document.getElementById('login-overlay');
+                    const appContent = document.getElementById('app-content');
+                    if (loginOverlay) loginOverlay.style.display = 'none';
+                    if (appContent) appContent.style.display = 'flex';
+                    init(); // Only init if logged in
+                } else {
+                    // Start in login view - init() will be called after successful handleLogin
+                }
+            })();
+
+            async function handleLogin(e) {
+                e.preventDefault();
+                const user = document.getElementById('login-user').value;
+                const pass = document.getElementById('login-pass').value;
+                const btn = document.getElementById('login-submit-btn');
+
+                btn.disabled = true;
+                btn.textContent = 'Authenticating...';
+
+                try {
+                    const res = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: user, password: pass })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        localStorage.setItem('mediflow_token', data.token);
+                        const loginOverlay = document.getElementById('login-overlay');
+                        const appContent = document.getElementById('app-content');
+                        if (loginOverlay) loginOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            if (loginOverlay) loginOverlay.style.display = 'none';
+                            if (appContent) appContent.style.display = 'flex';
+                            init();
+                        }, 500);
+                    } else {
+                        showToast(data.detail || "Invalid credentials", "error");
+                    }
+                } catch (err) {
+                    showToast("Login failed. Check server connection.", "error");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Login to Dashboard';
+                }
+            }
+
+            function logout() {
+                if (confirm("Are you sure you want to logout?")) {
+                    localStorage.removeItem('mediflow_token');
+                    location.reload();
+                }
+            }
+        </script>
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    </div> <!-- Close app-content -->
 </body>
 
 </html>
