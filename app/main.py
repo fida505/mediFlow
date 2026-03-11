@@ -28,13 +28,13 @@ app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
-@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 async def health_check():
-    return {"status": "ok", "version": "v3-auth-debug"}
+    return {"status": "ok", "version": "v4-final-fix"}
 
 @app.post("/test-login")
 async def test_login():
-    return {"message": "Test login works", "version": "v3-auth-debug"}
+    return {"message": "Test login works", "version": "v4-final-fix"}
 
 from fastapi.responses import FileResponse
 
