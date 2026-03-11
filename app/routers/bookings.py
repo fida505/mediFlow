@@ -8,7 +8,7 @@ from datetime import datetime
 router = APIRouter()
 
 class SettingsUpdate(BaseModel):
-    daily_limit: int
+    doctor_limits: dict[str, int]
 
 class BookingCreate(BaseModel):
     patient_name: str
@@ -50,15 +50,19 @@ async def init_db(db: AsyncSession):
         """))
         await db.execute(text("""
             CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
-                date TEXT PRIMARY KEY,
-                limit_value INTEGER NOT NULL
+                date TEXT NOT NULL,
+                doctor_id TEXT NOT NULL DEFAULT 'dr_1',
+                limit_value INTEGER NOT NULL,
+                PRIMARY KEY (date, doctor_id)
             );
         """))
         
-        # 2. Seed default daily limit
-        res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = 'daily_limit'"))
-        if not res.fetchone():
-            await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES ('daily_limit', '45')"))
+        # 2. Seed default daily limits
+        for doc_id in ['dr_1', 'dr_2']:
+            key = f'daily_limit_{doc_id}'
+            res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
+            if not res.fetchone():
+                await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES (:key, '45')"), {"key": key})
 
         # 3. Migrations (Check and Add columns)
         # We use a safer approach for migrations in production
@@ -71,31 +75,52 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
         if 'doctor_id' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
+
+        # Migration for dashboard_daily_limit to add doctor_id if missing
+        res = await db.execute(text("SELECT * FROM dashboard_daily_limit LIMIT 0"))
+        limit_cols = res.keys()
+        if 'doctor_id' not in limit_cols:
+            # This is a bit tricky since doctor_id is now part of PK. 
+            # If migrating from old table without doctor_id:
+            await db.execute(text("ALTER TABLE dashboard_daily_limit RENAME TO dashboard_daily_limit_old"))
+            await db.execute(text("""
+                CREATE TABLE dashboard_daily_limit (
+                    date TEXT NOT NULL,
+                    doctor_id TEXT NOT NULL DEFAULT 'dr_1',
+                    limit_value INTEGER NOT NULL,
+                    PRIMARY KEY (date, doctor_id)
+                )
+            """))
+            await db.execute(text("INSERT INTO dashboard_daily_limit (date, doctor_id, limit_value) SELECT date, 'dr_1', limit_value FROM dashboard_daily_limit_old"))
+            await db.execute(text("DROP TABLE dashboard_daily_limit_old"))
             
         # 4. Indexes for performance
         await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);"))
         await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);"))
         await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);"))
+        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_daily_limit_date ON dashboard_daily_limit(date);"))
         
         await db.commit()
     except Exception as e:
         print(f"!!! DB INIT/MIGRATION ERROR: {e}")
         await db.rollback()
 
-async def get_daily_limit(db: AsyncSession) -> int:
-    res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = 'daily_limit'"))
+async def get_daily_limit(db: AsyncSession, doctor_id: str = 'dr_1') -> int:
+    key = f'daily_limit_{doctor_id}'
+    res = await db.execute(text("SELECT value FROM dashboard_settings WHERE key = :key"), {"key": key})
     row = res.mappings().first()
     return int(row['value']) if row else 45
 
-async def get_capacity_for_date(db: AsyncSession, date_str: str) -> int:
+async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str = 'dr_1') -> int:
     # Check for specific override first
-    res = await db.execute(text("SELECT limit_value FROM dashboard_daily_limit WHERE date = :date"), {"date": date_str})
+    res = await db.execute(text("SELECT limit_value FROM dashboard_daily_limit WHERE date = :date AND doctor_id = :doctor_id"), 
+                           {"date": date_str, "doctor_id": doctor_id})
     row = res.mappings().first()
     if row:
         return int(row['limit_value'])
     
-    # Fallback to global setting
-    return await get_daily_limit(db)
+    # Fallback to global setting for this doctor
+    return await get_daily_limit(db, doctor_id)
 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
@@ -135,15 +160,22 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
 
 @router.get("/settings")
 async def get_settings(db: AsyncSession = Depends(get_db)):
-    limit = await get_daily_limit(db)
-    return {"daily_limit": limit}
+    results = {}
+    for doc_id in ['dr_1', 'dr_2']:
+        results[doc_id] = await get_daily_limit(db, doc_id)
+    return {"doctor_limits": results}
 
 @router.post("/settings")
 async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(get_db)):
     try:
-        await db.execute(text("UPDATE dashboard_settings SET value = :val WHERE key = 'daily_limit'"), {"val": str(settings.daily_limit)})
+        for doc_id, limit in settings.doctor_limits.items():
+            key = f'daily_limit_{doc_id}'
+            await db.execute(text("""
+                INSERT INTO dashboard_settings (key, value) VALUES (:key, :val)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+            """), {"key": key, "val": str(limit)})
         await db.commit()
-        return {"message": "Settings updated", "daily_limit": settings.daily_limit}
+        return {"message": "Settings updated", "doctor_limits": settings.doctor_limits}
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -151,11 +183,13 @@ async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(g
 @router.get("/month-stats")
 async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
     """month format: YYYY-MM"""
-    import asyncio
     try:
-        # Run queries sequentially - AsyncSession does not support concurrent operations on the same session
-        global_limit = await get_daily_limit(db)
+        # Get global limits for both doctors
+        doctor_limits = {}
+        for doc_id in ['dr_1', 'dr_2']:
+            doctor_limits[doc_id] = await get_daily_limit(db, doc_id)
         
+        # Bookings count per date
         counts_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
@@ -164,36 +198,48 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
         """), {"pattern": f"{month}-%"})
         counts = {row['date']: row['count'] for row in counts_res.mappings().all()}
 
+        # Overrides per date and doctor
         limits_res = await db.execute(text("""
-            SELECT date, limit_value 
+            SELECT date, doctor_id, limit_value 
             FROM dashboard_daily_limit 
             WHERE date LIKE :pattern
         """), {"pattern": f"{month}-%"})
-        limits = {row['date']: row['limit_value'] for row in limits_res.mappings().all()}
+        
+        # Format overrides as {date: {doctor_id: limit}}
+        limits_overrides = {}
+        for row in limits_res.mappings().all():
+            dt = row['date']
+            if dt not in limits_overrides: limits_overrides[dt] = {}
+            limits_overrides[dt][row['doctor_id']] = row['limit_value']
 
-        return {"limit": global_limit, "counts": counts, "overrides": limits}
+        return {
+            "doctor_limits": doctor_limits, 
+            "counts": counts, 
+            "overrides": limits_overrides
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/daily-limit")
-async def get_daily_limit_route(date: str = Query(...), db: AsyncSession = Depends(get_db)):
-    limit = await get_capacity_for_date(db, date)
-    return {"date": date, "limit": limit}
+async def get_daily_limit_route(date: str = Query(...), doctor_id: str = Query('dr_1'), db: AsyncSession = Depends(get_db)):
+    limit = await get_capacity_for_date(db, date, doctor_id)
+    return {"date": date, "doctor_id": doctor_id, "limit": limit}
 
 class DailyLimitUpdate(BaseModel):
     date: str
+    doctor_id: str
     limit: int
 
 @router.post("/daily-limit")
 async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("""
-            INSERT INTO dashboard_daily_limit (date, limit_value) 
-            VALUES (:date, :limit)
-            ON CONFLICT (date) DO UPDATE SET limit_value = EXCLUDED.limit_value
-        """), {"date": data.date, "limit": data.limit})
+            INSERT INTO dashboard_daily_limit (date, doctor_id, limit_value) 
+            VALUES (:date, :doctor_id, :limit)
+            ON CONFLICT (date, doctor_id) DO UPDATE SET limit_value = EXCLUDED.limit_value
+        """), {"date": data.date, "doctor_id": data.doctor_id, "limit": data.limit})
         await db.commit()
-        return {"message": "Daily limit updated", "date": data.date, "limit": data.limit}
+        return {"message": "Daily limit updated", "date": data.date, "doctor_id": data.doctor_id, "limit": data.limit}
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -201,16 +247,22 @@ async def update_daily_limit(data: DailyLimitUpdate, db: AsyncSession = Depends(
 @router.get("/analytics")
 async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        import asyncio
         from datetime import date as pydate
-        
-        # Determine "today"
         today = date if date else pydate.today().isoformat()
 
-        # Run queries sequentially to avoid Session concurrency errors
-        daily_limit = await get_capacity_for_date(db, today)
-        global_limit = await get_daily_limit(db)
+        # Get capacities for today
+        doc_capacities = {}
+        total_limit_today = 0
+        for doc_id in ['dr_1', 'dr_2']:
+            cap = await get_capacity_for_date(db, today, doc_id)
+            doc_capacities[doc_id] = cap
+            total_limit_today += cap
         
+        # Get global settings
+        global_limits = {}
+        for doc_id in ['dr_1', 'dr_2']:
+            global_limits[doc_id] = await get_daily_limit(db, doc_id)
+
         today_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
         today_booked = today_booked_res.scalar() or 0
         
@@ -224,20 +276,21 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             ORDER BY date DESC 
             LIMIT 30
         """))
-        daily_data = [dict(row) for row in trends_res.mappings().all()]
+        daily_trends = [dict(row) for row in trends_res.mappings().all()]
         
-        today_remaining = max(0, daily_limit - today_booked)
-        avg = round(total_total / len(daily_data), 1) if daily_data else 0
+        today_remaining = max(0, total_limit_today - today_booked)
+        avg = round(total_total / len(daily_trends), 1) if daily_trends else 0
         
         return {
             "today_date": today,
             "today_booked": today_booked,
             "today_remaining": today_remaining,
-            "daily_limit": daily_limit,
-            "global_limit": global_limit,
+            "daily_limit": total_limit_today, # Aggregate for aggregate cards
+            "doctor_capacities": doc_capacities, # Individual breakdown
+            "global_limits": global_limits,
             "total": total_total,
             "average_per_day": avg,
-            "daily_trends": daily_data
+            "daily_trends": daily_trends
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
