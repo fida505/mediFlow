@@ -1652,8 +1652,8 @@
 
             <form class="login-form" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="login-user" class="form-input" placeholder="Enter username" required>
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="login-user" class="form-input" placeholder="Enter your email" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
@@ -1663,7 +1663,7 @@
             </form>
 
             <div style="margin-top: 24px; font-size: 12px; color: var(--text-muted);">
-                Enter any username and password to log in.
+                Authorized access only.
             </div>
         </div>
     </div>
@@ -3353,29 +3353,43 @@
 
                 console.log(`Attempting login for user: ${user}`);
 
-                // Demo Login: Always succeed locally to bypass Render deployment delays
-                setTimeout(() => {
-                    localStorage.setItem('mediflow_token', 'demo-token-123');
-                    const loginOverlay = document.getElementById('login-overlay');
-                    const appContent = document.getElementById('app-content');
-                    const splash = document.getElementById('splash-screen');
+                try {
+                    const res = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user, password: pass })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        localStorage.setItem('mediflow_token', data.token);
+                        const loginOverlay = document.getElementById('login-overlay');
+                        const appContent = document.getElementById('app-content');
+                        const splash = document.getElementById('splash-screen');
 
-                    if (loginOverlay) loginOverlay.style.opacity = '0';
+                        if (loginOverlay) loginOverlay.style.opacity = '0';
 
-                    setTimeout(() => {
-                        if (loginOverlay) loginOverlay.style.display = 'none';
-                        if (appContent) appContent.style.display = 'flex';
+                        setTimeout(() => {
+                            if (loginOverlay) loginOverlay.style.display = 'none';
+                            if (appContent) appContent.style.display = 'flex';
 
-                        // Bring splash back for loading app data
-                        if (splash) {
-                            splash.style.display = 'flex';
-                            splash.classList.remove('fade-out');
-                            splash.style.opacity = '1';
-                        }
+                            // Bring splash back for loading app data
+                            if (splash) {
+                                splash.style.display = 'flex';
+                                splash.classList.remove('fade-out');
+                                splash.style.opacity = '1';
+                            }
 
-                        init();
-                    }, 500);
-                }, 800);
+                            init();
+                        }, 500);
+                    } else {
+                        showToast(data.detail || "Invalid email or password", "error");
+                    }
+                } catch (err) {
+                    showToast("Login failed. Check server connection.", "error");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Login';
+                }
             }
 
             function logout() {

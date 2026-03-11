@@ -4,10 +4,12 @@ from pydantic import BaseModel
 router = APIRouter()
 
 class LoginRequest(BaseModel):
-    username: str
+    email: str
     password: str
 
 @router.post("/login")
 async def login(data: LoginRequest):
-    # For demo purposes, we allow any username and password
-    return {"token": "demo-token-123", "message": "Login successful"}
+    if data.email == "drbuddies2@gmail.com" and data.password == "Drbuddies@3639":
+        return {"token": "secure-session-789", "message": "Login successful"}
+    
+    raise HTTPException(status_code=401, detail="Invalid email or password")
