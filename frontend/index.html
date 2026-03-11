@@ -109,8 +109,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* ── SIDEBAR ── */
@@ -808,7 +813,8 @@
                 display: none !important;
             }
 
-            html, body {
+            html,
+            body {
                 height: auto !important;
                 overflow: visible !important;
                 position: static !important;
@@ -965,12 +971,12 @@
             font-size: 10.5px;
             font-weight: 500;
             color: var(--text-muted);
-            background: rgba(0,0,0,0.04);
+            background: rgba(0, 0, 0, 0.04);
             padding: 2px 6px;
             border-radius: 4px;
             white-space: nowrap;
         }
-        
+
         .booked .slot-time {
             background: rgba(99, 102, 241, 0.1);
             color: var(--accent);
@@ -1726,15 +1732,22 @@
                 <div class="progress-section">
                     <div class="progress-header" style="align-items: center;">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="date-btn no-print" onclick="changeDashboardDate(-1)" style="width:26px; height:26px; border-radius:6px;">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <button class="date-btn no-print" onclick="changeDashboardDate(-1)"
+                                style="width:26px; height:26px; border-radius:6px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
                             </button>
                             <div class="progress-label" id="dashboard-capacity-date">Daily Capacity — Loading...</div>
-                            <button class="date-btn no-print" onclick="changeDashboardDate(1)" style="width:26px; height:26px; border-radius:6px;">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <button class="date-btn no-print" onclick="changeDashboardDate(1)"
+                                style="width:26px; height:26px; border-radius:6px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
                             </button>
                         </div>
-                        <div class="progress-count"><span id="progress-booked">0</span> / <span class="max-limit-text">45</span> slots filled</div>
+                        <div class="progress-count"><span id="progress-booked">0</span> / <span
+                                class="max-limit-text">45</span> slots filled</div>
                     </div>
                     <div class="progress-track">
                         <div class="progress-fill" id="dashboard-progress-fill" style="width: 0%"></div>
@@ -1770,10 +1783,14 @@
                                 style="padding:6px 10px;font-size:12.5px;width:180px" oninput="filterTable(this.value)">
                         </div>
                     </div>
-                    <div class="dashboard-tabs no-print" style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
-                        <button class="btn btn-primary" id="tab-dashboard-all" onclick="setDashboardTab('all')" style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
-                        <button class="btn btn-ghost" id="tab-dashboard-dr_1" onclick="setDashboardTab('dr_1')" style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
-                        <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')" style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
+                    <div class="dashboard-tabs no-print"
+                        style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
+                        <button class="btn btn-primary" id="tab-dashboard-all" onclick="setDashboardTab('all')"
+                            style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
+                        <button class="btn btn-ghost" id="tab-dashboard-dr_1" onclick="setDashboardTab('dr_1')"
+                            style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
+                        <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')"
+                            style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
                     </div>
                     <div id="dashboard-tables-container">
                         <!-- Populated by JS -->
@@ -1818,18 +1835,27 @@
                         </button>
                     </div>
 
-                    <div class="progress-section" style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                    <div class="progress-section"
+                        style="margin-bottom: 24px; background: var(--accent-light); border: 1px solid var(--accent-mid); padding: 16px;">
+                        <div
+                            style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
                             <div>
-                                <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">Daily Slot Management</div>
-                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity (e.g., 45, 50 slots per day)</div>
+                                <div
+                                    style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
+                                    Daily Slot Management</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Adjust total clinic capacity
+                                    (e.g., 45, 50 slots per day)</div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:12px; background: white; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--accent-mid); box-shadow: 0 2px 8px rgba(27, 108, 168, 0.08);">
-                                <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Total Capacity:</label>
+                            <div
+                                style="display:flex; align-items:center; gap:12px; background: white; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--accent-mid); box-shadow: 0 2px 8px rgba(27, 108, 168, 0.08);">
+                                <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Total
+                                    Capacity:</label>
                                 <input type="number" id="inline-daily-limit" min="1" max="250"
                                     style="width:70px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-weight:700; color:var(--accent); text-align:center; outline:none;"
                                     value="45">
-                                <button class="btn btn-primary" onclick="saveInlineLimit()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">Update Slots</button>
+                                <button class="btn btn-primary" onclick="saveInlineLimit()"
+                                    style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">Update
+                                    Slots</button>
                             </div>
                         </div>
                     </div>
@@ -1881,6 +1907,15 @@
                                 <div class="date-display" id="slot-date-display">...</div>
                             </div>
                         </div>
+                        <div class="dashboard-tabs no-print"
+                            style="display:flex; gap: 8px; padding: 12px 16px 0 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
+                            <button class="btn btn-primary" id="tab-slots-all" onclick="setSlotsTab('all')"
+                                style="padding: 6px 14px; font-size: 13px;">All Clinics</button>
+                            <button class="btn btn-ghost" id="tab-slots-dr_1" onclick="setSlotsTab('dr_1')"
+                                style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
+                            <button class="btn btn-ghost" id="tab-slots-dr_2" onclick="setSlotsTab('dr_2')"
+                                style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
+                        </div>
                         <div id="slot-grid-container" style="padding:12px 16px 16px">
                             <!-- Grid rendered by JS -->
                         </div>
@@ -1927,9 +1962,12 @@
                     <div class="slot-header">
                         <div class="slot-header-title">Daily Breakdown</div>
                         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px" onclick="analyticsChangeMonth(-1)">← Prev</button>
-                            <span id="analytics-breakdown-month" style="font-size:13px;font-weight:600;color:var(--text-primary)">March 2026</span>
-                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px" onclick="analyticsChangeMonth(1)">Next →</button>
+                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
+                                onclick="analyticsChangeMonth(-1)">← Prev</button>
+                            <span id="analytics-breakdown-month"
+                                style="font-size:13px;font-weight:600;color:var(--text-primary)">March 2026</span>
+                            <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px"
+                                onclick="analyticsChangeMonth(1)">Next →</button>
                         </div>
                     </div>
                     <table class="mini-table" id="analytics-breakdown-table">
@@ -2152,7 +2190,8 @@
         let selectedSlot = null;
         let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
         let currentDashboardTab = 'all'; // Keeps track of active tab on dashboard
-        
+        let currentSlotsTab = 'all'; // Keeps track of active tab on slots page
+
         const doctors = [
             { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
             { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' }
@@ -2204,14 +2243,14 @@
         // ──────────────────────────────────────────
         function getSlotTimeRange(slotId) {
             // Start at 2:00 PM (14:00)
-            const startHour = 14; 
+            const startHour = 14;
             const startMin = 0;
             const durationArr = 5; // 5 mins per slot
-            
+
             // Calculate minutes since 2:00 PM
             const totalMinsStart = (slotId - 1) * durationArr;
             const totalMinsEnd = slotId * durationArr;
-            
+
             function formatTime(totalMins) {
                 let currentTotal = startMin + totalMins;
                 let h = startHour + Math.floor(currentTotal / 60);
@@ -2221,7 +2260,7 @@
                 if (displayH === 0) displayH = 12;
                 return `${displayH}:${String(m).padStart(2, '0')} ${ampm}`;
             }
-            
+
             return `${formatTime(totalMinsStart)} - ${formatTime(totalMinsEnd)}`;
         }
 
@@ -2297,9 +2336,9 @@
 
                 // Sync all capacity labels on dashboard
                 document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalClinicLimit);
-                
+
                 // Update Dashboard Capacity Date Label
-                const dObj = new Date(dateStr + 'T00:00:00'); 
+                const dObj = new Date(dateStr + 'T00:00:00');
                 const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
                 if (document.getElementById('dashboard-capacity-date')) {
                     document.getElementById('dashboard-capacity-date').textContent = `Daily Capacity — ${dateLabel}`;
@@ -2324,9 +2363,9 @@
                 const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
                 if (resBookings.ok) {
                     const bks = await resBookings.json();
-                    
+
                     // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
-                    appointments = bks; 
+                    appointments = bks;
                     renderDashboardTables(bks, dateStr);
                 }
             } catch (err) { console.error("Dashboard update failed", err); }
@@ -2334,18 +2373,18 @@
 
         function setDashboardTab(tabId) {
             currentDashboardTab = tabId;
-            
+
             // Update button styles
             document.querySelectorAll('.dashboard-tabs .btn').forEach(btn => {
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-ghost');
             });
             const activeBtn = document.getElementById('tab-dashboard-' + tabId);
-            if(activeBtn) {
+            if (activeBtn) {
                 activeBtn.classList.remove('btn-ghost');
                 activeBtn.classList.add('btn-primary');
             }
-            
+
             // Re-render the tables with the currently fetched appointments array
             renderDashboardTables(appointments, toLocalDateStr(dashboardViewDate));
         }
@@ -2353,7 +2392,7 @@
         function renderDashboardTables(bks, dateStr) {
             const container = document.getElementById('dashboard-tables-container');
             if (!container) return;
-            
+
             let filteredDoctors = doctors;
             let displayBks = bks;
 
@@ -2366,7 +2405,7 @@
                 container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for ${dateStr}.</div>`;
                 return;
             }
-            
+
             if (displayBks.length === 0 && currentDashboardTab !== 'all') {
                 container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)">No appointments for selected doctor on ${dateStr}.</div>`;
                 return;
@@ -2623,14 +2662,32 @@
             });
         }
 
+        function setSlotsTab(tabId) {
+            currentSlotsTab = tabId;
+
+            // Update button styles
+            document.querySelectorAll('#page-slots .dashboard-tabs .btn').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-ghost');
+            });
+            const activeBtn = document.getElementById('tab-slots-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('btn-ghost');
+                activeBtn.classList.add('btn-primary');
+            }
+
+            // Re-render the grids
+            renderSlotGrid();
+        }
+
         function renderSlotGrid() {
             const container = document.getElementById('slot-grid-container');
             if (!container) return;
-            
+
             const booked = getBookedCount();
             const totalCapacity = dynamicDailyLimit * doctors.length;
             const remaining = totalCapacity - booked;
-            
+
             // Update Progress Bar (Total)
             const pct = (booked / totalCapacity) * 100;
             const progressFill = document.getElementById('grid-progress-fill');
@@ -2643,9 +2700,14 @@
             if (document.getElementById('slots-remaining-count')) document.getElementById('slots-remaining-count').textContent = `${remaining} remaining`;
             document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCapacity);
 
+            let filteredDoctors = doctors;
+            if (currentSlotsTab !== 'all') {
+                filteredDoctors = doctors.filter(d => d.id === currentSlotsTab);
+            }
+
             let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
-            
-            doctors.forEach(doc => {
+
+            filteredDoctors.forEach(doc => {
                 html += `
                 <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
@@ -2656,11 +2718,11 @@
                         </div>
                     </div>
                     <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
-                
+
                 for (let i = 1; i <= dynamicDailyLimit; i++) {
                     const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
                     const timeRange = getSlotTimeRange(i);
-                    
+
                     if (appt) {
                         html += `
                             <div class="slot-cell booked" onclick="viewSlot(${i}, '${doc.id}')">
@@ -2679,7 +2741,7 @@
                 }
                 html += `</div></div>`;
             });
-            
+
             html += '</div>';
             container.innerHTML = html;
 
@@ -2745,7 +2807,7 @@
             document.getElementById('field-name').value = '';
             document.getElementById('field-phone').value = '';
             document.getElementById('field-place').value = '';
-            
+
             // Reset footer to default 
             document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -2756,7 +2818,7 @@
                     Save Appointment
                 </button>
             `;
-            
+
             document.getElementById('modal-overlay').classList.add('open');
         }
 
@@ -2879,7 +2941,7 @@
                 const cacheBuster = Date.now();
 
                 // Use the analytics view month for the breakdown
-                const viewMonth = `${analyticsViewDate.getFullYear()}-${String(analyticsViewDate.getMonth()+1).padStart(2,'0')}`;
+                const viewMonth = `${analyticsViewDate.getFullYear()}-${String(analyticsViewDate.getMonth() + 1).padStart(2, '0')}`;
                 const monthLabel = `${months[analyticsViewDate.getMonth()]} ${analyticsViewDate.getFullYear()}`;
                 const monthLabelEl = document.getElementById('analytics-breakdown-month');
                 if (monthLabelEl) monthLabelEl.textContent = monthLabel;
@@ -2907,7 +2969,7 @@
                     if (trends.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)">No bookings in ${monthLabel}</td></tr>`;
                     } else {
-                        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                         let totalBooked = 0;
                         tbody.innerHTML = trends.map(d => {
                             const count = d.count;
@@ -2921,7 +2983,7 @@
                             const [yr, mo, dy] = d.date.split('-').map(Number);
                             const dateObj = new Date(yr, mo - 1, dy);
                             const dayName = dayNames[dateObj.getDay()];
-                            const formattedDate = `${String(dy).padStart(2,'0')} ${months[mo-1].slice(0,3)} ${yr}`;
+                            const formattedDate = `${String(dy).padStart(2, '0')} ${months[mo - 1].slice(0, 3)} ${yr}`;
                             const isToday = d.date === realToday;
                             return `<tr style="${isToday ? 'background:rgba(99,102,241,0.07);' : ''}">
                                 <td style="font-family:'DM Mono',monospace;font-size:12.5px;white-space:nowrap">
@@ -3006,12 +3068,12 @@
             // We temporarily sync them so the hidden print table (which uses currentDate) is correct
             const originalDate = new Date(currentDate);
             currentDate = new Date(dashboardViewDate);
-            
+
             // Re-render the slot grid's hidden print table to ensure it has dashboard's data
-            renderSlotGrid(); 
-            
+            renderSlotGrid();
+
             window.print();
-            
+
             // Restore
             currentDate = originalDate;
         }
@@ -3031,7 +3093,7 @@
         async function init() {
             const statusEl = document.getElementById('splash-status');
             const splash = document.getElementById('splash-screen');
-            
+
             try {
                 if (statusEl) statusEl.textContent = "Connecting to server...";
 
@@ -3047,7 +3109,7 @@
                 // Wait for settings first as they are critical
                 await pSettings;
                 if (statusEl) statusEl.textContent = "Setting up interface...";
-                
+
                 // Then wait for the rest
                 await Promise.all([pDashboard, pCalendar]);
 
