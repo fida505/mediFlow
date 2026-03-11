@@ -60,9 +60,10 @@
             background: var(--bg);
             color: var(--text-primary);
             min-height: 100vh;
+            display: flex;
+            overflow: hidden;
             margin: 0;
             padding: 0;
-            overflow: hidden;
         }
 
         /* ── LOADING SPLASH ── */
@@ -1666,6 +1667,9 @@
         </div>
     </div>
 
+    <!-- ─── TOASTS ─── -->
+    <div class="toast-container" id="toast-container"></div>
+
     <div id="app-content" style="display: none; height: 100vh; width: 100%;">
         <!-- SIDEBAR -->
         <aside class="sidebar">
@@ -2302,8 +2306,6 @@
             </div>
         </div>
 
-        <!-- ─── TOASTS ─── -->
-        <div class="toast-container" id="toast-container"></div>
 
         <script>
             // ──────────────────────────────────────────
@@ -3321,6 +3323,7 @@
             // ─── AUTH CHECK & SPLASH ───
             (function () {
                 const token = localStorage.getItem('mediflow_token');
+                const splash = document.getElementById('splash-screen');
                 if (token) {
                     const loginOverlay = document.getElementById('login-overlay');
                     const appContent = document.getElementById('app-content');
@@ -3330,7 +3333,6 @@
                 } else {
                     // Start in login view - fade out splash screen after a delay
                     setTimeout(() => {
-                        const splash = document.getElementById('splash-screen');
                         if (splash) {
                             splash.classList.add('fade-out');
                             setTimeout(() => { splash.style.display = 'none'; }, 600);
