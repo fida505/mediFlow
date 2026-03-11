@@ -60,7 +60,8 @@
             background: var(--bg);
             color: var(--text-primary);
             min-height: 100vh;
-            display: flex;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
         }
 
@@ -1627,6 +1628,19 @@
 </head>
 
 <body>
+    <!-- ── LOADING SPLASH ── -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="logo-mark" style="width: 50px; height: 50px; margin-bottom: 24px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+        </div>
+        <div class="spinner"></div>
+        <div class="splash-text">MediFlow</div>
+        <div class="splash-sub" id="splash-status">Initializing secure connection...</div>
+    </div>
+
     <!-- ─── LOGIN SCREEN ─── -->
     <div id="login-overlay" class="login-overlay">
         <div class="login-card">
@@ -1652,7 +1666,7 @@
         </div>
     </div>
 
-    <div id="app-content">
+    <div id="app-content" style="display: none; height: 100vh; width: 100%;">
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-logo">
@@ -3304,7 +3318,7 @@
                 }
             });
 
-            // ─── AUTH CHECK & INIT ───
+            // ─── AUTH CHECK & SPLASH ───
             (function () {
                 const token = localStorage.getItem('mediflow_token');
                 if (token) {
@@ -3312,9 +3326,16 @@
                     const appContent = document.getElementById('app-content');
                     if (loginOverlay) loginOverlay.style.display = 'none';
                     if (appContent) appContent.style.display = 'flex';
-                    init(); // Only init if logged in
+                    init(); // Load data
                 } else {
-                    // Start in login view - init() will be called after successful handleLogin
+                    // Start in login view - fade out splash screen after a delay
+                    setTimeout(() => {
+                        const splash = document.getElementById('splash-screen');
+                        if (splash) {
+                            splash.classList.add('fade-out');
+                            setTimeout(() => { splash.style.display = 'none'; }, 600);
+                        }
+                    }, 1000);
                 }
             })();
 
