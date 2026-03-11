@@ -32,6 +32,10 @@ async def health_check():
     # Lightweight ping — no DB hit, accepts GET and HEAD (UptimeRobot uses HEAD)
     return {"status": "ok"}
 
+@app.post("/test-login")
+async def test_login():
+    return {"message": "Test login works"}
+
 from fastapi.responses import FileResponse
 
 @app.get("/")
