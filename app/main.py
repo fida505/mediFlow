@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.core.logging import configure_logging
 from app.core.exceptions import register_exception_handlers
-from app.routers import clinics, admin, bookings
+from app.routers import clinics, admin, bookings, auth
 from fastapi.staticfiles import StaticFiles
 from app.db.session import AsyncSessionLocal
 from app.routers.bookings import init_db
@@ -25,6 +25,7 @@ register_exception_handlers(app)
 app.include_router(clinics.router, prefix="/clinics", tags=["clinics"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(bookings.router, prefix="/bookings", tags=["bookings"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
