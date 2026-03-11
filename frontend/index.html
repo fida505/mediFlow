@@ -2295,7 +2295,12 @@
             // ──────────────────────────────────────────
             //  GLOBAL STATE & CONSTANTS
             // ──────────────────────────────────────────
-            const API_BASE = "https://drbuddiesclinicbooking.onrender.com";
+            // Dynamic API Base: Use localhost if running locally, otherwise use Render URL
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                ? 'http://localhost:8000'
+                : "https://drbuddiesclinicbooking.onrender.com";
+
+            console.log("Using API_BASE:", API_BASE);
             let appointments = [];
             let currentDate = new Date();
             let viewDate = new Date(); // For calendar month navigation
@@ -3321,6 +3326,8 @@
 
                 btn.disabled = true;
                 btn.textContent = 'Authenticating...';
+
+                console.log(`Attempting login for user: ${user} at ${API_BASE}/auth/login`);
 
                 try {
                     const res = await fetch(`${API_BASE}/auth/login`, {
