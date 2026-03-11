@@ -3358,10 +3358,21 @@
                     localStorage.setItem('mediflow_token', 'demo-token-123');
                     const loginOverlay = document.getElementById('login-overlay');
                     const appContent = document.getElementById('app-content');
+                    const splash = document.getElementById('splash-screen');
+
                     if (loginOverlay) loginOverlay.style.opacity = '0';
+
                     setTimeout(() => {
                         if (loginOverlay) loginOverlay.style.display = 'none';
                         if (appContent) appContent.style.display = 'flex';
+
+                        // Bring splash back for loading app data
+                        if (splash) {
+                            splash.style.display = 'flex';
+                            splash.classList.remove('fade-out');
+                            splash.style.opacity = '1';
+                        }
+
                         init();
                     }, 500);
                 }, 800);
