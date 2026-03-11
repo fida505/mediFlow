@@ -29,12 +29,11 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    # Lightweight ping — no DB hit, accepts GET and HEAD (UptimeRobot uses HEAD)
-    return {"status": "ok"}
+    return {"status": "ok", "version": "v3-auth-debug"}
 
 @app.post("/test-login")
 async def test_login():
-    return {"message": "Test login works"}
+    return {"message": "Test login works", "version": "v3-auth-debug"}
 
 from fastapi.responses import FileResponse
 
