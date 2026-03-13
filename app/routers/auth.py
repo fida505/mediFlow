@@ -3,6 +3,10 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 VALID_USERS = [
     {"email": "drbuddies2@gmail.com", "password": "Drbuddies@3639"},
     {"email": "Jmrclinic332@gmail.com", "password": "Jmr@9894CL2"},
