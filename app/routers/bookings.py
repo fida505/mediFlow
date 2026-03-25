@@ -17,6 +17,7 @@ class BookingCreate(BaseModel):
     date: str
     doctor_id: str = "dr_1"
     notes: str = None
+    is_paid: bool = False
 
 class BookingUpdate(BaseModel):
     patient_name: str = None
@@ -25,6 +26,7 @@ class BookingUpdate(BaseModel):
     date: str = None
     doctor_id: str = None
     notes: str = None
+    is_paid: bool = None
 
 async def init_db(db: AsyncSession):
     """Initializes tables and migrations in a single block for better startup speed."""
@@ -39,7 +41,8 @@ async def init_db(db: AsyncSession):
                 time TEXT NOT NULL,
                 date TEXT NOT NULL DEFAULT '',
                 slot_id INTEGER,
-                doctor_id TEXT NOT NULL DEFAULT 'dr_1'
+                doctor_id TEXT NOT NULL DEFAULT 'dr_1',
+                is_paid BOOLEAN NOT NULL DEFAULT FALSE
             );
         """))
         await db.execute(text("""
@@ -75,6 +78,8 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN slot_id INTEGER"))
         if 'doctor_id' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
+        if 'is_paid' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE"))
 
         # Migration for dashboard_daily_limit to add doctor_id if missing
         res = await db.execute(text("SELECT * FROM dashboard_daily_limit LIMIT 0"))
@@ -125,7 +130,7 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, notes, time, date, slot_id, doctor_id FROM dashboard_bookings"
+        query = "SELECT id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings"
         conditions = []
         params = {}
         
@@ -152,7 +157,8 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "time": row['time'],
                 "date": row['date'],
                 "slot_id": row['slot_id'],
-                "doctor_id": row.get('doctor_id', 'dr_1')
+                "doctor_id": row.get('doctor_id', 'dr_1'),
+                "is_paid": row.get('is_paid', False)
             })
         return bookings_list
     except Exception as e:
@@ -307,8 +313,8 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id)
-            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid)
+            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
         """), {
             "id": booking_id,
             "name": booking.patient_name,
@@ -317,7 +323,8 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "time": str(booking.slot_id),
             "date": booking.date,
             "slot_id": booking.slot_id,
-            "doctor_id": doc_id
+            "doctor_id": doc_id,
+            "is_paid": booking.is_paid
         })
         await db.commit()
         return {"message": "Booking created successfully"}
@@ -359,6 +366,9 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.doctor_id is not None:
             updates.append("doctor_id = :doctor_id")
             params["doctor_id"] = booking.doctor_id
+        if booking.is_paid is not None:
+            updates.append("is_paid = :is_paid")
+            params["is_paid"] = booking.is_paid
             
         if not updates:
             return {"message": "No changes made"}
