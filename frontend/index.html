@@ -2270,6 +2270,25 @@
                             <div style="font-size:11px; color:var(--text-muted)">Check if patient has already paid</div>
                         </div>
                     </label>
+
+                    <!-- Reschedule Sub-Panel (hidden by default) -->
+                    <div id="reschedule-panel" style="display:none; margin-top:16px; padding:14px; background:#f8fafc; border:1px solid var(--border); border-radius:10px;">
+                        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent); margin-bottom:12px;">📅 Reschedule Appointment</div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label class="form-label">New Date</label>
+                            <input type="date" class="form-input" id="reschedule-date" onchange="onRescheduleDateChange()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Slot</label>
+                            <select class="form-input" id="reschedule-slot">
+                                <option value="">-- Select date first --</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button class="btn btn-ghost" style="font-size:12px" onclick="closeReschedule()">← Back</button>
+                            <button class="btn btn-primary" style="font-size:12px; flex:1" onclick="confirmReschedule()">Confirm Reschedule</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer" id="modal-footer">
                     <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -3025,6 +3044,71 @@
 
             function closeModal() {
                 document.getElementById('modal-overlay').classList.remove('open');
+                document.getElementById('reschedule-panel').style.display = 'none';
+            }
+
+            function openReschedule() {
+                const panel = document.getElementById('reschedule-panel');
+                panel.style.display = 'block';
+                // Pre-fill with current viewing date
+                const todayStr = toLocalDateStr(currentDate);
+                document.getElementById('reschedule-date').value = todayStr;
+                onRescheduleDateChange();
+            }
+
+            function closeReschedule() {
+                document.getElementById('reschedule-panel').style.display = 'none';
+            }
+
+            async function onRescheduleDateChange() {
+                const dateStr = document.getElementById('reschedule-date').value;
+                if (!dateStr) return;
+                const select = document.getElementById('reschedule-slot');
+                select.innerHTML = '<option value="">Loading...</option>';
+
+                try {
+                    // Fetch bookings for that date and doctor
+                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}&doctor_id=${selectedDoctor}`);
+                    const bookedAppts = await res.json();
+                    const bookedSlotIds = new Set(bookedAppts.map(a => a.slot_id));
+
+                    const docLimit = dynamicDailyLimit[selectedDoctor] || 45;
+                    let options = '';
+                    for (let i = 1; i <= docLimit; i++) {
+                        // Skip slot that is currently being rescheduled (current booking)
+                        if (i === selectedSlot && dateStr === toLocalDateStr(currentDate)) continue;
+                        if (!bookedSlotIds.has(i)) {
+                            const time = getSlotTimeRange(i);
+                            options += `<option value="${i}">Slot #${i} — ${time}</option>`;
+                        }
+                    }
+                    select.innerHTML = options || '<option value="">No available slots</option>';
+                } catch(e) {
+                    select.innerHTML = '<option value="">Error loading slots</option>';
+                }
+            }
+
+            async function confirmReschedule() {
+                const newDate = document.getElementById('reschedule-date').value;
+                const newSlotId = parseInt(document.getElementById('reschedule-slot').value);
+
+                if (!newDate || !newSlotId) return showToast('Please select a date and slot', 'error');
+
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(currentEditingId)}/reschedule`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ new_date: newDate, new_slot_id: newSlotId, doctor_id: selectedDoctor })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || 'Reschedule failed');
+
+                    closeModal();
+                    showToast('Appointment rescheduled successfully!', 'success');
+                    fetchAppointments();
+                } catch(err) {
+                    showToast(err.message, 'error');
+                }
             }
 
             function viewSlot(slotId, doctorId) {
@@ -3046,8 +3130,10 @@
                 document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-danger" style="margin-right:auto" onclick="openConfirm()">Cancel Appt</button>
                 <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+                <button class="btn btn-ghost" style="background:#fff3cd; border-color:#ffc107; color:#856404" onclick="openReschedule()">📅 Reschedule</button>
                 <button class="btn btn-primary" onclick="saveAppointment()">Update</button>
             `;
+                document.getElementById('reschedule-panel').style.display = 'none';
                 document.getElementById('modal-overlay').classList.add('open');
             }
 

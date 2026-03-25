@@ -392,3 +392,47 @@ async def delete_booking(booking_id: str, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+class RescheduleRequest(BaseModel):
+    new_date: str
+    new_slot_id: int
+    doctor_id: str
+
+@router.post("/{booking_id}/reschedule")
+async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        # 1. Fetch existing booking
+        res = await db.execute(text("SELECT * FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
+        existing = res.mappings().first()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Booking not found")
+
+        # 2. Check if new slot is already taken
+        new_id = f"appt-{data.new_date}-{data.doctor_id}-{data.new_slot_id}"
+        conflict = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": new_id})
+        if conflict.fetchone():
+            raise HTTPException(status_code=400, detail="That slot is already booked")
+
+        # 3. Delete old booking, insert at new slot (atomic)
+        await db.execute(text("DELETE FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
+        await db.execute(text("""
+            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid)
+            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
+        """), {
+            "id": new_id,
+            "name": existing["patient_name"],
+            "phone": existing["phone"],
+            "notes": existing["notes"],
+            "time": str(data.new_slot_id),
+            "date": data.new_date,
+            "slot_id": data.new_slot_id,
+            "doctor_id": data.doctor_id,
+            "is_paid": existing["is_paid"]
+        })
+        await db.commit()
+        return {"message": "Booking rescheduled successfully", "new_id": new_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Reschedule failed: {str(e)}")
