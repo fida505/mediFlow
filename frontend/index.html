@@ -950,6 +950,22 @@
             color: var(--accent);
         }
 
+        .slot-cell.paid {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .slot-cell.booked .slot-patient {
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .slot-cell.paid .slot-patient {
+            font-weight: 700;
+            color: #166534;
+        }
+
         .slot-cell.available {
             background: var(--surface);
             color: var(--text-secondary);
@@ -2953,11 +2969,13 @@
                         const timeRange = getSlotTimeRange(i);
 
                         if (appt) {
+                            const isPaidClass = appt.is_paid ? 'paid' : 'booked';
+                            
                             html += `
-                            <div class="slot-cell booked" onclick="viewSlot(${i}, '${doc.id}')">
+                            <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, '${doc.id}')">
                                 <div class="slot-num">Slot ${i}</div>
                                 <div class="slot-time">${timeRange}</div>
-                                <div class="slot-patient">${appt.patient_name} ${appt.is_paid ? '<span style="color:var(--green);font-weight:bold" title="Payment Done">✓</span>' : ''}</div>
+                                <div class="slot-patient">${appt.patient_name}</div>
                             </div>`;
                         } else {
                             html += `
