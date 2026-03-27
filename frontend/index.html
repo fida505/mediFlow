@@ -2365,12 +2365,12 @@
                         <input type="number" id="field-daily-limit-dr_1" class="form-input" placeholder="e.g. 45">
                     </div>
                     <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label">JMR Dr Iyad Mohammed - Limit</label>
-                        <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 45">
+                        <label class="form-label">JMR Dr Iyad Mohammed - Limit (Default 96)</label>
+                        <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 96">
                     </div>
                     <div
                         style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
-                        Standard capacity is 45 slots per doctor. These settings apply globally as defaults.
+                        Standard capacity is 45 slots for Dr Buddies and 96 slots for Dr JMR. These settings apply globally as defaults.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -2412,7 +2412,7 @@
             function toLocalDateStr(date) {
                 return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
             }
-            let dynamicDailyLimit = { dr_1: 45, dr_2: 45 };
+            let dynamicDailyLimit = { dr_1: 45, dr_2: 96 };
             // Default
 
             const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -2453,13 +2453,19 @@
             // ──────────────────────────────────────────
             //  SLOT TIMING HELPERS
             // ──────────────────────────────────────────
-            function getSlotTimeRange(slotId) {
-                // Start at 2:00 PM (14:00)
-                const startHour = 14;
-                const startMin = 0;
+            function getSlotTimeRange(slotId, doctorId = 'dr_1') {
+                // Default: Start at 2:00 PM (14:00)
+                let startHour = 14;
+                let startMin = 0;
+
+                // Dr. JMR (dr_2) starts at 8:00 AM
+                if (doctorId === 'dr_2') {
+                    startHour = 8;
+                }
+
                 const durationArr = 5; // 5 mins per slot
 
-                // Calculate minutes since 2:00 PM
+                // Calculate minutes since start time
                 const totalMinsStart = (slotId - 1) * durationArr;
                 const totalMinsEnd = slotId * durationArr;
 
@@ -2968,7 +2974,7 @@
 
                     for (let i = 1; i <= docLimit; i++) {
                         const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
-                        const timeRange = getSlotTimeRange(i);
+                        const timeRange = getSlotTimeRange(i, doc.id);
 
                         if (appt) {
                             const isPaidClass = appt.is_paid ? 'paid' : 'booked';
@@ -3026,7 +3032,7 @@
                             printHtml += `
                                 <tr>
                                     <td style="text-align:center">#${i}</td>
-                                    <td>${getSlotTimeRange(i)}</td>
+                                    <td>${getSlotTimeRange(i, doc.id)}</td>
                                     <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
                                     <td>${appt ? appt.patient_phone : '-'}</td>
                                     <td>${appt ? (appt.notes || '-') : '-'}</td>
@@ -3050,7 +3056,7 @@
                 selectedSlot = slot;
                 selectedDoctor = doctorId;
                 currentEditingId = null;
-                const timeRange = getSlotTimeRange(slot);
+                const timeRange = getSlotTimeRange(slot, doctorId);
                 const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
                 document.getElementById('modal-title').textContent = "Add Appointment - " + docName;
                 document.getElementById('modal-slot-badge').textContent = `Slot #${slot} (${timeRange})`;
@@ -3118,7 +3124,7 @@
                         // Skip slot that is currently being rescheduled (current booking)
                         if (i === selectedSlot && dateStr === toLocalDateStr(currentDate)) continue;
                         if (!bookedSlotIds.has(i)) {
-                            const time = getSlotTimeRange(i);
+                            const time = getSlotTimeRange(i, selectedDoctor);
                             options += `<option value="${i}">Slot #${i} — ${time}</option>`;
                         }
                     }
@@ -3157,7 +3163,7 @@
                 selectedSlot = slotId;
                 selectedDoctor = doctorId;
                 currentEditingId = appt.id;
-                const timeRange = getSlotTimeRange(slotId);
+                const timeRange = getSlotTimeRange(slotId, doctorId);
                 const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
                 document.getElementById('modal-title').textContent = "Patient Details - " + docName;
                 document.getElementById('modal-slot-badge').textContent = `Slot #${slotId} (${timeRange})`;
