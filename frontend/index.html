@@ -2394,6 +2394,7 @@
 
             console.log("Using API_BASE:", API_BASE);
             let appointments = [];
+            let dashboardAppointments = []; // Isolated for dashboard to prevent race conditions
             let currentDate = new Date();
             let viewDate = new Date(); // For calendar month navigation
             let dashboardViewDate = new Date(); // Added for dashboard date navigation
@@ -2582,8 +2583,8 @@
                     if (resBookings.ok) {
                         const bks = await resBookings.json();
 
-                        // IF we are viewing a specific date on dashboard, sync it to the global appointments array for the Print function
-                        appointments = bks;
+                        // Isolated for dashboard to prevent race conditions with Slots page
+                        dashboardAppointments = bks;
                         renderDashboardTables(bks, dateStr);
                     }
                 } catch (err) { console.error("Dashboard update failed", err); }
@@ -2603,8 +2604,8 @@
                     activeBtn.classList.add('btn-primary');
                 }
 
-                // Re-render the tables with the currently fetched appointments array
-                renderDashboardTables(appointments, toLocalDateStr(dashboardViewDate));
+                // Re-render the tables with the dashboardAppointments array
+                renderDashboardTables(dashboardAppointments, toLocalDateStr(dashboardViewDate));
             }
 
             function renderDashboardTables(bks, dateStr) {
@@ -2655,7 +2656,7 @@
                                     <td><div style="font-weight:500">${b.patient_name}</div></td>
                                     <td>${b.patient_phone || '–'}</td>
                                     <td>${b.notes || '–'}</td>
-                                    <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id)})</td>
+                                    <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id, b.doctor_id)})</td>
                                     <td><span class="status-pill booked">Confirmed</span></td>
                                     <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
                                 </tr>
@@ -2901,7 +2902,7 @@
                 document.getElementById('slots-calendar-view').style.display = 'none';
                 document.getElementById('slots-grid-view').style.display = 'block';
 
-                // Re-fetch for that day to populate appointments array
+                // Re-fetch for that day to populate appointments array (main slots source)
                 fetchAppointments().then(() => {
                     viewSlot(slotId, doctorId);
                 });
@@ -3406,9 +3407,12 @@
 
             function printFromDashboard() {
                 // Dashboard uses dashboardViewDate instead of the global currentDate
-                // We temporarily sync them so the hidden print table (which uses currentDate) is correct
+                // We temporarily sync them and swap appointments array so the hidden print table is correct
                 const originalDate = new Date(currentDate);
+                const originalAppts = appointments;
+                
                 currentDate = new Date(dashboardViewDate);
+                appointments = dashboardAppointments;
 
                 // Re-render the slot grid's hidden print table to ensure it has dashboard's data
                 renderSlotGrid();
@@ -3417,6 +3421,8 @@
 
                 // Restore
                 currentDate = originalDate;
+                appointments = originalAppts;
+                renderSlotGrid();
             }
 
             function filterTable(query) {
