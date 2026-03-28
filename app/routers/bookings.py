@@ -134,9 +134,12 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
         conditions = []
         params = {}
         
-        if date:
-            conditions.append("date = :date")
-            params["date"] = date
+        if not date:
+            return [] # Safety: Don't return all bookings if date is missing
+            
+        conditions.append("date = :date")
+        params["date"] = date
+        
         if doctor_id:
             conditions.append("doctor_id = :doctor_id")
             params["doctor_id"] = doctor_id

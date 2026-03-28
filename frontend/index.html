@@ -2579,14 +2579,19 @@
                         ticksContainer.innerHTML = ticksHtml;
                     }
 
-                    const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
-                    if (resBookings.ok) {
-                        const bks = await resBookings.json();
+                    const cbBookings = Date.now();
+                    try {
+                        // Pre-clear to avoid showing stale data in case of failure
+                        dashboardAppointments = [];
+                        const resBookings = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cbBookings}`);
+                        if (resBookings.ok) {
+                            const bks = await resBookings.json();
 
-                        // Isolated for dashboard to prevent race conditions with Slots page
-                        dashboardAppointments = bks;
-                        renderDashboardTables(bks, dateStr);
-                    }
+                            // Isolated for dashboard to prevent race conditions with Slots page
+                            dashboardAppointments = bks;
+                            renderDashboardTables(bks, dateStr);
+                        }
+                    } catch (err) { console.error("Dashboard update failed", err); }
                 } catch (err) { console.error("Dashboard update failed", err); }
             }
 
@@ -2875,12 +2880,16 @@
             //  SLOT GRID (STEP 2)
             async function fetchAppointments() {
                 const dateStr = toLocalDateStr(currentDate);
+                const cb = Date.now();
                 try {
-                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
-                    const data = await res.json();
+                    // Pre-clear to avoid showing stale data in case of failure
+                    appointments = [];
+                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
                     if (!res.ok) {
+                        const data = await res.json();
                         throw new Error(data.detail || `Server Error (${res.status})`);
                     }
+                    const data = await res.json();
                     appointments = data;
                     renderSlotGrid();
                 } catch (err) {
@@ -2974,7 +2983,7 @@
                     <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
 
                     for (let i = 1; i <= docLimit; i++) {
-                        const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                        const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id && a.date === toLocalDateStr(currentDate));
                         const timeRange = getSlotTimeRange(i, doc.id);
 
                         if (appt) {
@@ -3029,7 +3038,7 @@
                     `;
                         const docLimit = dynamicDailyLimit[doc.id] || 45;
                         for (let i = 1; i <= docLimit; i++) {
-                            const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                            const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id && a.date === toLocalDateStr(currentDate));
                             printHtml += `
                                 <tr>
                                     <td style="text-align:center">#${i}</td>
