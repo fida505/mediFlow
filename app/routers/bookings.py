@@ -170,7 +170,7 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
 @router.get("/settings")
 async def get_settings(db: AsyncSession = Depends(get_db)):
     results = {}
-    for doc_id in ['dr_1', 'dr_2']:
+    for doc_id in ['dr_1', 'dr_2', 'review']:
         results[doc_id] = await get_daily_limit(db, doc_id)
     return {"doctor_limits": results}
 
