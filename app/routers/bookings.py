@@ -61,7 +61,7 @@ async def init_db(db: AsyncSession):
         """))
         
         # 2. Seed default daily limits
-        for doc_id in ['dr_1', 'dr_2']:
+        for doc_id in ['dr_1', 'dr_2', 'review']:
             key = f'daily_limit_{doc_id}'
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
             if not res.fetchone():
@@ -195,7 +195,7 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
     try:
         # Get global limits for both doctors
         doctor_limits = {}
-        for doc_id in ['dr_1', 'dr_2']:
+        for doc_id in ['dr_1', 'dr_2', 'review']:
             doctor_limits[doc_id] = await get_daily_limit(db, doc_id)
         
         # Bookings count per date
@@ -262,14 +262,14 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         # Get capacities for today
         doc_capacities = {}
         total_limit_today = 0
-        for doc_id in ['dr_1', 'dr_2']:
+        for doc_id in ['dr_1', 'dr_2', 'review']:
             cap = await get_capacity_for_date(db, today, doc_id)
             doc_capacities[doc_id] = cap
             total_limit_today += cap
         
         # Get global settings
         global_limits = {}
-        for doc_id in ['dr_1', 'dr_2']:
+        for doc_id in ['dr_1', 'dr_2', 'review']:
             global_limits[doc_id] = await get_daily_limit(db, doc_id)
 
         today_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})

@@ -1933,6 +1933,8 @@
                                 style="padding: 6px 14px; font-size: 13px;">DR BUDDIES Dr Iyad Mohammed</button>
                             <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')"
                                 style="padding: 6px 14px; font-size: 13px;">JMR Dr Iyad Mohammed</button>
+                            <button class="btn btn-ghost" id="tab-dashboard-review" onclick="setDashboardTab('review')"
+                                style="padding: 6px 14px; font-size: 13px;">Reviews</button>
                         </div>
                         <div id="dashboard-tables-container">
                             <!-- Populated by JS -->
@@ -1990,25 +1992,7 @@
                                         (e.g., 45, 50 slots per day)</div>
                                 </div>
                                 <div id="doctor-capacity-inputs" style="display:flex; flex-direction:column; gap:8px;">
-                                    <!-- Dr Buddies Capacity -->
-                                    <div
-                                        style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                        <span
-                                            style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">DR
-                                            BUDDIES:</span>
-                                        <input type="number" id="inline-daily-limit-dr_1" class="form-input"
-                                            style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
-                                            value="0">
-                                    </div>
-                                    <!-- JMR Capacity -->
-                                    <div
-                                        style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                        <span
-                                            style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">JMR:</span>
-                                        <input type="number" id="inline-daily-limit-dr_2" class="form-input"
-                                            style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
-                                            value="0">
-                                    </div>
+                                    <!-- Populated dynamically by selectDate -->
                                 </div>
                                 <button class="btn btn-primary" onclick="saveInlineLimit()"
                                     style="height: 42px; padding: 0 16px;">
@@ -2368,9 +2352,13 @@
                         <label class="form-label">JMR Dr Iyad Mohammed - Limit (Default 96)</label>
                         <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 96">
                     </div>
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="form-label">Review Slots - Limit (Default 40)</label>
+                        <input type="number" id="field-daily-limit-review" class="form-input" placeholder="e.g. 40">
+                    </div>
                     <div
                         style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
-                        Standard capacity is 45 slots for Dr Buddies and 96 slots for Dr JMR. These settings apply globally as defaults.
+                        Standard capacity is 45 slots for Dr Buddies, 96 slots for Dr JMR, and 40 slots for Reviews. These settings apply globally as defaults.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -2406,14 +2394,15 @@
 
             const doctors = [
                 { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
-                { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' }
+                { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' },
+                { id: 'review', name: 'Reviews' }
             ];
 
             // Always use local date (not UTC) to avoid timezone bugs
             function toLocalDateStr(date) {
                 return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
             }
-            let dynamicDailyLimit = { dr_1: 45, dr_2: 96 };
+            let dynamicDailyLimit = { dr_1: 45, dr_2: 96, review: 40 };
             // Default
 
             const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -2459,8 +2448,8 @@
                 let startHour = 14;
                 let startMin = 0;
 
-                // Dr. JMR (dr_2) starts at 8:00 AM
-                if (doctorId === 'dr_2') {
+                // Dr. JMR (dr_2) and Review (review) start at 8:00 AM
+                if (doctorId === 'dr_2' || doctorId === 'review') {
                     startHour = 8;
                 }
 
@@ -2844,14 +2833,26 @@
                 // Fetch specific limits for this date for all doctors
                 try {
                     let totalDayLimit = 0;
+                    const capacityInputsContainer = document.getElementById('doctor-capacity-inputs');
+                    if (capacityInputsContainer) capacityInputsContainer.innerHTML = '';
+
                     for (const doc of doctors) {
                         const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
                         const data = await res.json();
-                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : 45;
+                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : (doc.id === 'dr_2' ? 96 : 45);
                         dynamicDailyLimit[doc.id] = limit;
 
-                        const input = document.getElementById(`inline-daily-limit-${doc.id}`);
-                        if (input) input.value = limit;
+                        if (capacityInputsContainer) {
+                            const label = doc.id === 'review' ? 'Reviews' : (doc.id === 'dr_1' ? 'DR BUDDIES' : 'JMR');
+                            capacityInputsContainer.innerHTML += `
+                                <div style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
+                                    <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">${label}:</span>
+                                    <input type="number" id="inline-daily-limit-${doc.id}" class="form-input"
+                                        style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
+                                        value="${limit}">
+                                </div>
+                            `;
+                        }
 
                         totalDayLimit += limit;
                     }
@@ -2968,11 +2969,11 @@
 
                 let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
 
-                filteredDoctors.forEach(doc => {
+                // First pass: render doctors
+                filteredDoctors.filter(d => d.id !== 'review').forEach(doc => {
                     const dLim = dynamicDailyLimit[doc.id];
-                    const docLimit = (dLim !== undefined && dLim !== null) ? dLim : 45;
+                    const docLimit = (dLim !== undefined && dLim !== null) ? dLim : (doc.id === 'dr_2' ? 96 : 45);
                     
-                    // Hide section entirely if limit is 0 as requested ("blank screen")
                     if (docLimit === 0) return;
 
                     html += `
@@ -3012,8 +3013,53 @@
                     }
                     html += `</div></div>`;
                 });
-
                 html += '</div>';
+
+                // Second pass: render Reviews if available
+                const reviewDoc = filteredDoctors.find(d => d.id === 'review');
+                if (reviewDoc) {
+                    const rLim = dynamicDailyLimit[reviewDoc.id];
+                    const reviewLimit = (rLim !== undefined && rLim !== null) ? rLim : 40;
+                    if (reviewLimit > 0) {
+                        html += `
+                        <div class="slot-section" style="margin-top: 30px; border: 1px solid var(--accent-mid); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                           <div class="slot-header" style="background: #eef5ff; border-bottom: 2px solid var(--accent-mid); padding: 16px 20px;">
+                               <div class="slot-header-title" style="color: var(--accent); font-weight: 700; font-size: 18px;">Reviews</div>
+                               <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                                   <div style="font-size: 12px; font-weight: 600; color: var(--accent);">Limit: ${reviewLimit}</div>
+                                   <div class="legend" style="margin:0">
+                                       <div class="legend-item"><div class="legend-dot available"></div> Free</div>
+                                       <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+                                       <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
+                                   </div>
+                               </div>
+                           </div>
+                           <div style="padding: 20px; background: white;">
+                               <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
+                        for (let i = 1; i <= reviewLimit; i++) {
+                            const appt = appointments.find(a => a.slot_id === i && a.doctor_id === reviewDoc.id && a.date === toLocalDateStr(currentDate));
+                            const timeRange = getSlotTimeRange(i, reviewDoc.id);
+                            if (appt) {
+                                const isPaidClass = appt.is_paid ? 'paid' : 'booked';
+                                html += `
+                                <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, 'review')">
+                                    <div class="slot-num">Slot ${i}</div>
+                                    <div class="slot-time">${timeRange}</div>
+                                    <div class="slot-patient">${appt.patient_name}</div>
+                                </div>`;
+                            } else {
+                                html += `
+                                <div class="slot-cell available" onclick="openModal(${i}, 'review')">
+                                    <div class="slot-num">Slot ${i}</div>
+                                    <div class="slot-time">${timeRange}</div>
+                                    <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
+                                </div>`;
+                            }
+                        }
+                        html += `</div></div></div>`;
+                    }
+                }
+
                 container.innerHTML = html;
 
                 // Populate Print Table (Separated by Doctor)
