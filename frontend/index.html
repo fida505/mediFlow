@@ -3325,7 +3325,8 @@
                                 // Calculate total capacity for this day (sum of doctors)
                                 let totalLim = 0;
                                 doctors.forEach(doc => {
-                                    totalLim += (dynamicDailyLimit[doc.id] || 45);
+                                    const dLim = dynamicDailyLimit[doc.id];
+                                    totalLim += (dLim !== undefined && dLim !== null) ? dLim : 45;
                                 });
 
                                 const rem = Math.max(0, totalLim - count);
