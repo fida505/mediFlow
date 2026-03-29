@@ -2833,29 +2833,29 @@
                 // Fetch specific limits for this date for all doctors
                 try {
                     let totalDayLimit = 0;
-                    const capacityInputsContainer = document.getElementById('doctor-capacity-inputs');
-                    if (capacityInputsContainer) capacityInputsContainer.innerHTML = '';
+                    let inputsHtml = '';
 
                     for (const doc of doctors) {
                         const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
                         const data = await res.json();
-                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : (doc.id === 'dr_2' ? 96 : 45);
+                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : (doc.id === 'dr_2' ? 96 : (doc.id === 'review' ? 40 : 45));
                         dynamicDailyLimit[doc.id] = limit;
 
-                        if (capacityInputsContainer) {
-                            const label = doc.id === 'review' ? 'Reviews' : (doc.id === 'dr_1' ? 'DR BUDDIES' : 'JMR');
-                            capacityInputsContainer.innerHTML += `
-                                <div style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                    <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">${label}:</span>
-                                    <input type="number" id="inline-daily-limit-${doc.id}" class="form-input"
-                                        style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
-                                        value="${limit}">
-                                </div>
-                            `;
-                        }
+                        const label = doc.id === 'review' ? 'Reviews' : (doc.id === 'dr_1' ? 'DR BUDDIES' : 'JMR');
+                        inputsHtml += `
+                            <div style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
+                                <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">${label}:</span>
+                                <input type="number" id="inline-daily-limit-${doc.id}" class="form-input"
+                                    style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
+                                    value="${limit}">
+                            </div>
+                        `;
 
                         totalDayLimit += limit;
                     }
+                    const capacityInputsContainer = document.getElementById('doctor-capacity-inputs');
+                    if (capacityInputsContainer) capacityInputsContainer.innerHTML = inputsHtml;
+
                     document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalDayLimit);
                 } catch (err) { console.error("Error fetching daily limits:", err); }
 
