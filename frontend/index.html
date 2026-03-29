@@ -2969,7 +2969,12 @@
                 let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
 
                 filteredDoctors.forEach(doc => {
-                    const docLimit = dynamicDailyLimit[doc.id] || 45;
+                    const dLim = dynamicDailyLimit[doc.id];
+                    const docLimit = (dLim !== undefined && dLim !== null) ? dLim : 45;
+                    
+                    // Hide section entirely if limit is 0 as requested ("blank screen")
+                    if (docLimit === 0) return;
+
                     html += `
                 <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
