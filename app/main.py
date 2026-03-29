@@ -9,7 +9,7 @@ from app.routers.bookings import init_db
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="MediFlow SaaS Platform")
+app = FastAPI(title="LumidOS SaaS Platform")
 
 app.add_middleware(
     CORSMiddleware,
