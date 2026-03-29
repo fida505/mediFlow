@@ -2535,8 +2535,8 @@
                     }
 
                     const bookedNum = stats.today_booked || 0;
-                    const perDoctorLimit = stats.daily_limit || dynamicDailyLimit || 45;
-                    const totalClinicLimit = perDoctorLimit * doctors.length;
+                    // stats.daily_limit is already the aggregate sum from the backend
+                    const totalClinicLimit = (stats.daily_limit !== undefined && stats.daily_limit !== null) ? stats.daily_limit : 45 * doctors.length;
                     const pct = totalClinicLimit > 0 ? ((bookedNum / totalClinicLimit) * 100) : 0;
                     const fill = document.getElementById('dashboard-progress-fill');
                     if (fill) {
@@ -2820,7 +2820,7 @@
                     const overridesForDay = overrides[dateKey] || {};
 
                     doctors.forEach(doc => {
-                        const limit = overridesForDay[doc.id] || doctorLimits[doc.id] || 45;
+                        const limit = (overridesForDay[doc.id] !== undefined) ? overridesForDay[doc.id] : (doctorLimits[doc.id] !== undefined ? doctorLimits[doc.id] : 45);
                         totalCapacityForDay += limit;
                     });
 
@@ -2847,7 +2847,7 @@
                     for (const doc of doctors) {
                         const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
                         const data = await res.json();
-                        const limit = data.limit || 45;
+                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : 45;
                         dynamicDailyLimit[doc.id] = limit;
 
                         const input = document.getElementById(`inline-daily-limit-${doc.id}`);
@@ -2943,7 +2943,8 @@
 
                 let totalCapacity = 0;
                 doctors.forEach(doc => {
-                    totalCapacity += (dynamicDailyLimit[doc.id] || 45);
+                    const dLim = dynamicDailyLimit[doc.id];
+                    totalCapacity += (dLim !== undefined && dLim !== null) ? dLim : 45;
                 });
 
                 const remaining = totalCapacity - booked;
