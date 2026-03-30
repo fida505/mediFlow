@@ -2395,14 +2395,15 @@
             const doctors = [
                 { id: 'dr_1', name: 'DR BUDDIES Dr Iyad Mohammed' },
                 { id: 'dr_2', name: 'JMR Dr Iyad Mohammed' },
-                { id: 'review', name: 'Reviews' }
+                { id: 'review_dr_1', name: 'Reviews - Dr Buddies' },
+                { id: 'review_dr_2', name: 'Reviews - JMR' }
             ];
 
             // Always use local date (not UTC) to avoid timezone bugs
             function toLocalDateStr(date) {
                 return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
             }
-            let dynamicDailyLimit = { dr_1: 45, dr_2: 96, review: 40 };
+            let dynamicDailyLimit = { dr_1: 45, dr_2: 96, review_dr_1: 40, review_dr_2: 40 };
             // Default
 
             const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
