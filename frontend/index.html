@@ -3031,8 +3031,8 @@
                 });
                 html += '</div>';
 
-                // Second pass: render Reviews if available
-                const reviewDocs = doctors.filter(d => d.id.startsWith('review_'));
+                // Second pass: render Reviews if available (apply filtering if tab active)
+                const reviewDocs = filteredDoctors.filter(d => d.id.startsWith('review_'));
                 if (reviewDocs.length > 0) {
                     let hasVisibleReviews = false;
                     reviewDocs.forEach(rd => {
