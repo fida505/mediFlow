@@ -65,7 +65,7 @@ async def init_db(db: AsyncSession):
             key = f'daily_limit_{doc_id}'
             print(f">>> Checking default limit for {doc_id}...")
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
-            if not res.first():
+            if not await res.first():
                 print(f">>> Seeding default limit for {doc_id}...")
                 await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES (:key, '45')"), {"key": key})
 
