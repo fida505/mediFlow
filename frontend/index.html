@@ -3111,7 +3111,7 @@
                             </thead>
                             <tbody>
                     `;
-                        const docLimit = dynamicDailyLimit[doc.id] || 45;
+                        const docLimit = dynamicDailyLimit[doc.id] || (doc.id === 'dr_2' ? 96 : (doc.id.startsWith('review_') ? 40 : 45));
                         for (let i = 1; i <= docLimit; i++) {
                             const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id && a.date === toLocalDateStr(currentDate));
                             printHtml += `
