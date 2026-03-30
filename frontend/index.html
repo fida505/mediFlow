@@ -3265,7 +3265,7 @@
                     is_paid: document.getElementById('field-paid').checked
                 };
 
-                if (!data.patient_name || !data.patient_phone) return showToast("Name and Phone required", "error");
+                if (!data.patient_name || !data.patient_phone || !data.notes) return showToast("Name, Phone and Place are required", "error");
 
                 try {
                     let res;
