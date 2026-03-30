@@ -2985,8 +2985,8 @@
 
                 let html = '<div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px;">';
 
-                // First pass: render doctors
-                filteredDoctors.filter(d => d.id !== 'review').forEach(doc => {
+                // First pass: render doctors (excluding reviews)
+                filteredDoctors.filter(d => !d.id.startsWith('review_')).forEach(doc => {
                     const dLim = dynamicDailyLimit[doc.id];
                     const docLimit = (dLim !== undefined && dLim !== null) ? dLim : (doc.id === 'dr_2' ? 96 : 45);
                     
