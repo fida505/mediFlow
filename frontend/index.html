@@ -2838,15 +2838,21 @@
                     for (const doc of doctors) {
                         const res = await fetch(`${API_BASE}/bookings/daily-limit?date=${dateStr}&doctor_id=${doc.id}`);
                         const data = await res.json();
-                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : (doc.id === 'dr_2' ? 96 : (doc.id === 'review' ? 40 : 45));
+                        const defaultLimit = doc.id === 'dr_2' ? 96 : (doc.id.startsWith('review_') ? 40 : 45);
+                        const limit = (data.limit !== undefined && data.limit !== null) ? data.limit : defaultLimit;
                         dynamicDailyLimit[doc.id] = limit;
 
-                        const label = doc.id === 'review' ? 'Reviews' : (doc.id === 'dr_1' ? 'DR BUDDIES' : 'JMR');
+                        let label = doc.name;
+                        if (doc.id === 'dr_1') label = 'DR BUDDIES';
+                        if (doc.id === 'dr_2') label = 'JMR';
+                        if (doc.id === 'review_dr_1') label = 'REV-BUDDIES';
+                        if (doc.id === 'review_dr_2') label = 'REV-JMR';
+
                         inputsHtml += `
-                            <div style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid);">
-                                <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); width: 80px;">${label}:</span>
+                            <div style="display:flex; align-items:center; gap:8px; background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent-mid); flex: 1; min-width: 140px;">
+                                <span style="font-size: 10px; font-weight: 700; color: var(--text-secondary); width: 80px; text-transform: uppercase;">${label}:</span>
                                 <input type="number" id="inline-daily-limit-${doc.id}" class="form-input"
-                                    style="width: 60px; height: 32px; padding: 4px 8px; font-size: 14px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
+                                    style="width: 55px; height: 32px; padding: 4px; font-size: 13px; text-align: center; font-weight: 700; color: var(--accent); border-color: var(--accent-mid);"
                                     value="${limit}">
                             </div>
                         `;
