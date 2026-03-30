@@ -2817,6 +2817,7 @@
                     const overridesForDay = overrides[dateKey] || {};
 
                     doctors.forEach(doc => {
+                        if (doc.id.startsWith('review_')) return; // Skip reviews for calendar Overview counts
                         const limit = (overridesForDay[doc.id] !== undefined) ? overridesForDay[doc.id] : (doctorLimits[doc.id] !== undefined ? doctorLimits[doc.id] : 45);
                         totalCapacityForDay += limit;
                     });

@@ -202,11 +202,12 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             doctor_limits[doc_id] = await get_daily_limit(db, doc_id)
         
-        # Bookings count per date
+        # Bookings count per date (Excluding reviews for calendar overview)
         counts_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
             WHERE date LIKE :pattern
+            AND doctor_id NOT LIKE 'review_%'
             GROUP BY date
         """), {"pattern": f"{month}-%"})
         counts = {row['date']: row['count'] for row in counts_res.mappings().all()}
@@ -269,22 +270,24 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             cap = await get_capacity_for_date(db, today, doc_id)
             doc_capacities[doc_id] = cap
-            total_limit_today += cap
+            if not doc_id.startswith('review_'):
+                total_limit_today += cap
         
         # Get global settings
         global_limits = {}
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             global_limits[doc_id] = await get_daily_limit(db, doc_id)
 
-        today_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today"), {"today": today})
+        today_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE date = :today AND doctor_id NOT LIKE 'review_%'"), {"today": today})
         today_booked = today_booked_res.scalar() or 0
         
-        total_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings"))
+        total_booked_res = await db.execute(text("SELECT COUNT(*) FROM dashboard_bookings WHERE doctor_id NOT LIKE 'review_%'"))
         total_total = total_booked_res.scalar() or 0
         
         trends_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
+            WHERE doctor_id NOT LIKE 'review_%'
             GROUP BY date 
             ORDER BY date DESC 
             LIMIT 30
