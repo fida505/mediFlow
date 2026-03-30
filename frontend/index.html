@@ -2448,8 +2448,8 @@
                 let startHour = 14;
                 let startMin = 0;
 
-                // Dr. JMR (dr_2) and Review (review) start at 8:00 AM
-                if (doctorId === 'dr_2' || doctorId === 'review') {
+                // Dr. JMR (dr_2) and Reviews start at 8:00 AM
+                if (doctorId === 'dr_2' || doctorId.startsWith('review_')) {
                     startHour = 8;
                 }
 
@@ -3016,47 +3016,62 @@
                 html += '</div>';
 
                 // Second pass: render Reviews if available
-                const reviewDoc = filteredDoctors.find(d => d.id === 'review');
-                if (reviewDoc) {
-                    const rLim = dynamicDailyLimit[reviewDoc.id];
-                    const reviewLimit = (rLim !== undefined && rLim !== null) ? rLim : 40;
-                    if (reviewLimit > 0) {
+                const reviewDocs = doctors.filter(d => d.id.startsWith('review_'));
+                if (reviewDocs.length > 0) {
+                    let hasVisibleReviews = false;
+                    reviewDocs.forEach(rd => {
+                        const lim = dynamicDailyLimit[rd.id];
+                        if (lim > 0) hasVisibleReviews = true;
+                    });
+
+                    if (hasVisibleReviews) {
                         html += `
                         <div class="slot-section" style="margin-top: 30px; border: 1px solid var(--accent-mid); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                           <div class="slot-header" style="background: #eef5ff; border-bottom: 2px solid var(--accent-mid); padding: 16px 20px;">
+                           <div class="slot-header" style="background: #fdfdfd; border-bottom: 2px solid var(--accent-mid); padding: 16px 20px;">
                                <div class="slot-header-title" style="color: var(--accent); font-weight: 700; font-size: 18px;">Reviews</div>
-                               <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
-                                   <div style="font-size: 12px; font-weight: 600; color: var(--accent);">Limit: ${reviewLimit}</div>
-                                   <div class="legend" style="margin:0">
-                                       <div class="legend-item"><div class="legend-dot available"></div> Free</div>
-                                       <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
-                                       <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
-                                   </div>
+                               <div class="legend" style="margin-left: auto;">
+                                   <div class="legend-item"><div class="legend-dot available"></div> Free</div>
+                                   <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+                                   <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
                                </div>
                            </div>
-                           <div style="padding: 20px; background: white;">
-                               <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
-                        for (let i = 1; i <= reviewLimit; i++) {
-                            const appt = appointments.find(a => a.slot_id === i && a.doctor_id === reviewDoc.id && a.date === toLocalDateStr(currentDate));
-                            const timeRange = getSlotTimeRange(i, reviewDoc.id);
-                            if (appt) {
-                                const isPaidClass = appt.is_paid ? 'paid' : 'booked';
-                                html += `
-                                <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, 'review')">
-                                    <div class="slot-num">Slot ${i}</div>
-                                    <div class="slot-time">${timeRange}</div>
-                                    <div class="slot-patient">${appt.patient_name}</div>
-                                </div>`;
-                            } else {
-                                html += `
-                                <div class="slot-cell available" onclick="openModal(${i}, 'review')">
-                                    <div class="slot-num">Slot ${i}</div>
-                                    <div class="slot-time">${timeRange}</div>
-                                    <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
-                                </div>`;
+                           <div style="padding: 20px; background: white; display: flex; gap: 20px; flex-wrap: wrap;">`;
+                        
+                        reviewDocs.forEach(rd => {
+                            const reviewLimit = dynamicDailyLimit[rd.id] || 40;
+                            if (reviewLimit === 0) return;
+
+                            html += `
+                            <div style="flex: 1; min-width: 380px;">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                                    <span>${rd.name}</span>
+                                    <span style="color: var(--text-muted)">Limit: ${reviewLimit}</span>
+                                </div>
+                                <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
+                            
+                            for (let i = 1; i <= reviewLimit; i++) {
+                                const appt = appointments.find(a => a.slot_id === i && a.doctor_id === rd.id && a.date === toLocalDateStr(currentDate));
+                                const timeRange = getSlotTimeRange(i, rd.id);
+                                if (appt) {
+                                    const isPaidClass = appt.is_paid ? 'paid' : 'booked';
+                                    html += `
+                                    <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, '${rd.id}')">
+                                        <div class="slot-num">Slot ${i}</div>
+                                        <div class="slot-time">${timeRange}</div>
+                                        <div class="slot-patient">${appt.patient_name}</div>
+                                    </div>`;
+                                } else {
+                                    html += `
+                                    <div class="slot-cell available" onclick="openModal(${i}, '${rd.id}')">
+                                        <div class="slot-num">Slot ${i}</div>
+                                        <div class="slot-time">${timeRange}</div>
+                                        <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
+                                    </div>`;
+                                }
                             }
-                        }
-                        html += `</div></div></div>`;
+                            html += `</div></div>`;
+                        });
+                        html += `</div></div>`;
                     }
                 }
 
