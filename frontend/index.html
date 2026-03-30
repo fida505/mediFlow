@@ -2437,7 +2437,7 @@
                 let startMin = 0;
 
                 // Dr. JMR (dr_2) and Reviews start at 8:00 AM
-                if (doctorId === 'dr_2' || doctorId.startsWith('review_')) {
+                if (doctorId === 'dr_2' || (doctorId && doctorId.startsWith('review_'))) {
                     startHour = 8;
                 }
 
