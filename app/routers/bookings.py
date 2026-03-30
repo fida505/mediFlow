@@ -63,8 +63,10 @@ async def init_db(db: AsyncSession):
         # 2. Seed default daily limits
         for doc_id in ['dr_1', 'dr_2', 'review']:
             key = f'daily_limit_{doc_id}'
+            print(f">>> Checking default limit for {doc_id}...")
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
-            if not res.fetchone():
+            if not res.first():
+                print(f">>> Seeding default limit for {doc_id}...")
                 await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES (:key, '45')"), {"key": key})
 
         # 3. Migrations (Check and Add columns)
@@ -107,7 +109,9 @@ async def init_db(db: AsyncSession):
         
         await db.commit()
     except Exception as e:
+        import traceback
         print(f"!!! DB INIT/MIGRATION ERROR: {e}")
+        print(traceback.format_exc())
         await db.rollback()
 
 async def get_daily_limit(db: AsyncSession, doctor_id: str = 'dr_1') -> int:
