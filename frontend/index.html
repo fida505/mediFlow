@@ -3555,7 +3555,10 @@
 
                 } catch (err) {
                     console.error("Init failed:", err);
-                    if (statusEl) statusEl.textContent = "Retrying connection...";
+                    if (statusEl) {
+                        statusEl.style.color = 'var(--red)';
+                        statusEl.innerHTML = `Connection Error: ${err.message}<br><button class="btn btn-ghost" style="margin-top:10px; color:var(--accent)" onclick="location.reload()">Retry Now</button>`;
+                    }
                 } finally {
                     // Ensure splash screen fades out even if there's a minor error
                     setTimeout(() => {
