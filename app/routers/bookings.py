@@ -61,7 +61,7 @@ async def init_db(db: AsyncSession):
         """))
         
         # 2. Seed default daily limits
-        for doc_id in ['dr_1', 'dr_2', 'review']:
+        for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             key = f'daily_limit_{doc_id}'
             print(f">>> Checking default limit for {doc_id}...")
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
