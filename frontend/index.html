@@ -3403,6 +3403,7 @@
                                 // Calculate total capacity for this day (sum of doctors)
                                 let totalLim = 0;
                                 doctors.forEach(doc => {
+                                    if (doc.id.startsWith('review_')) return; // Skip reviews for trend capacity
                                     const dLim = dynamicDailyLimit[doc.id];
                                     totalLim += (dLim !== undefined && dLim !== null) ? dLim : 45;
                                 });
