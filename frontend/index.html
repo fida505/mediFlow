@@ -2343,23 +2343,8 @@
                     </div>
                     <button class="modal-close" onclick="closeSettings()">&times;</button>
                 </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">DR BUDDIES Dr Iyad Mohammed - Limit</label>
-                        <input type="number" id="field-daily-limit-dr_1" class="form-input" placeholder="e.g. 45">
-                    </div>
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label">JMR Dr Iyad Mohammed - Limit (Default 96)</label>
-                        <input type="number" id="field-daily-limit-dr_2" class="form-input" placeholder="e.g. 96">
-                    </div>
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label">Review Slots - Limit (Default 40)</label>
-                        <input type="number" id="field-daily-limit-review" class="form-input" placeholder="e.g. 40">
-                    </div>
-                    <div
-                        style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
-                        Standard capacity is 45 slots for Dr Buddies, 96 slots for Dr JMR, and 40 slots for Reviews. These settings apply globally as defaults.
-                    </div>
+                <div class="modal-body" id="settings-modal-body">
+                    <!-- Populated dynamically -->
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
@@ -2689,10 +2674,26 @@
             }
 
             function openSettings() {
+                const body = document.getElementById('settings-modal-body');
+                if (!body) return;
+
+                let html = '';
                 doctors.forEach(doc => {
-                    const input = document.getElementById(`field-daily-limit-${doc.id}`);
-                    if (input) input.value = dynamicDailyLimit[doc.id] || 45;
+                    const limit = dynamicDailyLimit[doc.id] || (doc.id === 'dr_2' ? 96 : (doc.id.startsWith('review_') ? 40 : 45));
+                    html += `
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">${doc.name} - Daily Limit</label>
+                        <input type="number" id="field-daily-limit-${doc.id}" class="form-input" 
+                               value="${limit}" placeholder="e.g. 45">
+                    </div>`;
                 });
+
+                html += `
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
+                    These settings apply globally as defaults for each doctor and review category.
+                </div>`;
+
+                body.innerHTML = html;
                 document.getElementById('settings-overlay').classList.add('open');
             }
 
