@@ -1933,8 +1933,10 @@
                                 style="padding: 6px 14px; font-size: 13px;">Dr Buddies</button>
                             <button class="btn btn-ghost" id="tab-dashboard-dr_2" onclick="setDashboardTab('dr_2')"
                                 style="padding: 6px 14px; font-size: 13px;">JMR</button>
-                            <button class="btn btn-ghost" id="tab-dashboard-reviews" onclick="setDashboardTab('reviews')"
-                                style="padding: 6px 14px; font-size: 13px;">Reviews</button>
+                            <button class="btn btn-ghost" id="tab-dashboard-review_dr_1" onclick="setDashboardTab('review_dr_1')"
+                                style="padding: 6px 14px; font-size: 13px;">Dr Buddies Reviews</button>
+                            <button class="btn btn-ghost" id="tab-dashboard-review_dr_2" onclick="setDashboardTab('review_dr_2')"
+                                style="padding: 6px 14px; font-size: 13px;">JMR Reviews</button>
                         </div>
                         <div id="dashboard-tables-container">
                             <!-- Populated by JS -->
@@ -2057,8 +2059,10 @@
                                     style="padding: 6px 14px; font-size: 13px;">Dr Buddies</button>
                                 <button class="btn btn-ghost" id="tab-slots-dr_2" onclick="setSlotsTab('dr_2')"
                                     style="padding: 6px 14px; font-size: 13px;">JMR</button>
-                                <button class="btn btn-ghost" id="tab-slots-reviews" onclick="setSlotsTab('reviews')"
-                                    style="padding: 6px 14px; font-size: 13px;">Reviews</button>
+                                <button class="btn btn-ghost" id="tab-slots-review_dr_1" onclick="setSlotsTab('review_dr_1')"
+                                    style="padding: 6px 14px; font-size: 13px;">Dr Buddies Reviews</button>
+                                <button class="btn btn-ghost" id="tab-slots-review_dr_2" onclick="setSlotsTab('review_dr_2')"
+                                    style="padding: 6px 14px; font-size: 13px;">JMR Reviews</button>
                             </div>
                             <div id="slot-grid-container" style="padding:12px 16px 16px">
                                 <!-- Grid rendered by JS -->
@@ -2597,11 +2601,7 @@
                 let filteredDoctors = doctors;
                 let displayBks = bks;
 
-                if (currentDashboardTab === 'reviews') {
-                    filteredDoctors = doctors.filter(d => d.id.startsWith('review_'));
-                    const reviewIds = filteredDoctors.map(d => d.id);
-                    displayBks = bks.filter(b => reviewIds.includes(b.doctor_id));
-                } else if (currentDashboardTab !== 'all') {
+                if (currentDashboardTab !== 'all') {
                     filteredDoctors = doctors.filter(d => d.id === currentDashboardTab);
                     displayBks = bks.filter(b => b.doctor_id === currentDashboardTab);
                 }
@@ -2977,9 +2977,7 @@
                 document.querySelectorAll('.max-limit-text').forEach(el => el.textContent = totalCapacity);
 
                 let filteredDoctors = doctors;
-                if (currentSlotsTab === 'reviews') {
-                    filteredDoctors = doctors.filter(d => d.id.startsWith('review_'));
-                } else if (currentSlotsTab !== 'all') {
+                if (currentSlotsTab !== 'all') {
                     filteredDoctors = doctors.filter(d => d.id === currentSlotsTab);
                 }
 
