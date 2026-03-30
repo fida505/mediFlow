@@ -3042,26 +3042,23 @@
 
                     if (hasVisibleReviews) {
                         html += `
-                        <div class="slot-section" style="margin-top: 30px; border: 1px solid var(--accent-mid); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                           <div class="slot-header" style="background: #fdfdfd; border-bottom: 2px solid var(--accent-mid); padding: 16px 20px;">
-                               <div class="slot-header-title" style="color: var(--accent); font-weight: 700; font-size: 18px;">Reviews</div>
-                               <div class="legend" style="margin-left: auto;">
-                                   <div class="legend-item"><div class="legend-dot available"></div> Free</div>
-                                   <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
-                                   <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
-                               </div>
+                        <div class="slot-section" style="margin-top: 32px;">
+                           <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; padding: 0 4px;">
+                               <div style="height:2px; flex:1; background:var(--accent-mid); border-radius:2px;"></div>
+                               <div style="color: var(--accent); font-weight: 700; font-size: 16px; text-transform:uppercase; letter-spacing:0.5px;">Reviews Categories</div>
+                               <div style="height:2px; flex:1; background:var(--accent-mid); border-radius:2px;"></div>
                            </div>
-                           <div style="padding: 20px; background: white; display: flex; gap: 20px; flex-wrap: wrap;">`;
+                           <div style="display: flex; gap: 30px; flex-wrap: wrap;">`;
                         
                         reviewDocs.forEach(rd => {
                             const reviewLimit = dynamicDailyLimit[rd.id] || 40;
                             if (reviewLimit === 0) return;
 
                             html += `
-                            <div style="flex: 1; min-width: 380px;">
-                                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
-                                    <span>${rd.name}</span>
-                                    <span style="color: var(--text-muted)">Limit: ${reviewLimit}</span>
+                            <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
+                                    <h3 style="margin:0; font-size: 18px; color: var(--accent);">${rd.name}</h3>
+                                    <div style="font-size: 11px; font-weight: 600; color: var(--text-muted)">Limit: ${reviewLimit}</div>
                                 </div>
                                 <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
                             
