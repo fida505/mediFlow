@@ -3101,11 +3101,14 @@
                 }
                 if (printListBody) {
                     let printHtml = '';
+                    const dateStr = `${days[currentDate.getDay()]}, ${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
                     doctors.forEach((doc, index) => {
                         const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
                         printHtml += `
                     <div style="${pageBreakStyle} margin-bottom: 40px;">
-                        <h2 style="font-size: 20px; color: var(--text-primary); margin-bottom: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 8px;">Schedule for ${doc.name}</h2>
+                        <h2 style="font-size: 20px; color: var(--text-primary); margin-bottom: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 8px;">
+                            ${doc.name} Schedule <span style="font-size:16px; color:#666; margin-left:10px;">— ${dateStr}</span>
+                        </h2>
                         <table class="mini-table" style="width: 100%;">
                             <thead>
                                 <tr>
