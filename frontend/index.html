@@ -904,8 +904,10 @@
                 padding: 0 !important;
             }
 
-            .progress-section {
-                display: none !important;
+            /* Ensure the last column of the dedicated print list is visible */
+            .print-only tr td:last-child,
+            .print-only tr th:last-child {
+                display: table-cell !important;
             }
         }
 
@@ -1908,14 +1910,10 @@
                         <div class="slot-header" style="border-bottom:none; padding-bottom: 8px;">
                             <div class="slot-header-title" id="dashboard-list-date">Today's Appointments</div>
                             <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-                                <button class="btn btn-ghost no-print" onclick="printFromDashboard()"
-                                    style="font-size:12px;padding:6px 10px">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                <button class="btn btn-primary no-print" onclick="printFromDashboard()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px">
                                         <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                        <path
-                                            d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
-                                        </path>
+                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                         <rect x="6" y="14" width="12" height="8"></rect>
                                     </svg>
                                     Print List
@@ -2234,8 +2232,13 @@
             </div><!-- /content -->
 
             <!-- Print-only List -->
-            <div id="print-slot-list" class="print-only" style="padding: 0 16px;">
-                <!-- Populated by JS -->
+            <div id="print-slot-list" class="print-only" style="padding: 10px 40px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h1 style="font-size: 28px; margin: 0; color: var(--accent);">Appointment Schedule</h1>
+                    <p style="font-size: 18px; font-weight: 700; margin: 8px 0 0 0;">Day Schedule — <span id="print-date-el"></span></p>
+                </div>
+                <div id="print-list-body"></div>
+                <!-- Content will be injected by renderSlotGrid -->
             </div>
 
         </main>
@@ -3090,13 +3093,13 @@
                 container.innerHTML = html;
 
                 // Populate Print Table (Separated by Doctor)
-                const printListContainer = document.getElementById('print-slot-list');
+                const printListBody = document.getElementById('print-list-body');
                 const printDateEl = document.getElementById('print-date-el');
                 if (printDateEl) {
                     const d = currentDate;
                     printDateEl.textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
                 }
-                if (printListContainer) {
+                if (printListBody) {
                     let printHtml = '';
                     doctors.forEach((doc, index) => {
                         const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
@@ -3134,7 +3137,7 @@
                     </div>
                     `;
                     });
-                    printListContainer.innerHTML = printHtml;
+                    printListBody.innerHTML = printHtml;
                 }
             }
 
