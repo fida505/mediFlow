@@ -3102,7 +3102,27 @@
                 if (printListBody) {
                     let printHtml = '';
                     const dateStr = `${days[currentDate.getDay()]}, ${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-                    doctors.forEach((doc, index) => {
+                    
+                    // Determine which tab is active based on visible page
+                    let activeTab = 'all';
+                    const isDashboard = document.getElementById('page-dashboard') && document.getElementById('page-dashboard').style.display !== 'none';
+                    if (isDashboard) {
+                        activeTab = currentDashboardTab;
+                    } else {
+                        const slotsPage = document.getElementById('page-slots');
+                        if (slotsPage && slotsPage.style.display !== 'none') {
+                            activeTab = currentSlotsTab;
+                        }
+                    }
+
+                    // Filter doctors list for print
+                    let doctorsToPrint = doctors;
+                    if (activeTab !== 'all') {
+                        doctorsToPrint = doctors.filter(d => d.id === activeTab);
+                    }
+                    if (doctorsToPrint.length === 0) doctorsToPrint = doctors; // safety fallback
+                    
+                    doctorsToPrint.forEach((doc, index) => {
                         const pageBreakStyle = index > 0 ? 'page-break-before: always; break-before: page; margin-top: 40px;' : '';
                         printHtml += `
                     <div style="${pageBreakStyle} margin-bottom: 40px;">
