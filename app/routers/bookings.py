@@ -28,6 +28,13 @@ class BookingUpdate(BaseModel):
     notes: str = None
     is_paid: bool = None
 
+class WaitlistCreate(BaseModel):
+    patient_name: str
+    patient_phone: str
+    date: str
+    doctor_id: str = "dr_1"
+    notes: str = ""
+
 async def init_db(db: AsyncSession):
     """Initializes tables and migrations in a single block for better startup speed."""
     try:
@@ -43,6 +50,17 @@ async def init_db(db: AsyncSession):
                 slot_id INTEGER,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
                 is_paid BOOLEAN NOT NULL DEFAULT FALSE
+            );
+        """))
+        await db.execute(text("""
+            CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
+                id TEXT PRIMARY KEY,
+                patient_name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                notes TEXT,
+                date TEXT NOT NULL,
+                doctor_id TEXT NOT NULL DEFAULT 'dr_1',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """))
         await db.execute(text("""
@@ -446,3 +464,58 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Reschedule failed: {str(e)}")
+
+# ─── WAITING LIST ENDPOINTS ───
+
+@router.get("/waitlist")
+async def get_waitlist(date: str = Query(...), doctor_id: str = Query('dr_1'), db: AsyncSession = Depends(get_db)):
+    try:
+        query = "SELECT id, patient_name, phone, notes, date, doctor_id, created_at FROM dashboard_waiting_list WHERE date = :date AND doctor_id = :doctor_id"
+        result = await db.execute(text(query), {"date": date, "doctor_id": doctor_id})
+        
+        waitlist = []
+        for row in result.mappings().all():
+            waitlist.append({
+                "id": row['id'],
+                "patient_name": row['patient_name'],
+                "patient_phone": row['phone'],
+                "notes": row['notes'],
+                "date": row['date'],
+                "doctor_id": row['doctor_id'],
+                "created_at": str(row['created_at'])
+            })
+        return waitlist
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@router.post("/waitlist")
+async def add_to_waitlist(data: WaitlistCreate, db: AsyncSession = Depends(get_db)):
+    try:
+        import uuid
+        wl_id = f"wl-{data.date}-{data.doctor_id}-{uuid.uuid4().hex[:8]}"
+        await db.execute(text("""
+            INSERT INTO dashboard_waiting_list (id, patient_name, phone, notes, date, doctor_id)
+            VALUES (:id, :name, :phone, :notes, :date, :doctor_id)
+        """), {
+            "id": wl_id,
+            "name": data.patient_name,
+            "phone": data.patient_phone,
+            "notes": data.notes,
+            "date": data.date,
+            "doctor_id": data.doctor_id
+        })
+        await db.commit()
+        return {"message": "Added to waiting list successfully", "id": wl_id}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to add to waitlist: {str(e)}")
+
+@router.delete("/waitlist/{wl_id}")
+async def delete_from_waitlist(wl_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        await db.execute(text("DELETE FROM dashboard_waiting_list WHERE id = :id"), {"id": wl_id})
+        await db.commit()
+        return {"message": "Removed from waiting list successfully"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

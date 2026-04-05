@@ -2376,6 +2376,7 @@
 
             console.log("Using API_BASE:", API_BASE);
             let appointments = [];
+            let waitlist = [];
             let dashboardAppointments = []; // Isolated for dashboard to prevent race conditions
             let currentDate = new Date();
             let viewDate = new Date(); // For calendar month navigation
@@ -2903,13 +2904,21 @@
                 try {
                     // Pre-clear to avoid showing stale data in case of failure
                     appointments = [];
-                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`);
-                    if (!res.ok) {
-                        const data = await res.json();
-                        throw new Error(data.detail || `Server Error (${res.status})`);
+                    waitlist = [];
+                    
+                    const [resAppts, resWait] = await Promise.all([
+                        fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`),
+                        fetch(`${API_BASE}/bookings/waitlist?date=${dateStr}&doctor_id=${selectedDoctor}&_cb=${cb}`)
+                    ]);
+
+                    if (!resAppts.ok) throw new Error(`Server Error (${resAppts.status})`);
+                    
+                    appointments = await resAppts.json();
+                    
+                    if (resWait.ok) {
+                        waitlist = await resWait.json();
                     }
-                    const data = await res.json();
-                    appointments = data;
+                    
                     renderSlotGrid();
                 } catch (err) {
                     showToast(`Load Error: ${err.message}`, "error");
@@ -3090,6 +3099,43 @@
                     }
                 }
 
+                // Waitlist UI rendering
+                let waitlistHtml = '';
+                filteredDoctors.filter(d => !d.id.startsWith('review_')).forEach(doc => {
+                    const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
+                    if (docWaitlist.length > 0) {
+                        waitlistHtml += `
+                        <div style="flex: 1; min-width: 400px; background: #fffcf0; border: 1px solid #fef08a; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-top:20px;">
+                            <h3 style="margin:0 0 12px 0; font-size: 16px; color: #a16207;">Waiting List - ${doc.name}</h3>
+                            <table class="mini-table" style="width: 100%; font-size:12px; margin-bottom:0">
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Phone</th>
+                                        <th>Notes</th>
+                                        <th style="width:50px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${docWaitlist.map(w => `
+                                    <tr>
+                                        <td><strong>${w.patient_name}</strong></td>
+                                        <td>${w.patient_phone}</td>
+                                        <td>${w.notes}</td>
+                                        <td><button class="btn btn-ghost" style="color:var(--red); padding:4px;" onclick="deleteWaitlist('${w.id}')">Remove</button></td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        `;
+                    }
+                });
+                
+                if (waitlistHtml) {
+                    html += `<div style="display: flex; gap: 30px; flex-wrap: wrap;">${waitlistHtml}</div>`;
+                }
+
                 container.innerHTML = html;
 
                 // Populate Print Table (Separated by Doctor)
@@ -3156,9 +3202,35 @@
                         }
                         printHtml += `
                             </tbody>
-                        </table>
-                    </div>
-                    `;
+                        </table>`;
+
+                        // Add waitlist to print
+                        const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
+                        if (docWaitlist.length > 0) {
+                            printHtml += `
+                            <div style="margin-top: 20px; padding: 16px; border: 1px solid #ccc; background:#fafafa;">
+                                <h3 style="font-size: 14px; margin-top: 0; color:#555;">Waiting List Patients</h3>
+                                <table class="mini-table" style="width: 100%; margin-bottom:0;">
+                                    <thead>
+                                        <tr>
+                                            <th>Patient Name</th>
+                                            <th>Phone</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${docWaitlist.map(w => `
+                                        <tr>
+                                            <td><strong>${w.patient_name}</strong></td>
+                                            <td>${w.patient_phone}</td>
+                                            <td>${w.notes}</td>
+                                        </tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>`;
+                        }
+
+                        printHtml += `</div>`;
                     });
                     printListBody.innerHTML = printHtml;
                 }
@@ -3183,12 +3255,15 @@
                 // Reset footer to default 
                 document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveAppointment()">
-                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Save Appointment
-                </button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-ghost" style="color:#b45309; border: 1px solid #fef08a" onclick="addToWaitlist()">Add to Waitlist</button>
+                    <button class="btn btn-primary" onclick="saveAppointment()">
+                        <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Save Appointment
+                    </button>
+                </div>
             `;
 
                 document.getElementById('modal-overlay').classList.add('open');
@@ -3290,10 +3365,10 @@
                 // Allow editing or deletion
                 document.getElementById('modal-footer').innerHTML = `
                 <div style="display:flex; width:100%; align-items:center;">
-                    <button class="btn btn-ghost" style="color:var(--red); padding:8px; font-size:13px; font-weight:600;" onclick="openConfirm()">Cancel Appt</button>
+                    <button class="btn btn-ghost" style="color:var(--red); padding:8px; font-size:13px; font-weight:600;" onclick="openConfirm()">Cancel</button>
                     <div id="modal-action-buttons" style="margin-left:auto; display:flex; gap:8px;">
-                        <button class="btn btn-ghost" style="padding:8px 14px; font-size:13px;" onclick="closeModal()">Close</button>
-                        <button class="btn btn-ghost" style="background:#fefce8; border:1px solid #fef08a; color:#a16207; padding:8px 14px; font-size:13px; font-weight:600;" onclick="openReschedule()">Reschedule</button>
+                        <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px; color:#b45309; border: 1px solid #fef08a;" onclick="addToWaitlist()">Waitlist</button>
+                        <button class="btn btn-ghost" style="background:#fefce8; border:1px solid #fef08a; color:#a16207; padding:8px 14px; font-size:13px; font-weight:600;" onclick="openReschedule()">Move</button>
                         <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="saveAppointment()">Update</button>
                     </div>
                 </div>
@@ -3349,6 +3424,49 @@
                         showToast(err.detail || "Error saving", "error");
                     }
                 } catch (e) { showToast("Connection failed", "error"); }
+            }
+
+            async function addToWaitlist() {
+                const data = {
+                    date: toLocalDateStr(currentDate),
+                    doctor_id: selectedDoctor,
+                    patient_name: document.getElementById('field-name').value.trim(),
+                    patient_phone: document.getElementById('field-phone').value.trim(),
+                    notes: document.getElementById('field-place').value.trim()
+                };
+
+                if (!data.patient_name || !data.patient_phone || !data.notes) return showToast("Name, Phone and Place are required for waitlist", "error");
+
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/waitlist`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (res.ok) {
+                        showToast("Added to Waiting List!", "success");
+                        closeModal();
+                        fetchAppointments();
+                        if (document.getElementById('slots-calendar-view').style.display !== 'none') renderCalendar();
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || "Error saving to waitlist", "error");
+                    }
+                } catch (e) { showToast("Connection failed", "error"); }
+            }
+
+            async function deleteWaitlist(wlId) {
+                if (!confirm("Are you sure you want to remove this patient from the waiting list?")) return;
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/waitlist/${wlId}`, { method: "DELETE" });
+                    if (res.ok) {
+                        showToast("Removed from waiting list", "success");
+                        fetchAppointments();
+                    } else {
+                        showToast("Could not remove from waitlist", "error");
+                    }
+                } catch (e) { showToast("Delete failed", "error"); }
             }
 
             // ──────────────────────────────────────────
