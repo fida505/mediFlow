@@ -1823,11 +1823,11 @@
             </header>
 
             <!-- ─── SEARCH MODAL ─── -->
-            <div id="search-overlay" class="login-overlay" style="z-index: 1000; align-items:flex-start; padding-top:100px;">
+            <div id="search-overlay" class="login-overlay" style="z-index: 1000; align-items:flex-start; padding-top:100px; display:none;">
                 <div class="login-card" style="max-width: 600px; width: 100%;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px;">
                         <div class="login-title" style="margin-bottom:0; font-size: 20px;">Search Patient History</div>
-                        <button class="btn btn-ghost" style="padding:6px; color: var(--text-muted);" onclick="document.getElementById('search-overlay').classList.remove('open')">
+                        <button class="btn btn-ghost" style="padding:6px; color: var(--text-muted);" onclick="document.getElementById('search-overlay').style.display='none'">
                             <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
@@ -3761,7 +3761,7 @@
             function openSearchModal() {
                 document.getElementById('search-phone-input').value = '';
                 document.getElementById('search-results-container').innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size:13px;">Enter a phone number to search</div>';
-                document.getElementById('search-overlay').classList.add('open');
+                document.getElementById('search-overlay').style.display = 'flex';
                 setTimeout(() => document.getElementById('search-phone-input').focus(), 100);
             }
 
