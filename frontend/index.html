@@ -1805,6 +1805,13 @@
                 <div class="header-actions">
                     <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center"><span
                             class="real-time-dot"></span>Live</span>
+                    <button class="btn btn-ghost" style="border: 1px solid var(--border); color: var(--text-secondary);" onclick="openSearchModal()">
+                        <svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; margin-right:6px;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Search History
+                    </button>
                     <button class="btn btn-primary" onclick="showPage('slots')">
                         <svg viewBox="0 0 24 24">
                             <line x1="12" y1="5" x2="12" y2="19" />
@@ -1814,6 +1821,27 @@
                     </button>
                 </div>
             </header>
+
+            <!-- ─── SEARCH MODAL ─── -->
+            <div id="search-overlay" class="login-overlay" style="z-index: 1000; align-items:flex-start; padding-top:100px;">
+                <div class="login-card" style="max-width: 600px; width: 100%;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px;">
+                        <div class="login-title" style="margin-bottom:0; font-size: 20px;">Search Patient History</div>
+                        <button class="btn btn-ghost" style="padding:6px; color: var(--text-muted);" onclick="document.getElementById('search-overlay').classList.remove('open')">
+                            <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="search-phone-input" class="form-input" placeholder="Enter Phone Number..." onkeypress="if(event.key==='Enter') executeSearch()">
+                        <button class="btn btn-primary" onclick="executeSearch()">Search</button>
+                    </div>
+
+                    <div id="search-results-container" style="max-height: 400px; overflow-y: auto;">
+                        <div style="text-align:center; padding: 20px; color: var(--text-muted); font-size:13px;">Enter a phone number to search</div>
+                    </div>
+                </div>
+            </div>
 
             <div class="content" id="main-content">
 
@@ -3666,6 +3694,75 @@
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(query) ? '' : 'none';
                 });
+            }
+
+            // ──────────────────────────────────────────
+            //  SEARCH HISTORY MODAL
+            // ──────────────────────────────────────────
+            async function executeSearch() {
+                const phone = document.getElementById('search-phone-input').value.trim();
+                const container = document.getElementById('search-results-container');
+                if (!phone) {
+                    showToast("Please enter a phone number", "error");
+                    return;
+                }
+
+                container.innerHTML = '<div style="text-align:center; padding: 20px;">Searching...</div>';
+                
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/search?phone=${encodeURIComponent(phone)}`);
+                    if (!res.ok) throw new Error("Search failed");
+                    
+                    const bookings = await res.json();
+                    
+                    if (bookings.length === 0) {
+                        container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size:13px;">No past appointments found for this number.</div>';
+                        return;
+                    }
+
+                    let html = `
+                    <table class="mini-table" style="width: 100%; border: 1px solid var(--border-light); border-radius: 8px;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Patient Name</th>
+                                <th>Doctor</th>
+                                <th>Slot</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+
+                    bookings.forEach(b => {
+                        const isPaidClass = b.is_paid ? 'available' : 'booked';
+                        const statusText = b.is_paid ? 'Paid' : 'Unpaid';
+                        const docName = doctors.find(d => d.id === b.doctor_id)?.name || b.doctor_id;
+                        html += `
+                        <tr>
+                            <td>${b.date}</td>
+                            <td><strong>${b.patient_name}</strong></td>
+                            <td>${docName}</td>
+                            <td>#${b.slot_id}</td>
+                            <td><span class="day-stat ${isPaidClass}">${statusText}</span></td>
+                        </tr>
+                        `;
+                    });
+
+                    html += `</tbody></table>`;
+                    container.innerHTML = html;
+                    
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--red); font-size:13px;">Error performing search.</div>';
+                    showToast(e.message, "error");
+                }
+            }
+
+            function openSearchModal() {
+                document.getElementById('search-phone-input').value = '';
+                document.getElementById('search-results-container').innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size:13px;">Enter a phone number to search</div>';
+                document.getElementById('search-overlay').classList.add('open');
+                setTimeout(() => document.getElementById('search-phone-input').focus(), 100);
             }
 
             // ──────────────────────────────────────────
