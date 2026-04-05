@@ -2908,7 +2908,7 @@
                     
                     const [resAppts, resWait] = await Promise.all([
                         fetch(`${API_BASE}/bookings?date=${dateStr}&_cb=${cb}`),
-                        fetch(`${API_BASE}/bookings/waitlist?date=${dateStr}&doctor_id=${selectedDoctor}&_cb=${cb}`)
+                        fetch(`${API_BASE}/bookings/waitlist?date=${dateStr}&_cb=${cb}`)
                     ]);
 
                     if (!resAppts.ok) throw new Error(`Server Error (${resAppts.status})`);

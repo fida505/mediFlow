@@ -468,10 +468,15 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
 # ─── WAITING LIST ENDPOINTS ───
 
 @router.get("/waitlist")
-async def get_waitlist(date: str = Query(...), doctor_id: str = Query('dr_1'), db: AsyncSession = Depends(get_db)):
+async def get_waitlist(date: str = Query(...), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, notes, date, doctor_id, created_at FROM dashboard_waiting_list WHERE date = :date AND doctor_id = :doctor_id"
-        result = await db.execute(text(query), {"date": date, "doctor_id": doctor_id})
+        query = "SELECT id, patient_name, phone, notes, date, doctor_id, created_at FROM dashboard_waiting_list WHERE date = :date"
+        params = {"date": date}
+        if doctor_id:
+            query += " AND doctor_id = :doctor_id"
+            params["doctor_id"] = doctor_id
+            
+        result = await db.execute(text(query), params)
         
         waitlist = []
         for row in result.mappings().all():
