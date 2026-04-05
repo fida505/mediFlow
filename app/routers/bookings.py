@@ -37,10 +37,9 @@ class WaitlistCreate(BaseModel):
 
 async def init_db(db: AsyncSession):
     """Initializes tables and migrations in a single block for better startup speed."""
-    try:
-        # 1. Create tables
-        await db.execute(text("""
-            CREATE TABLE IF NOT EXISTS dashboard_bookings (
+    # 1. Create tables - each in its own commit to avoid rollback wiping all
+    for ddl in [
+        """CREATE TABLE IF NOT EXISTS dashboard_bookings (
                 id TEXT PRIMARY KEY,
                 patient_name TEXT NOT NULL,
                 phone TEXT NOT NULL,
@@ -50,10 +49,8 @@ async def init_db(db: AsyncSession):
                 slot_id INTEGER,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
                 is_paid BOOLEAN NOT NULL DEFAULT FALSE
-            );
-        """))
-        await db.execute(text("""
-            CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
+            );""",
+        """CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
                 id TEXT PRIMARY KEY,
                 patient_name TEXT NOT NULL,
                 phone TEXT NOT NULL,
@@ -61,34 +58,39 @@ async def init_db(db: AsyncSession):
                 date TEXT NOT NULL,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """))
-        await db.execute(text("""
-            CREATE TABLE IF NOT EXISTS dashboard_settings (
+            );""",
+        """CREATE TABLE IF NOT EXISTS dashboard_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
-            );
-        """))
-        await db.execute(text("""
-            CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
+            );""",
+        """CREATE TABLE IF NOT EXISTS dashboard_daily_limit (
                 date TEXT NOT NULL,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
                 limit_value INTEGER NOT NULL,
                 PRIMARY KEY (date, doctor_id)
-            );
-        """))
-        
-        # 2. Seed default daily limits
+            );""",
+    ]:
+        try:
+            await db.execute(text(ddl))
+            await db.commit()
+        except Exception as e:
+            print(f"!!! Table create error (may already exist): {e}")
+            await db.rollback()
+
+    # 2. Seed default daily limits
+    try:
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             key = f'daily_limit_{doc_id}'
-            print(f">>> Checking default limit for {doc_id}...")
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
             if not await res.first():
-                print(f">>> Seeding default limit for {doc_id}...")
                 await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES (:key, '45')"), {"key": key})
+        await db.commit()
+    except Exception as e:
+        print(f"!!! Seed error: {e}")
+        await db.rollback()
 
-        # 3. Migrations (Check and Add columns)
-        # We use a safer approach for migrations in production
+    # 3. Migrations (Check and Add columns)
+    try:
         res = await db.execute(text("SELECT * FROM dashboard_bookings LIMIT 0"))
         cols = res.keys()
         
@@ -100,37 +102,26 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
         if 'is_paid' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE"))
-
-        # Migration for dashboard_daily_limit to add doctor_id if missing
-        res = await db.execute(text("SELECT * FROM dashboard_daily_limit LIMIT 0"))
-        limit_cols = res.keys()
-        if 'doctor_id' not in limit_cols:
-            # This is a bit tricky since doctor_id is now part of PK. 
-            # If migrating from old table without doctor_id:
-            await db.execute(text("ALTER TABLE dashboard_daily_limit RENAME TO dashboard_daily_limit_old"))
-            await db.execute(text("""
-                CREATE TABLE dashboard_daily_limit (
-                    date TEXT NOT NULL,
-                    doctor_id TEXT NOT NULL DEFAULT 'dr_1',
-                    limit_value INTEGER NOT NULL,
-                    PRIMARY KEY (date, doctor_id)
-                )
-            """))
-            await db.execute(text("INSERT INTO dashboard_daily_limit (date, doctor_id, limit_value) SELECT date, 'dr_1', limit_value FROM dashboard_daily_limit_old"))
-            await db.execute(text("DROP TABLE dashboard_daily_limit_old"))
-            
-        # 4. Indexes for performance
-        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);"))
-        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);"))
-        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);"))
-        await db.execute(text("CREATE INDEX IF NOT EXISTS idx_daily_limit_date ON dashboard_daily_limit(date);"))
-        
         await db.commit()
     except Exception as e:
-        import traceback
-        print(f"!!! DB INIT/MIGRATION ERROR: {e}")
-        print(traceback.format_exc())
+        print(f"!!! Column migration error: {e}")
         await db.rollback()
+
+    # 4. Indexes for performance
+    try:
+        for idx in [
+            "CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);",
+            "CREATE INDEX IF NOT EXISTS idx_bookings_slot ON dashboard_bookings(slot_id);",
+            "CREATE INDEX IF NOT EXISTS idx_bookings_doctor ON dashboard_bookings(doctor_id);",
+            "CREATE INDEX IF NOT EXISTS idx_daily_limit_date ON dashboard_daily_limit(date);",
+        ]:
+            await db.execute(text(idx))
+        await db.commit()
+    except Exception as e:
+        print(f"!!! Index error: {e}")
+        await db.rollback()
+
+    print(">>> DB init complete.")
 
 async def get_daily_limit(db: AsyncSession, doctor_id: str = 'dr_1') -> int:
     key = f'daily_limit_{doctor_id}'
