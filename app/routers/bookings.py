@@ -13,6 +13,7 @@ class SettingsUpdate(BaseModel):
 class BookingCreate(BaseModel):
     patient_name: str
     patient_phone: str
+    patient_code: str = None
     slot_id: int
     date: str
     doctor_id: str = "dr_1"
@@ -22,6 +23,7 @@ class BookingCreate(BaseModel):
 class BookingUpdate(BaseModel):
     patient_name: str = None
     patient_phone: str = None
+    patient_code: str = None
     slot_id: int = None
     date: str = None
     doctor_id: str = None
@@ -31,6 +33,7 @@ class BookingUpdate(BaseModel):
 class WaitlistCreate(BaseModel):
     patient_name: str
     patient_phone: str
+    patient_code: str = None
     date: str
     doctor_id: str = "dr_1"
     notes: str = ""
@@ -43,6 +46,7 @@ async def init_db(db: AsyncSession):
                 id TEXT PRIMARY KEY,
                 patient_name TEXT NOT NULL,
                 phone TEXT NOT NULL,
+                patient_code TEXT,
                 notes TEXT,
                 time TEXT NOT NULL,
                 date TEXT NOT NULL DEFAULT '',
@@ -54,6 +58,7 @@ async def init_db(db: AsyncSession):
                 id TEXT PRIMARY KEY,
                 patient_name TEXT NOT NULL,
                 phone TEXT NOT NULL,
+                patient_code TEXT,
                 notes TEXT,
                 date TEXT NOT NULL,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
@@ -102,6 +107,15 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN doctor_id TEXT NOT NULL DEFAULT 'dr_1'"))
         if 'is_paid' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE"))
+        if 'patient_code' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN patient_code TEXT"))
+        
+        # Migration for dashboard_waiting_list
+        res_wl = await db.execute(text("SELECT * FROM dashboard_waiting_list LIMIT 0"))
+        cols_wl = res_wl.keys()
+        if 'patient_code' not in cols_wl:
+            await db.execute(text("ALTER TABLE dashboard_waiting_list ADD COLUMN patient_code TEXT"))
+        
         await db.commit()
     except Exception as e:
         print(f"!!! Column migration error: {e}")
@@ -143,7 +157,7 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings"
         conditions = []
         params = {}
         
@@ -169,6 +183,7 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "id": row['id'],
                 "patient_name": row['patient_name'],
                 "patient_phone": row['phone'], # Map 'phone' column to 'patient_phone' for frontend consistency
+                "patient_code": row.get('patient_code', ''),
                 "notes": row['notes'],
                 "time": row['time'],
                 "date": row['date'],
@@ -332,12 +347,13 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid)
-            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid)
+            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
         """), {
             "id": booking_id,
             "name": booking.patient_name,
             "phone": booking.patient_phone,
+            "code": booking.patient_code,
             "notes": booking.notes or "",
             "time": str(booking.slot_id),
             "date": booking.date,
@@ -358,7 +374,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
 @router.get("/waitlist")
 async def get_waitlist(date: str = Query(...), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, notes, date, doctor_id, created_at FROM dashboard_waiting_list WHERE date = :date"
+        query = "SELECT id, patient_name, phone, patient_code, notes, date, doctor_id, created_at FROM dashboard_waiting_list WHERE date = :date"
         params = {"date": date}
         if doctor_id:
             query += " AND doctor_id = :doctor_id"
@@ -372,6 +388,7 @@ async def get_waitlist(date: str = Query(...), doctor_id: str = Query(None), db:
                 "id": row['id'],
                 "patient_name": row['patient_name'],
                 "patient_phone": row['phone'],
+                "patient_code": row.get('patient_code', ''),
                 "notes": row['notes'],
                 "date": row['date'],
                 "doctor_id": row['doctor_id'],
@@ -387,12 +404,13 @@ async def add_to_waitlist(data: WaitlistCreate, db: AsyncSession = Depends(get_d
         import uuid
         wl_id = f"wl-{data.date}-{data.doctor_id}-{uuid.uuid4().hex[:8]}"
         await db.execute(text("""
-            INSERT INTO dashboard_waiting_list (id, patient_name, phone, notes, date, doctor_id)
-            VALUES (:id, :name, :phone, :notes, :date, :doctor_id)
+            INSERT INTO dashboard_waiting_list (id, patient_name, phone, patient_code, notes, date, doctor_id)
+            VALUES (:id, :name, :phone, :code, :notes, :date, :doctor_id)
         """), {
             "id": wl_id,
             "name": data.patient_name,
             "phone": data.patient_phone,
+            "code": data.patient_code,
             "notes": data.notes,
             "date": data.date,
             "doctor_id": data.doctor_id
@@ -417,7 +435,7 @@ async def delete_from_waitlist(wl_id: str, db: AsyncSession = Depends(get_db)):
 async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(get_db)):
     try:
         search_pattern = f"%{phone}%"
-        query = "SELECT id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
         result = await db.execute(text(query), {"phone": search_pattern})
         bookings = []
         for row in result.mappings().all():
@@ -425,6 +443,7 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
                 "id": str(row['id']),
                 "patient_name": str(row['patient_name']),
                 "patient_phone": str(row['phone']),
+                "patient_code": row.get('patient_code', ''),
                 "notes": str(row['notes']) if row['notes'] else "",
                 "time": str(row['time']),
                 "date": str(row['date']),
@@ -454,6 +473,9 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.patient_phone is not None:
             updates.append("phone = :phone")
             params["phone"] = booking.patient_phone
+        if booking.patient_code is not None:
+            updates.append("patient_code = :code")
+            params["code"] = booking.patient_code
         if booking.notes is not None:
             updates.append("notes = :notes")
             params["notes"] = booking.notes
@@ -518,12 +540,13 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
         # 3. Delete old booking, insert at new slot (atomic)
         await db.execute(text("DELETE FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, notes, time, date, slot_id, doctor_id, is_paid)
-            VALUES (:id, :name, :phone, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid)
+            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
         """), {
             "id": new_id,
             "name": existing["patient_name"],
             "phone": existing["phone"],
+            "code": existing["patient_code"],
             "notes": existing["notes"],
             "time": str(data.new_slot_id),
             "date": data.new_date,

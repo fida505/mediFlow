@@ -2297,9 +2297,18 @@
                             oninput="formatPhone(this)">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Place *</label>
-                        <input type="text" class="form-input" id="field-place"
-                            placeholder="e.g. Riyadh, Jeddah, Home visit...">
+                    <div style="display:flex; gap:16px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">Place *</label>
+                            <input type="text" class="form-input" id="field-place"
+                                placeholder="e.g. Riyadh, Jeddah, Home visit...">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">Number Code</label>
+                            <input type="text" class="form-input" id="field-code"
+                                placeholder="e.g. T-101, RE-05...">
+                        </div>
+                    </div>
                     </div>
                     
                     <label class="form-checkbox-row" style="margin-top: 16px;">
@@ -2671,7 +2680,10 @@
                             <tbody>
                                 ${docBks.map(b => `
                                 <tr>
-                                    <td><div style="font-weight:500">${b.patient_name}</div></td>
+                                    <td>
+                                        <div style="font-weight:500">${b.patient_name}</div>
+                                        ${b.patient_code ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Code: ${b.patient_code}</div>` : ''}
+                                    </td>
                                     <td>${b.patient_phone || '–'}</td>
                                     <td>${b.notes || '–'}</td>
                                     <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id, b.doctor_id)})</td>
@@ -3055,7 +3067,7 @@
                             <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, '${doc.id}')">
                                 <div class="slot-num">Slot ${i}</div>
                                 <div class="slot-time">${timeRange}</div>
-                                <div class="slot-patient">${appt.patient_name}</div>
+                                <div class="slot-patient">${appt.patient_name}${appt.patient_code ? ` (${appt.patient_code})` : ''}</div>
                             </div>`;
                         } else {
                             html += `
@@ -3110,7 +3122,7 @@
                                     <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, '${rd.id}')">
                                         <div class="slot-num">Slot ${i}</div>
                                         <div class="slot-time">${timeRange}</div>
-                                        <div class="slot-patient">${appt.patient_name}</div>
+                                        <div class="slot-patient">${appt.patient_name}${appt.patient_code ? ` (${appt.patient_code})` : ''}</div>
                                     </div>`;
                                 } else {
                                     html += `
@@ -3139,6 +3151,7 @@
                                 <thead>
                                     <tr>
                                         <th>Patient Name</th>
+                                        <th>Code</th>
                                         <th>Phone</th>
                                         <th>Notes</th>
                                         <th style="width:50px"></th>
@@ -3148,6 +3161,7 @@
                                     ${docWaitlist.map(w => `
                                     <tr>
                                         <td><strong>${w.patient_name}</strong></td>
+                                        <td>${w.patient_code || '–'}</td>
                                         <td>${w.patient_phone}</td>
                                         <td>${w.notes}</td>
                                         <td><button class="btn btn-ghost" style="color:var(--red); padding:4px;" onclick="deleteWaitlist('${w.id}')">Remove</button></td>
@@ -3209,6 +3223,7 @@
                                     <th style="width: 60px;">Slot</th>
                                     <th style="width: 120px;">Time</th>
                                     <th>Patient Name</th>
+                                    <th>Code</th>
                                     <th>Phone</th>
                                     <th>Place/Notes</th>
                                 </tr>
@@ -3223,6 +3238,7 @@
                                     <td style="text-align:center">#${i}</td>
                                     <td>${getSlotTimeRange(i, doc.id)}</td>
                                     <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
+                                    <td>${appt ? (appt.patient_code || '-') : '-'}</td>
                                     <td>${appt ? appt.patient_phone : '-'}</td>
                                     <td>${appt ? (appt.notes || '-') : '-'}</td>
                                 </tr>
@@ -3242,6 +3258,7 @@
                                     <thead>
                                         <tr>
                                             <th>Patient Name</th>
+                                            <th>Code</th>
                                             <th>Phone</th>
                                             <th>Notes</th>
                                         </tr>
@@ -3250,6 +3267,7 @@
                                         ${docWaitlist.map(w => `
                                         <tr>
                                             <td><strong>${w.patient_name}</strong></td>
+                                            <td>${w.patient_code || '–'}</td>
                                             <td>${w.patient_phone}</td>
                                             <td>${w.notes}</td>
                                         </tr>`).join('')}
@@ -3278,6 +3296,7 @@
                 document.getElementById('field-name').value = '';
                 document.getElementById('field-phone').value = '';
                 document.getElementById('field-place').value = '';
+                document.getElementById('field-code').value = '';
                 document.getElementById('field-paid').checked = false;
 
                 // Reset footer to default 
@@ -3388,6 +3407,7 @@
                 document.getElementById('field-name').value = appt.patient_name;
                 document.getElementById('field-phone').value = appt.patient_phone;
                 document.getElementById('field-place').value = appt.notes || '';
+                document.getElementById('field-code').value = appt.patient_code || '';
                 document.getElementById('field-paid').checked = !!appt.is_paid;
 
                 // Allow editing or deletion
@@ -3417,6 +3437,7 @@
                     doctor_id: selectedDoctor,
                     patient_name: document.getElementById('field-name').value.trim(),
                     patient_phone: document.getElementById('field-phone').value.trim(),
+                    patient_code: document.getElementById('field-code').value.trim(),
                     notes: document.getElementById('field-place').value.trim(),
                     is_paid: document.getElementById('field-paid').checked
                 };
@@ -3460,6 +3481,7 @@
                     doctor_id: selectedDoctor,
                     patient_name: document.getElementById('field-name').value.trim(),
                     patient_phone: document.getElementById('field-phone').value.trim(),
+                    patient_code: document.getElementById('field-code').value.trim(),
                     notes: document.getElementById('field-place').value.trim()
                 };
 
@@ -3741,7 +3763,10 @@
                         html += `
                         <tr>
                             <td>${b.date}</td>
-                            <td><strong>${b.patient_name}</strong></td>
+                            <td>
+                                <strong>${b.patient_name}</strong>
+                                ${b.patient_code ? `<div style="font-size:10px; color:var(--text-muted);">ID: ${b.patient_code}</div>` : ''}
+                            </td>
                             <td>${docName}</td>
                             <td>#${b.slot_id}</td>
                             <td><span class="day-stat ${isPaidClass}">${statusText}</span></td>
