@@ -2973,7 +2973,7 @@
             }
 
             function viewFromDashboard(dateStr, slotId, doctorId) {
-                currentDate = new Date(dateStr);
+                currentDate = new Date(dateStr + 'T00:00:00');
                 showPage('slots');
                 // Switch to grid view
                 document.getElementById('slots-calendar-view').style.display = 'none';
@@ -3819,7 +3819,7 @@
                     if (statusEl) statusEl.textContent = "Ready!";
 
                     // Default view
-                    showPage('slots');
+                    showPage('dashboard');
 
                 } catch (err) {
                     console.error("Init failed:", err);
