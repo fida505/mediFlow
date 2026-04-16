@@ -87,7 +87,7 @@ async def init_db(db: AsyncSession):
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             key = f'daily_limit_{doc_id}'
             res = await db.execute(text("SELECT 1 FROM dashboard_settings WHERE key = :key"), {"key": key})
-            if not await res.first():
+            if not res.first():
                 await db.execute(text("INSERT INTO dashboard_settings (key, value) VALUES (:key, '45')"), {"key": key})
         await db.commit()
     except Exception as e:
@@ -131,6 +131,7 @@ async def init_db(db: AsyncSession):
         ]:
             await db.execute(text(idx))
         await db.commit()
+        await db.commit()
     except Exception as e:
         print(f"!!! Index error: {e}")
         await db.rollback()
@@ -144,14 +145,11 @@ async def get_daily_limit(db: AsyncSession, doctor_id: str = 'dr_1') -> int:
     return int(row['value']) if row else 45
 
 async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str = 'dr_1') -> int:
-    # Check for specific override first
     res = await db.execute(text("SELECT limit_value FROM dashboard_daily_limit WHERE date = :date AND doctor_id = :doctor_id"), 
                            {"date": date_str, "doctor_id": doctor_id})
     row = res.mappings().first()
     if row:
         return int(row['limit_value'])
-    
-    # Fallback to global setting for this doctor
     return await get_daily_limit(db, doctor_id)
 
 @router.get("")
@@ -162,7 +160,7 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
         params = {}
         
         if not date:
-            return [] # Safety: Don't return all bookings if date is missing
+            return []
             
         conditions.append("date = :date")
         params["date"] = date
@@ -176,13 +174,12 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
             
         result = await db.execute(text(query), params)
         
-        # Explicit mapping to avoid any Row vs Mapping issues
         bookings_list = []
         for row in result.mappings().all():
             bookings_list.append({
                 "id": row['id'],
                 "patient_name": row['patient_name'],
-                "patient_phone": row['phone'], # Map 'phone' column to 'patient_phone' for frontend consistency
+                "patient_phone": row['phone'],
                 "patient_code": row.get('patient_code', ''),
                 "notes": row['notes'],
                 "time": row['time'],
@@ -219,14 +216,11 @@ async def update_settings(settings: SettingsUpdate, db: AsyncSession = Depends(g
 
 @router.get("/month-stats")
 async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(get_db)):
-    """month format: YYYY-MM"""
     try:
-        # Get global limits for both doctors
         doctor_limits = {}
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             doctor_limits[doc_id] = await get_daily_limit(db, doc_id)
         
-        # Bookings count per date (Excluding reviews for calendar overview)
         counts_res = await db.execute(text("""
             SELECT date, COUNT(*) as count 
             FROM dashboard_bookings 
@@ -236,14 +230,12 @@ async def get_month_stats(month: str = Query(...), db: AsyncSession = Depends(ge
         """), {"pattern": f"{month}-%"})
         counts = {row['date']: row['count'] for row in counts_res.mappings().all()}
 
-        # Overrides per date and doctor
         limits_res = await db.execute(text("""
             SELECT date, doctor_id, limit_value 
             FROM dashboard_daily_limit 
             WHERE date LIKE :pattern
         """), {"pattern": f"{month}-%"})
         
-        # Format overrides as {date: {doctor_id: limit}}
         limits_overrides = {}
         for row in limits_res.mappings().all():
             dt = row['date']
@@ -288,7 +280,6 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
         from datetime import date as pydate
         today = date if date else pydate.today().isoformat()
 
-        # Get capacities for today
         doc_capacities = {}
         total_limit_today = 0
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
@@ -297,7 +288,6 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             if not doc_id.startswith('review_'):
                 total_limit_today += cap
         
-        # Get global settings
         global_limits = {}
         for doc_id in ['dr_1', 'dr_2', 'review_dr_1', 'review_dr_2']:
             global_limits[doc_id] = await get_daily_limit(db, doc_id)
@@ -325,8 +315,8 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
             "today_date": today,
             "today_booked": today_booked,
             "today_remaining": today_remaining,
-            "daily_limit": total_limit_today, # Aggregate for aggregate cards
-            "doctor_capacities": doc_capacities, # Individual breakdown
+            "daily_limit": total_limit_today,
+            "doctor_capacities": doc_capacities,
             "global_limits": global_limits,
             "total": total_total,
             "average_per_day": avg,
@@ -338,12 +328,11 @@ async def get_analytics(date: str = Query(None), db: AsyncSession = Depends(get_
 @router.post("")
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     try:
-        # ID includes date, doctor and slot to allow same slot on different days/doctors
         doc_id = booking.doctor_id or "dr_1"
         booking_id = f"appt-{booking.date}-{doc_id}-{booking.slot_id}"
         
         result = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
-        if result.fetchone():
+        if result.scalar():
             raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
@@ -458,12 +447,10 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
 @router.put("/{booking_id}")
 async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSession = Depends(get_db)):
     try:
-        # Get current booking
-        res = await db.execute(text("SELECT * FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
-        if not res.fetchone():
+        res = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
+        if not res.scalar():
             raise HTTPException(status_code=404, detail="Booking not found")
             
-        # Build update query
         updates = []
         params = {"id": booking_id}
         
@@ -525,13 +512,11 @@ class RescheduleRequest(BaseModel):
 @router.post("/{booking_id}/reschedule")
 async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: AsyncSession = Depends(get_db)):
     try:
-        # 1. Fetch existing booking
         res = await db.execute(text("SELECT * FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         existing = res.mappings().first()
         if not existing:
             raise HTTPException(status_code=404, detail="Booking not found")
 
-        # 2. Check if new slot is already taken
         new_id = f"appt-{data.new_date}-{data.doctor_id}-{data.new_slot_id}"
         conflict = await db.execute(text("SELECT id FROM dashboard_bookings WHERE id = :id"), {"id": new_id})
         if conflict.fetchone():
