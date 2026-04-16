@@ -131,7 +131,6 @@ async def init_db(db: AsyncSession):
         ]:
             await db.execute(text(idx))
         await db.commit()
-        await db.commit()
     except Exception as e:
         print(f"!!! Index error: {e}")
         await db.rollback()
