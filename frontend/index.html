@@ -3077,8 +3077,53 @@
                                 <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
                             </div>`;
                         }
+                        }
                     }
-                    html += `</div></div>`;
+                    html += `</div>`;
+
+                    // Doctor-specific Waitlist
+                    const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
+                    if (docWaitlist.length > 0) {
+                        html += `
+                        <div style="margin-top:20px; background: #fffcf0; border: 1px solid #fef08a; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                                <h4 style="margin:0; font-size: 14px; color: #a16207; display:flex; align-items:center; gap:6px;">
+                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    Waiting List
+                                </h4>
+                                <span style="font-size:11px; font-weight:700; color:#a16207; background:#fef08a; padding:2px 8px; border-radius:10px;">${docWaitlist.length} Patients</span>
+                            </div>
+                            <table class="mini-table" style="width: 100%; font-size:12px; margin-bottom:0">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Code</th>
+                                        <th>Phone</th>
+                                        <th>Notes</th>
+                                        <th style="width:100px; text-align:right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${docWaitlist.map(w => `
+                                    <tr>
+                                        <td><strong>${w.patient_name}</strong></td>
+                                        <td><span class="badge" style="background:#fef9c3; color:#854d0e; border:1px solid #fde047">${w.patient_code || '–'}</span></td>
+                                        <td>${w.patient_phone}</td>
+                                        <td><i style="color:#71717a">${w.notes}</i></td>
+                                        <td style="text-align:right">
+                                            <div style="display:flex; gap:4px; justify-content:flex-end">
+                                                <button class="btn btn-ghost" style="color:var(--accent); padding:4px 8px; font-size:11px;" onclick="openModalFromWaitlist('${w.id}')">Book</button>
+                                                <button class="btn btn-ghost" style="color:var(--red); padding:4px 8px; font-size:11px;" onclick="deleteWaitlist('${w.id}')">Remove</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        `;
+                    }
+                    html += `</div>`;
                 });
                 html += '</div>';
 
@@ -3139,44 +3184,7 @@
                     }
                 }
 
-                // Waitlist UI rendering
-                let waitlistHtml = '';
-                filteredDoctors.filter(d => !d.id.startsWith('review_')).forEach(doc => {
-                    const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
-                    if (docWaitlist.length > 0) {
-                        waitlistHtml += `
-                        <div style="flex: 1; min-width: 400px; background: #fffcf0; border: 1px solid #fef08a; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-top:20px;">
-                            <h3 style="margin:0 0 12px 0; font-size: 16px; color: #a16207;">Waiting List - ${doc.name}</h3>
-                            <table class="mini-table" style="width: 100%; font-size:12px; margin-bottom:0">
-                                <thead>
-                                    <tr>
-                                        <th>Patient Name</th>
-                                        <th>Code</th>
-                                        <th>Phone</th>
-                                        <th>Notes</th>
-                                        <th style="width:50px"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${docWaitlist.map(w => `
-                                    <tr>
-                                        <td><strong>${w.patient_name}</strong></td>
-                                        <td>${w.patient_code || '–'}</td>
-                                        <td>${w.patient_phone}</td>
-                                        <td>${w.notes}</td>
-                                        <td><button class="btn btn-ghost" style="color:var(--red); padding:4px;" onclick="deleteWaitlist('${w.id}')">Remove</button></td>
-                                    </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        `;
-                    }
-                });
-                
-                if (waitlistHtml) {
-                    html += `<div style="display: flex; gap: 30px; flex-wrap: wrap;">${waitlistHtml}</div>`;
-                }
+                // Waitlist rendering logic moved inside doctor loop
 
                 container.innerHTML = html;
 
@@ -3246,37 +3254,39 @@
                         }
                         printHtml += `
                             </tbody>
-                        </table>`;
-
-                        // Add waitlist to print
-                        const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
-                        if (docWaitlist.length > 0) {
-                            printHtml += `
-                            <div style="margin-top: 20px; padding: 16px; border: 1px solid #ccc; background:#fafafa;">
-                                <h3 style="font-size: 14px; margin-top: 0; color:#555;">Waiting List Patients</h3>
-                                <table class="mini-table" style="width: 100%; margin-bottom:0;">
-                                    <thead>
-                                        <tr>
-                                            <th>Patient Name</th>
-                                            <th>Code</th>
-                                            <th>Phone</th>
-                                            <th>Notes</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${docWaitlist.map(w => `
-                                        <tr>
-                                            <td><strong>${w.patient_name}</strong></td>
-                                            <td>${w.patient_code || '–'}</td>
-                                            <td>${w.patient_phone}</td>
-                                            <td>${w.notes}</td>
-                                        </tr>`).join('')}
-                                    </tbody>
-                                </table>
-                            </div>`;
-                        }
-
-                        printHtml += `</div>`;
+                        </table>
+                    `;
+                    
+                    // Add Waitlist to Print
+                    const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
+                    if (docWaitlist.length > 0) {
+                        printHtml += `
+                        <div style="margin-top: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Waiting List Patients</h3>
+                            <table class="mini-table" style="width: 100%; font-size: 11px;">
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Code</th>
+                                        <th>Phone</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${docWaitlist.map(w => `
+                                    <tr>
+                                        <td><strong>${w.patient_name}</strong></td>
+                                        <td>${w.patient_code || '-'}</td>
+                                        <td>${w.patient_phone}</td>
+                                        <td>${w.notes}</td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        `;
+                    }
+                    printHtml += `</div>`;                    
                     });
                     printListBody.innerHTML = printHtml;
                 }
@@ -3319,6 +3329,72 @@
             function closeModal() {
                 document.getElementById('modal-overlay').classList.remove('open');
                 document.getElementById('reschedule-panel').style.display = 'none';
+            }
+
+            function openModalFromWaitlist(wlId) {
+                const entry = waitlist.find(w => w.id === wlId);
+                if (!entry) return;
+
+                selectedSlot = null;
+                selectedDoctor = entry.doctor_id;
+                currentEditingId = null; 
+
+                const docName = doctors.find(d => d.id === entry.doctor_id)?.name || 'Doctor';
+                document.getElementById('modal-title').textContent = "Book from Waitlist - " + docName;
+                document.getElementById('modal-slot-badge').textContent = `Waiting List Entry`;
+                
+                document.getElementById('field-name').value = entry.patient_name;
+                document.getElementById('field-phone').value = entry.patient_phone;
+                document.getElementById('field-place').value = entry.notes || '';
+                document.getElementById('field-code').value = entry.patient_code || '';
+                document.getElementById('field-paid').checked = false;
+
+                openReschedule(); // reusing existing logic to show slot picker
+
+                document.getElementById('modal-footer').innerHTML = `
+                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" onclick="saveFromWaitlist('${wlId}')">Complete Booking</button>
+                    </div>
+                `;
+
+                document.getElementById('modal-overlay').classList.add('open');
+            }
+
+            async function saveFromWaitlist(wlId) {
+                const newSlotId = parseInt(document.getElementById('reschedule-slot').value);
+                const newDate = document.getElementById('reschedule-date').value;
+                if (!newSlotId || !newDate) return showToast('Please select a slot and date', 'error');
+
+                const data = {
+                    slot_id: newSlotId,
+                    date: newDate,
+                    doctor_id: selectedDoctor,
+                    patient_name: document.getElementById('field-name').value.trim(),
+                    patient_phone: document.getElementById('field-phone').value.trim(),
+                    patient_code: document.getElementById('field-code').value.trim(),
+                    notes: document.getElementById('field-place').value.trim(),
+                    is_paid: document.getElementById('field-paid').checked
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE}/bookings`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        await fetch(`${API_BASE}/bookings/waitlist/${wlId}`, { method: "DELETE" });
+                        showToast("Waitlist patient booked!", "success");
+                        closeModal();
+                        fetchAppointments();
+                        await updateDashboard();
+                        await renderAnalytics();
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || "Error saving", "error");
+                    }
+                } catch (e) { showToast("Connection failed", "error"); }
             }
 
             function openReschedule() {
