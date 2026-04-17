@@ -9,6 +9,7 @@
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         *,
         *::before,
@@ -1946,6 +1947,10 @@
                                     </svg>
                                     Print List
                                 </button>
+                                <button class="btn btn-ghost no-print" onclick="exportToExcel('dashboard')" style="font-size:12px; padding:6px 12px; border:1px solid #d1d5db; color:#374151">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    Export Excel
+                                </button>
                                 <input type="text" class="form-input" placeholder="Search patient..."
                                     style="padding:6px 10px;font-size:12.5px;width:180px"
                                     oninput="filterTable(this.value)">
@@ -2053,7 +2058,7 @@
                                 <button class="btn btn-ghost no-print" onclick="printPatientList()"
                                     style="font-size:12px;padding:6px 10px;margin-left:auto">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                                        stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:4px">
                                         <polyline points="6 9 6 2 18 2 18 9"></polyline>
                                         <path
                                             d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
@@ -2061,6 +2066,10 @@
                                         <rect x="6" y="14" width="12" height="8"></rect>
                                     </svg>
                                     Print Day Schedule
+                                </button>
+                                <button class="btn btn-ghost no-print" onclick="exportToExcel('slots')" style="font-size:12px; padding:6px 12px; border:1px solid #d1d5db; color:#374151; margin-left:8px">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    Export Excel
                                 </button>
                                 <div class="legend">
                                     <div class="legend-item">
@@ -2539,6 +2548,81 @@
                 const subEl = document.getElementById('page-sub');
                 if (titleEl) titleEl.textContent = t[0];
                 if (subEl) subEl.textContent = t[1];
+            }
+
+            function exportToExcel(type) {
+                try {
+                    let data = [];
+                    let filename = "";
+                    const dateStr = type === 'dashboard' ? toLocalDateStr(dashboardViewDate) : toLocalDateStr(currentDate);
+
+                    if (type === 'dashboard') {
+                        filename = `MediFlow_Dashboard_${dateStr}.xlsx`;
+                        // Collect dashboard appointments
+                        const tableBody = document.getElementById('dashboard-appointments-body');
+                        if (!tableBody) return;
+                        const rows = tableBody.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length < 5) return;
+                            data.push({
+                                "Patient Name": cells[0].innerText,
+                                "Phone": cells[1].innerText,
+                                "Place/Notes": cells[2].innerText,
+                                "Time": cells[3].innerText,
+                                "Status": cells[4].innerText,
+                                "Doctor": cells[0].querySelector('.badge')?.innerText || 'Doctor'
+                            });
+                        });
+                    } else if (type === 'slots') {
+                        filename = `MediFlow_Slots_${dateStr}.xlsx`;
+                        // Group by doctor
+                        doctors.forEach(doc => {
+                            const docLimit = dynamicDailyLimit[doc.id] || 45;
+                            for (let i = 1; i <= docLimit; i++) {
+                                const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
+                                data.push({
+                                    "Doctor": doc.name,
+                                    "Slot #": i,
+                                    "Time": getSlotTimeRange(i, doc.id),
+                                    "Patient Name": appt ? appt.patient_name : 'Available',
+                                    "Code": appt ? (appt.patient_code || '-') : '-',
+                                    "Phone": appt ? appt.patient_phone : '-',
+                                    "Notes": appt ? (appt.notes || '-') : '-'
+                                });
+                            }
+                            // Also add waitlist for this doctor
+                            const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
+                            if (docWaitlist.length > 0) {
+                                data.push({}); // Empty row
+                                data.push({ "Doctor": `${doc.name} - WAITING LIST` });
+                                docWaitlist.forEach(w => {
+                                    data.push({
+                                        "Doctor": doc.name,
+                                        "Slot #": "WAITLIST",
+                                        "Time": "-",
+                                        "Patient Name": w.patient_name,
+                                        "Code": w.patient_code || '-',
+                                        "Phone": w.patient_phone,
+                                        "Notes": w.notes
+                                    });
+                                });
+                            }
+                            data.push({}); // Empty row after each doctor
+                        });
+                    }
+
+                    if (data.length === 0) return showToast("No data to export", "error");
+
+                    const worksheet = XLSX.utils.json_to_sheet(data);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "MediFlow Export");
+                    XLSX.writeFile(workbook, filename);
+                    showToast("Excel generated successfully!", "success");
+                } catch (err) {
+                    console.error("Export Error:", err);
+                    showToast("Export failed", "error");
+                }
             }
 
             function changeDashboardDate(delta) {
@@ -3076,7 +3160,6 @@
                                 <div class="slot-time">${timeRange}</div>
                                 <div style="font-weight:700; font-size: 11px; margin-top: 4px; color: var(--accent)">BOOK NOW</div>
                             </div>`;
-                        }
                         }
                     }
                     html += `</div>`;
