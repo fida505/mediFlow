@@ -3139,13 +3139,21 @@
 
                     html += `
                 <div style="flex: 1; min-width: 400px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px;">
-                        <h3 style="margin:0; font-size: 18px; color: var(--accent);">${doc.name}</h3>
-                        <div style="font-size: 11px; font-weight: 600; color: var(--text-muted)">Limit: ${docLimit}</div>
-                        <div class="legend" style="margin:0">
-                            <div class="legend-item"><div class="legend-dot available"></div> Free</div>
-                            <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
-                            <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--accent-light); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <h3 style="margin:0; font-size: 18px; color: var(--accent); white-space: nowrap;">${doc.name}</h3>
+                            <button class="btn btn-ghost" style="color:#a16207; border: 1px solid #fef08a; padding: 4px 10px; font-size: 11px; height: 28px; background: #fffbeb;" onclick="openWaitlistOnlyModal('${doc.id}')">
+                                <svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                                Add to Waitlist
+                            </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:15px; flex-shrink:0;">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-muted)">Limit: ${docLimit}</div>
+                            <div class="legend" style="margin:0">
+                                <div class="legend-item"><div class="legend-dot available"></div> Free</div>
+                                <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+                                <div class="legend-item" style="font-size: 11px;"><span style="color:var(--green);font-weight:bold;margin-right:2px">✓</span> Paid</div>
+                            </div>
                         </div>
                     </div>
                     <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">`;
@@ -3174,45 +3182,42 @@
                     }
                     html += `</div>`;
 
-                    // Doctor-specific Waitlist
+                    // Doctor-specific Waitlist (Redesigned as "Waiting Room" Grid)
                     const docWaitlist = waitlist.filter(w => w.doctor_id === doc.id);
                     if (docWaitlist.length > 0) {
                         html += `
-                        <div style="margin-top:20px; background: #fffcf0; border: 1px solid #fef08a; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                                <h4 style="margin:0; font-size: 14px; color: #a16207; display:flex; align-items:center; gap:6px;">
-                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                    Waiting List
+                        <div style="margin-top:24px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                                <h4 style="margin:0; font-size: 13px; color: #a16207; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <div style="width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow: 0 0 8px #f59e0b;"></div>
+                                    Waiting Room
                                 </h4>
-                                <span style="font-size:11px; font-weight:700; color:#a16207; background:#fef08a; padding:2px 8px; border-radius:10px;">${docWaitlist.length} Patients</span>
+                                <span style="font-size:10px; font-weight:700; color:#a16207; background:#fef3c7; border:1px solid #fde68a; padding:3px 10px; border-radius:20px;">${docWaitlist.length} Waiting</span>
                             </div>
-                            <table class="mini-table" style="width: 100%; font-size:12px; margin-bottom:0">
-                                <thead>
-                                    <tr>
-                                        <th>Patient</th>
-                                        <th>Code</th>
-                                        <th>Phone</th>
-                                        <th>Notes</th>
-                                        <th style="width:100px; text-align:right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${docWaitlist.map(w => `
-                                    <tr>
-                                        <td><strong>${w.patient_name}</strong></td>
-                                        <td><span class="badge" style="background:#fef9c3; color:#854d0e; border:1px solid #fde047">${w.patient_code || '–'}</span></td>
-                                        <td>${w.patient_phone}</td>
-                                        <td><i style="color:#71717a">${w.notes}</i></td>
-                                        <td style="text-align:right">
-                                            <div style="display:flex; gap:4px; justify-content:flex-end">
-                                                <button class="btn btn-ghost" style="color:var(--accent); padding:4px 8px; font-size:11px;" onclick="openModalFromWaitlist('${w.id}')">Book</button>
-                                                <button class="btn btn-ghost" style="color:var(--red); padding:4px 8px; font-size:11px;" onclick="deleteWaitlist('${w.id}')">Remove</button>
+                            <div class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;">
+                                ${docWaitlist.map((w, idx) => `
+                                <div class="slot-cell" style="background:#fffbeb; border: 1px solid #fef08a; cursor: default; min-height: 85px; display:flex; flex-direction:column; justify-content:space-between; padding: 12px;">
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                                            <div style="font-size:10px; font-weight:700; color:#b45309; background:#fef9c3; padding:2px 6px; border-radius:4px; border:1px solid #fde047">W-${idx + 1}</div>
+                                            <div style="display:flex; gap:4px;">
+                                                <button onclick="openModalFromWaitlist('${w.id}')" title="Book Now" style="background:white; border:1px solid #fde047; color:#b45309; padding:2px; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                                    <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5"><path d="M12 5v14M5 12h14"/></svg>
+                                                </button>
+                                                <button onclick="deleteWaitlist('${w.id}')" title="Remove" style="background:white; border:1px solid #fecaca; color:#b91c1c; padding:2px; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                                    <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                                </button>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                                        </div>
+                                        <div style="font-weight:600; font-size:12px; color: #78350f; line-clamp: 1; -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">${w.patient_name}</div>
+                                    </div>
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px; border-top: 1px solid #fef3c7; padding-top:6px;">
+                                         <div style="font-size:9px; color:#92400e; font-weight:500;">${w.patient_code || '-'}</div>
+                                         <div style="font-size:9px; color:#92400e; font-family:var(--font-mono)">${w.patient_phone}</div>
+                                    </div>
+                                </div>
+                                `).join('')}
+                            </div>
                         </div>
                         `;
                     }
@@ -3422,6 +3427,30 @@
             function closeModal() {
                 document.getElementById('modal-overlay').classList.remove('open');
                 document.getElementById('reschedule-panel').style.display = 'none';
+            }
+
+            function openWaitlistOnlyModal(doctorId) {
+                selectedDoctor = doctorId;
+                selectedSlot = null;
+                currentEditingId = null;
+                const docName = doctors.find(d => d.id === doctorId)?.name || 'Doctor';
+                document.getElementById('modal-title').textContent = "Add to Waitlist - " + docName;
+                document.getElementById('modal-slot-badge').textContent = `Waiting Room Entry`;
+                
+                document.getElementById('field-name').value = '';
+                document.getElementById('field-phone').value = '';
+                document.getElementById('field-place').value = '';
+                document.getElementById('field-code').value = '';
+                document.getElementById('field-paid').checked = false;
+
+                document.getElementById('modal-footer').innerHTML = `
+                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" style="background:#b45309; border-color:#b45309;" onclick="addToWaitlist()">
+                        <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                        Add to Waiting List
+                    </button>
+                `;
+                document.getElementById('modal-overlay').classList.add('open');
             }
 
             function openModalFromWaitlist(wlId) {
