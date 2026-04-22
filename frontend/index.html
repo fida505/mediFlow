@@ -2318,6 +2318,17 @@
                                 placeholder="e.g. T-101, RE-05...">
                         </div>
                     </div>
+                    
+                    <div style="display:flex; gap:16px; margin-top: 16px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">Manual Slot Label (Optional)</label>
+                            <input type="text" class="form-input" id="field-custom-label" placeholder="e.g. W-Extra, Urgent...">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">Manual Time (Optional)</label>
+                            <input type="text" class="form-input" id="field-custom-time" placeholder="e.g. 10:30 AM, After Lunch...">
+                        </div>
+                    </div>
                     </div>
                     
                     <label class="form-checkbox-row" style="margin-top: 16px;">
@@ -2593,8 +2604,8 @@
                                 const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id);
                                 data.push({
                                     "Doctor": doc.name,
-                                    "Slot #": i,
-                                    "Time": getSlotTimeRange(i, doc.id),
+                                    "Slot #": appt ? (appt.custom_slot_label || i) : i,
+                                    "Time": appt ? (appt.custom_time || getSlotTimeRange(i, doc.id)) : getSlotTimeRange(i, doc.id),
                                     "Patient Name": appt ? appt.patient_name : 'Available',
                                     "Code": appt ? (appt.patient_code || '-') : '-',
                                     "Phone": appt ? appt.patient_phone : '-',
@@ -2780,7 +2791,7 @@
                                     </td>
                                     <td>${b.patient_phone || '–'}</td>
                                     <td>${b.notes || '–'}</td>
-                                    <td>Slot #${b.slot_id} (${getSlotTimeRange(b.slot_id, b.doctor_id)})</td>
+                                    <td>${b.custom_slot_label || `Slot #${b.slot_id}`} (${b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id)})</td>
                                     <td><span class="status-pill booked">Confirmed</span></td>
                                     <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
                                 </tr>
@@ -3167,8 +3178,8 @@
                             
                             html += `
                             <div class="slot-cell ${isPaidClass}" onclick="viewSlot(${i}, '${doc.id}')">
-                                <div class="slot-num">Slot ${i}</div>
-                                <div class="slot-time">${timeRange}</div>
+                                <div class="slot-num">${appt.custom_slot_label || `Slot ${i}`}</div>
+                                <div class="slot-time">${appt.custom_time || timeRange}</div>
                                 <div class="slot-patient">${appt.patient_name}${appt.patient_code ? ` (${appt.patient_code})` : ''}</div>
                             </div>`;
                         } else {
@@ -3341,8 +3352,8 @@
                             const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id && a.date === toLocalDateStr(currentDate));
                             printHtml += `
                                 <tr>
-                                    <td style="text-align:center">#${i}</td>
-                                    <td>${getSlotTimeRange(i, doc.id)}</td>
+                                    <td style="text-align:center">${appt ? (appt.custom_slot_label || `#${i}`) : `#${i}`}</td>
+                                    <td>${appt ? (appt.custom_time || getSlotTimeRange(i, doc.id)) : getSlotTimeRange(i, doc.id)}</td>
                                     <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
                                     <td>${appt ? (appt.patient_code || '-') : '-'}</td>
                                     <td>${appt ? appt.patient_phone : '-'}</td>
@@ -3405,6 +3416,8 @@
                 document.getElementById('field-phone').value = '';
                 document.getElementById('field-place').value = '';
                 document.getElementById('field-code').value = '';
+                document.getElementById('field-custom-label').value = '';
+                document.getElementById('field-custom-time').value = '';
                 document.getElementById('field-paid').checked = false;
 
                 // Reset footer to default 
@@ -3606,6 +3619,8 @@
                 document.getElementById('field-phone').value = appt.patient_phone;
                 document.getElementById('field-place').value = appt.notes || '';
                 document.getElementById('field-code').value = appt.patient_code || '';
+                document.getElementById('field-custom-label').value = appt.custom_slot_label || '';
+                document.getElementById('field-custom-time').value = appt.custom_time || '';
                 document.getElementById('field-paid').checked = !!appt.is_paid;
 
                 // Allow editing or deletion
@@ -3637,7 +3652,9 @@
                     patient_phone: document.getElementById('field-phone').value.trim(),
                     patient_code: document.getElementById('field-code').value.trim(),
                     notes: document.getElementById('field-place').value.trim(),
-                    is_paid: document.getElementById('field-paid').checked
+                    is_paid: document.getElementById('field-paid').checked,
+                    custom_time: document.getElementById('field-custom-time').value.trim(),
+                    custom_slot_label: document.getElementById('field-custom-label').value.trim()
                 };
 
                 if (!data.patient_name || !data.patient_phone || !data.notes) return showToast("Name, Phone and Place are required", "error");

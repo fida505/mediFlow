@@ -19,6 +19,8 @@ class BookingCreate(BaseModel):
     doctor_id: str = "dr_1"
     notes: str
     is_paid: bool = False
+    custom_time: str = None
+    custom_slot_label: str = None
 
 class BookingUpdate(BaseModel):
     patient_name: str = None
@@ -29,6 +31,8 @@ class BookingUpdate(BaseModel):
     doctor_id: str = None
     notes: str = None
     is_paid: bool = None
+    custom_time: str = None
+    custom_slot_label: str = None
 
 class WaitlistCreate(BaseModel):
     patient_name: str
@@ -52,7 +56,9 @@ async def init_db(db: AsyncSession):
                 date TEXT NOT NULL DEFAULT '',
                 slot_id INTEGER,
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
-                is_paid BOOLEAN NOT NULL DEFAULT FALSE
+                is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+                custom_time TEXT,
+                custom_slot_label TEXT
             );""",
         """CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
                 id TEXT PRIMARY KEY,
@@ -109,6 +115,10 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN is_paid BOOLEAN NOT NULL DEFAULT FALSE"))
         if 'patient_code' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN patient_code TEXT"))
+        if 'custom_time' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN custom_time TEXT"))
+        if 'custom_slot_label' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN custom_slot_label TEXT"))
         
         # Migration for dashboard_waiting_list
         res_wl = await db.execute(text("SELECT * FROM dashboard_waiting_list LIMIT 0"))
@@ -154,7 +164,7 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label FROM dashboard_bookings"
         conditions = []
         params = {}
         
@@ -185,7 +195,9 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "date": row['date'],
                 "slot_id": row['slot_id'],
                 "doctor_id": row.get('doctor_id', 'dr_1'),
-                "is_paid": row.get('is_paid', False)
+                "is_paid": row.get('is_paid', False),
+                "custom_time": row.get('custom_time', ''),
+                "custom_slot_label": row.get('custom_slot_label', '')
             })
         return bookings_list
     except Exception as e:
@@ -335,8 +347,8 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid)
-            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label)
+            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, :custom_time, :custom_slot_label)
         """), {
             "id": booking_id,
             "name": booking.patient_name,
@@ -347,7 +359,9 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "date": booking.date,
             "slot_id": booking.slot_id,
             "doctor_id": doc_id,
-            "is_paid": booking.is_paid
+            "is_paid": booking.is_paid,
+            "custom_time": booking.custom_time,
+            "custom_slot_label": booking.custom_slot_label
         })
         await db.commit()
         return {"message": "Booking created successfully"}
@@ -423,7 +437,7 @@ async def delete_from_waitlist(wl_id: str, db: AsyncSession = Depends(get_db)):
 async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(get_db)):
     try:
         search_pattern = f"%{phone}%"
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
         result = await db.execute(text(query), {"phone": search_pattern})
         bookings = []
         for row in result.mappings().all():
@@ -437,7 +451,9 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
                 "date": str(row['date']),
                 "slot_id": int(row['slot_id']),
                 "doctor_id": str(row['doctor_id']),
-                "is_paid": bool(row['is_paid'])
+                "is_paid": bool(row['is_paid']),
+                "custom_time": row.get('custom_time', ''),
+                "custom_slot_label": row.get('custom_slot_label', '')
             })
         return bookings
     except Exception as e:
@@ -479,6 +495,12 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.is_paid is not None:
             updates.append("is_paid = :is_paid")
             params["is_paid"] = booking.is_paid
+        if booking.custom_time is not None:
+            updates.append("custom_time = :custom_time")
+            params["custom_time"] = booking.custom_time
+        if booking.custom_slot_label is not None:
+            updates.append("custom_slot_label = :custom_slot_label")
+            params["custom_slot_label"] = booking.custom_slot_label
             
         if not updates:
             return {"message": "No changes made"}
