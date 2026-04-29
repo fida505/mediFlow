@@ -2834,7 +2834,7 @@
 
                 let html = '';
                 doctors.forEach(doc => {
-                    const limit = dynamicDailyLimit[doc.id] || (doc.id.startswith('review_') ? 20 : 45);
+                    const limit = dynamicDailyLimit[doc.id] || (doc.id.startsWith('review_') ? 20 : 45);
                     html += `
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label">${doc.name} - Daily Limit</label>
@@ -3347,7 +3347,7 @@
                             </thead>
                             <tbody>
                     `;
-                        const docLimit = dynamicDailyLimit[doc.id] || (doc.id.startswith('review_') ? 20 : 45);
+                        const docLimit = dynamicDailyLimit[doc.id] || (doc.id.startsWith('review_') ? 20 : 45);
                         for (let i = 1; i <= docLimit; i++) {
                             const appt = appointments.find(a => a.slot_id === i && a.doctor_id === doc.id && a.date === toLocalDateStr(currentDate));
                             printHtml += `
