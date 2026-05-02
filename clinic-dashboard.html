@@ -2720,6 +2720,24 @@
             function toLocalDateStr(date) {
                 return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local timezone
             }
+
+            async function saveAndPrintPrescriptionFromWaitlist(wlId) {
+                const template = document.querySelector('input[name="p-template"]:checked').value;
+                const success = await saveFromWaitlist(wlId); 
+                if (success) {
+                    const dateStr = toLocalDateStr(currentDate);
+                    // Find the newly created appointment in the dashboardAppointments array or re-fetch
+                    // For simplicity, we trigger the print after a tiny delay to ensure fetch finished
+                    setTimeout(() => {
+                        const appt = dashboardAppointments.find(a => 
+                            a.patient_name === document.getElementById('field-name').value.trim() &&
+                            a.date === dateStr
+                        );
+                        if (appt) printPrescription(appt, template);
+                        else showToast("Prescription ready! Refresh and Edit to print if it didn't pop up.", "info");
+                    }, 1500);
+                }
+            }
             let dynamicDailyLimit = { dr_1: 40, dr_2: 40, review_dr_1: 20, review_dr_2: 20 };
             // Default
 
@@ -3820,10 +3838,36 @@
                 openReschedule(); // reusing existing logic to show slot picker
 
                 document.getElementById('modal-footer').innerHTML = `
-                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary" onclick="saveFromWaitlist('${wlId}')">Complete Booking</button>
+                <div style="display: flex; flex-direction: column; width: 100%; gap: 14px;">
+                    <!-- Template Selection -->
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 0 5px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Template:</span>
+                        <div style="display: flex; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="p-template" value="dr_iyad" checked id="prescription-template-dr_iyad">
+                                <span style="font-size: 12px; font-weight: 600;">Dr. Iyad</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="p-template" value="spark" id="prescription-template-spark">
+                                <span style="font-size: 12px; font-weight: 600;">Spark</span>
+                            </label>
+                        </div>
                     </div>
+
+                    <div style="display:flex; width:100%; align-items:center; justify-content: flex-end; gap:8px;">
+                        <button class="btn btn-ghost" style="padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px;" onclick="closeModal()">Cancel</button>
+                        <button class="btn btn-primary" style="padding:10px 22px; font-size:13px; border-radius: 8px; background: #1e3a8a;" onclick="saveFromWaitlist('${wlId}')">Complete Booking</button>
+                    </div>
+
+                    <button class="btn" onclick="saveAndPrintPrescriptionFromWaitlist('${wlId}')" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 8px; padding: 14px; font-weight: 700; font-size: 14px; display:flex; align-items:center; gap:10px;">
+                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill:none;">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        Complete and Print Prescription
+                    </button>
+                </div>
                 `;
 
                 document.getElementById('modal-overlay').classList.add('open');
@@ -3968,12 +4012,37 @@
 
                 // Allow editing or deletion
                 document.getElementById('modal-footer').innerHTML = `
-                <div style="display:flex; width:100%; align-items:center;">
-                    <button class="btn btn-ghost" style="color:var(--red); padding:8px; font-size:13px; font-weight:600;" onclick="openConfirm()">Cancel</button>
-                    <div id="modal-action-buttons" style="margin-left:auto; display:flex; gap:8px;">
-                        <button class="btn btn-ghost" style="background:#fefce8; border:1px solid #fef08a; color:#a16207; padding:8px 14px; font-size:13px; font-weight:600;" onclick="openReschedule()">Move</button>
-                        <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="saveAppointment()">Update</button>
+                <div style="display: flex; flex-direction: column; width: 100%; gap: 14px;">
+                    <!-- Template Selection -->
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 0 5px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Template:</span>
+                        <div style="display: flex; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="p-template" value="dr_iyad" checked id="prescription-template-dr_iyad">
+                                <span style="font-size: 12px; font-weight: 600;">Dr. Iyad</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="p-template" value="spark" id="prescription-template-spark">
+                                <span style="font-size: 12px; font-weight: 600;">Spark</span>
+                            </label>
+                        </div>
                     </div>
+
+                    <div style="display:flex; width:100%; align-items:center;">
+                        <button class="btn btn-ghost" style="color:var(--red); padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px;" onclick="openConfirm()">Cancel</button>
+                        <div id="modal-action-buttons" style="margin-left:auto; display:flex; gap:8px;">
+                            <button class="btn btn-ghost" style="background:#fefce8; border:1px solid #fef08a; color:#a16207; padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px;" onclick="openReschedule()">Move</button>
+                            <button class="btn btn-primary" style="padding:10px 22px; font-size:13px; border-radius: 8px; background: #1e3a8a;" onclick="saveAppointment()">Update</button>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 8px; padding: 14px; font-weight: 700; font-size: 14px; display:flex; align-items:center; gap:10px;">
+                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill:none;">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        Save and Print Prescription
+                    </button>
                 </div>
             `;
                 document.getElementById('reschedule-panel').style.display = 'none';
