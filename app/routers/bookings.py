@@ -22,6 +22,20 @@ class BookingCreate(BaseModel):
     custom_time: str = None
     custom_slot_label: str = None
     status: str = "Waiting"
+    # Vitals
+    weight: str = ""
+    temp: str = ""
+    bp: str = ""
+    pr: str = ""
+    spo2: str = ""
+    # Medical History
+    allergy: str = ""
+    surgical_history: str = ""
+    obg_history: str = ""
+    pediatric_history: str = ""
+    personal_history: str = ""
+    past_history: str = ""
+    medical_history_json: str = "" # Checkboxes logic
 
 class BookingUpdate(BaseModel):
     patient_name: str = None
@@ -35,6 +49,20 @@ class BookingUpdate(BaseModel):
     custom_time: str = None
     custom_slot_label: str = None
     status: str = None
+    # Vitals
+    weight: str = None
+    temp: str = None
+    bp: str = None
+    pr: str = None
+    spo2: str = None
+    # Medical History
+    allergy: str = None
+    surgical_history: str = None
+    obg_history: str = None
+    pediatric_history: str = None
+    personal_history: str = None
+    past_history: str = None
+    medical_history_json: str = None
 
 class WaitlistCreate(BaseModel):
     patient_name: str
@@ -61,7 +89,19 @@ async def init_db(db: AsyncSession):
                 is_paid BOOLEAN NOT NULL DEFAULT FALSE,
                 custom_time TEXT,
                 custom_slot_label TEXT,
-                status TEXT DEFAULT 'Waiting'
+                status TEXT DEFAULT 'Waiting',
+                weight TEXT DEFAULT '',
+                temp TEXT DEFAULT '',
+                bp TEXT DEFAULT '',
+                pr TEXT DEFAULT '',
+                spo2 TEXT DEFAULT '',
+                allergy TEXT DEFAULT '',
+                surgical_history TEXT DEFAULT '',
+                obg_history TEXT DEFAULT '',
+                pediatric_history TEXT DEFAULT '',
+                personal_history TEXT DEFAULT '',
+                past_history TEXT DEFAULT '',
+                medical_history_json TEXT DEFAULT ''
             );""",
         """CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
                 id TEXT PRIMARY KEY,
@@ -179,7 +219,12 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label, status FROM dashboard_bookings"
+        query = """
+            SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
+                   custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2,
+                   allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
+            FROM dashboard_bookings
+        """
         conditions = []
         params = {}
         
@@ -213,7 +258,19 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "is_paid": row.get('is_paid', False),
                 "custom_time": row.get('custom_time', ''),
                 "custom_slot_label": row.get('custom_slot_label', ''),
-                "status": row.get('status', 'Waiting')
+                "status": row.get('status', 'Waiting'),
+                "weight": row.get('weight', ''),
+                "temp": row.get('temp', ''),
+                "bp": row.get('bp', ''),
+                "pr": row.get('pr', ''),
+                "spo2": row.get('spo2', ''),
+                "allergy": row.get('allergy', ''),
+                "surgical_history": row.get('surgical_history', ''),
+                "obg_history": row.get('obg_history', ''),
+                "pediatric_history": row.get('pediatric_history', ''),
+                "personal_history": row.get('personal_history', ''),
+                "past_history": row.get('past_history', ''),
+                "medical_history_json": row.get('medical_history_json', '')
             })
         return bookings_list
     except Exception as e:
@@ -363,8 +420,16 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             raise HTTPException(status_code=400, detail="Slot already booked for this doctor on this date")
             
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label)
-            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, :custom_time, :custom_slot_label)
+            INSERT INTO dashboard_bookings (
+                id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
+                custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2, 
+                allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
+            )
+            VALUES (
+                :id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, 
+                :custom_time, :custom_slot_label, :status, :weight, :temp, :bp, :pr, :spo2, 
+                :allergy, :surgical_history, :obg_history, :pediatric_history, :personal_history, :past_history, :medical_history_json
+            )
         """), {
             "id": booking_id,
             "name": booking.patient_name,
@@ -377,7 +442,20 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "doctor_id": doc_id,
             "is_paid": booking.is_paid,
             "custom_time": booking.custom_time,
-            "custom_slot_label": booking.custom_slot_label
+            "custom_slot_label": booking.custom_slot_label,
+            "status": booking.status,
+            "weight": booking.weight,
+            "temp": booking.temp,
+            "bp": booking.bp,
+            "pr": booking.pr,
+            "spo2": booking.spo2,
+            "allergy": booking.allergy,
+            "surgical_history": booking.surgical_history,
+            "obg_history": booking.obg_history,
+            "pediatric_history": booking.pediatric_history,
+            "personal_history": booking.personal_history,
+            "past_history": booking.past_history,
+            "medical_history_json": booking.medical_history_json
         })
         await db.commit()
         return {"message": "Booking created successfully"}
@@ -453,7 +531,12 @@ async def delete_from_waitlist(wl_id: str, db: AsyncSession = Depends(get_db)):
 async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(get_db)):
     try:
         search_pattern = f"%{phone}%"
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label, status FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
+        query = """
+            SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
+                   custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2,
+                   allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
+            FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC
+        """
         result = await db.execute(text(query), {"phone": search_pattern})
         bookings = []
         for row in result.mappings().all():
@@ -470,7 +553,19 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
                 "is_paid": bool(row['is_paid']),
                 "custom_time": row.get('custom_time', ''),
                 "custom_slot_label": row.get('custom_slot_label', ''),
-                "status": row.get('status', 'Waiting')
+                "status": row.get('status', 'Waiting'),
+                "weight": row.get('weight', ''),
+                "temp": row.get('temp', ''),
+                "bp": row.get('bp', ''),
+                "pr": row.get('pr', ''),
+                "spo2": row.get('spo2', ''),
+                "allergy": row.get('allergy', ''),
+                "surgical_history": row.get('surgical_history', ''),
+                "obg_history": row.get('obg_history', ''),
+                "pediatric_history": row.get('pediatric_history', ''),
+                "personal_history": row.get('personal_history', ''),
+                "past_history": row.get('past_history', ''),
+                "medical_history_json": row.get('medical_history_json', '')
             })
         return bookings
     except Exception as e:
@@ -521,6 +616,46 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.status is not None:
             updates.append("status = :status")
             params["status"] = booking.status
+            
+        # Vitals
+        if booking.weight is not None:
+            updates.append("weight = :weight")
+            params["weight"] = booking.weight
+        if booking.temp is not None:
+            updates.append("temp = :temp")
+            params["temp"] = booking.temp
+        if booking.bp is not None:
+            updates.append("bp = :bp")
+            params["bp"] = booking.bp
+        if booking.pr is not None:
+            updates.append("pr = :pr")
+            params["pr"] = booking.pr
+        if booking.spo2 is not None:
+            updates.append("spo2 = :spo2")
+            params["spo2"] = booking.spo2
+            
+        # History
+        if booking.allergy is not None:
+            updates.append("allergy = :allergy")
+            params["allergy"] = booking.allergy
+        if booking.surgical_history is not None:
+            updates.append("surgical_history = :surgical_history")
+            params["surgical_history"] = booking.surgical_history
+        if booking.obg_history is not None:
+            updates.append("obg_history = :obg_history")
+            params["obg_history"] = booking.obg_history
+        if booking.pediatric_history is not None:
+            updates.append("pediatric_history = :pediatric_history")
+            params["pediatric_history"] = booking.pediatric_history
+        if booking.personal_history is not None:
+            updates.append("personal_history = :personal_history")
+            params["personal_history"] = booking.personal_history
+        if booking.past_history is not None:
+            updates.append("past_history = :past_history")
+            params["past_history"] = booking.past_history
+        if booking.medical_history_json is not None:
+            updates.append("medical_history_json = :medical_history_json")
+            params["medical_history_json"] = booking.medical_history_json
             
         if not updates:
             return {"message": "No changes made"}
