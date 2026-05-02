@@ -1309,6 +1309,9 @@
         .status-badge.consultation { background: #DBEAFE; color: #1E40AF; }
         .status-badge.priority { background: #FCE7F3; color: #9D174D; }
         .status-badge.completed { background: #DCFCE7; color: #166534; }
+        .status-badge.cancelled { background: #FEE2E2; color: #991B1B; }
+        .status-badge.noshow { background: #F3F4F6; color: #4B5563; }
+        .status-badge.moved { background: #E0E7FF; color: #3730A3; }
 
         .payment-badge {
             padding: 4px 10px;
@@ -1319,6 +1322,53 @@
         }
         .payment-badge.paid { background: #DCFCE7; color: #166534; }
         .payment-badge.unpaid { background: #FEE2E2; color: #991B1B; }
+
+        /* Dashboard Filter Buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 0 16px 12px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 12px;
+        }
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        .filter-btn:hover { background: var(--surface-2); }
+        .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* Summary Cards - Grid */
+        .dashboard-status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 0 16px 20px;
+        }
+        .status-card {
+            background: #1e1e1e;
+            padding: 14px;
+            border-radius: 12px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .status-card .label { font-size: 13px; font-weight: 500; opacity: 0.8; }
+        .status-card .value { font-size: 24px; font-weight: 600; }
+        .status-card.waiting .value { color: #FBBF24; }
+        .status-card.consultation .value { color: #60A5FA; }
+        .status-card.completed .value { color: #34D399; }
+        .status-card.priority .value { color: #F87171; }
+        .status-card.unpaid .value { color: #F87171; }
 
         .status-pill.available {
             background: var(--slot-available);
@@ -1870,6 +1920,34 @@
 
                 <!-- ─── DASHBOARD PAGE ─── -->
                 <div id="page-dashboard" class="page-hidden">
+                    
+                    <!-- NEW: Detailed Summary Cards -->
+                    <div class="dashboard-status-cards no-print">
+                        <div class="status-card waiting">
+                            <div class="label">Waiting</div>
+                            <div class="value" id="count-waiting">0</div>
+                        </div>
+                        <div class="status-card consultation">
+                            <div class="label">In consultation</div>
+                            <div class="value" id="count-consultation">0</div>
+                        </div>
+                        <div class="status-card completed">
+                            <div class="label">Completed</div>
+                            <div class="value" id="count-completed">0</div>
+                        </div>
+                        <div class="status-card priority">
+                            <div class="label">Priority</div>
+                            <div class="value" id="count-priority">0</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="label">Total today</div>
+                            <div class="value" id="count-total">0</div>
+                        </div>
+                        <div class="status-card unpaid">
+                            <div class="label">Unpaid</div>
+                            <div class="value" id="count-unpaid">0</div>
+                        </div>
+                    </div>
 
                     <!-- Summary Cards -->
                     <div class="cards-row">
@@ -1975,8 +2053,9 @@
                                 </button>
                                 <input type="text" class="form-input" placeholder="Search patient..."
                                     style="padding:6px 10px;font-size:12.5px;width:180px"
-                                    oninput="filterTable(this.value)">
+                                    oninput="dashboardSearchTerm = this.value; renderDashboardTables(dashboardAppointments, toLocalDateStr(dashboardViewDate))">
                             </div>
+                        </div>
                         </div>
                         <div class="dashboard-tabs no-print"
                             style="display:flex; gap: 8px; margin-bottom: 16px; padding: 0 16px 12px 16px; border-bottom: 1px solid var(--border-light); overflow-x: auto;">
@@ -1990,6 +2069,19 @@
                                 style="padding: 6px 14px; font-size: 13px;">Dr Buddies Reviews</button>
                             <button class="btn btn-ghost" id="tab-dashboard-review_dr_2" onclick="setDashboardTab('review_dr_2')"
                                 style="padding: 6px 14px; font-size: 13px;">JMR Reviews</button>
+                        </div>
+                        
+                        <!-- NEW: Status Filters -->
+                        <div class="filter-buttons no-print">
+                            <button class="filter-btn active" onclick="setDashboardFilter('all', this)">All</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Waiting', this)">Waiting</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('In consultation', this)">In consultation</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Priority', this)">Priority</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Completed', this)">Completed</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Cancelled', this)">Cancelled</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('No show', this)">No show</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Moved', this)">Moved</button>
+                            <button class="filter-btn" onclick="setDashboardFilter('Waitlist', this)">Waitlist</button>
                         </div>
                         <div id="dashboard-tables-container">
                             <!-- Populated by JS -->
@@ -2359,6 +2451,9 @@
                             <option value="In consultation">In consultation</option>
                             <option value="Priority">Priority</option>
                             <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="No show">No show</option>
+                            <option value="Moved">Moved</option>
                         </select>
                     </div>
                     </div>
@@ -2483,7 +2578,9 @@
             let currentEditingId = null;
             let selectedSlot = null;
             let selectedDoctor = 'dr_1'; // Currently selected doctor for modal
-            let currentDashboardTab = 'all'; // Keeps track of active tab on dashboard
+            let currentDashboardTab = 'all'; 
+            let currentDashboardFilter = 'all';
+            let dashboardSearchTerm = '';
             let currentSlotsTab = 'all'; // Keeps track of active tab on slots page
 
             const doctors = [
@@ -2747,11 +2844,51 @@
                             const bks = await resBookings.json();
 
                             // Isolated for dashboard to prevent race conditions with Slots page
-                            dashboardAppointments = bks;
-                            renderDashboardTables(bks, dateStr);
+                            let allBks = bks;
+                            
+                            // Fetch Waitlist too
+                            try {
+                                const resWl = await fetch(`${API_BASE}/bookings/waitlist?date=${dateStr}&_cb=${cbBookings}`);
+                                if (resWl.ok) {
+                                    const wl = await resWl.json();
+                                    allBks = allBks.concat(wl.map(w => ({ ...w, status: 'Waitlist', is_waitlist: true })));
+                                }
+                            } catch(e) { console.error("Waitlist fetch failed", e); }
+
+                            dashboardAppointments = allBks;
+                            updateSummaryCards(allBks);
+                            renderDashboardTables(allBks, dateStr);
                         }
-                    } catch (err) { console.error("Dashboard update failed", err); }
+                    } catch (err) { console.error("Dashboard bookings fetch failed", err); }
                 } catch (err) { console.error("Dashboard update failed", err); }
+            }
+
+            function updateSummaryCards(bks) {
+                const waiting = bks.filter(b => b.status === 'Waiting').length;
+                const consultation = bks.filter(b => b.status === 'In consultation').length;
+                const completed = bks.filter(b => b.status === 'Completed').length;
+                const priority = bks.filter(b => b.status === 'Priority').length;
+                const unpaid = bks.filter(b => !b.is_paid).length;
+                const total = bks.length;
+
+                const setVal = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val;
+                };
+
+                setVal('count-waiting', waiting);
+                setVal('count-consultation', consultation);
+                setVal('count-completed', completed);
+                setVal('count-priority', priority);
+                setVal('count-total', total);
+                setVal('count-unpaid', unpaid);
+            }
+
+            function setDashboardFilter(filter, btn) {
+                currentDashboardFilter = filter;
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderDashboardTables(dashboardAppointments, toLocalDateStr(dashboardViewDate));
             }
 
             function setDashboardTab(tabId) {
@@ -2779,9 +2916,32 @@
                 let filteredDoctors = doctors;
                 let displayBks = bks;
 
+                // Tab Filter (Clinic)
                 if (currentDashboardTab !== 'all') {
                     filteredDoctors = doctors.filter(d => d.id === currentDashboardTab);
                     displayBks = bks.filter(b => b.doctor_id === currentDashboardTab);
+                }
+
+                // Status Filter
+                if (currentDashboardFilter !== 'all') {
+                    if (currentDashboardFilter === 'Waitlist') {
+                        // This would normally be handled by the waitlist API, 
+                        // but for now we filter based on a hypothetical waitlist status 
+                        // or just show empty if not in this list. 
+                        displayBks = displayBks.filter(b => b.status === 'Waitlist');
+                    } else {
+                        displayBks = displayBks.filter(b => b.status === currentDashboardFilter);
+                    }
+                }
+
+                // Search Filter
+                if (dashboardSearchTerm) {
+                    const term = dashboardSearchTerm.toLowerCase();
+                    displayBks = displayBks.filter(b => 
+                        b.patient_name.toLowerCase().includes(term) || 
+                        b.patient_phone.includes(term) ||
+                        (b.notes && b.notes.toLowerCase().includes(term))
+                    );
                 }
 
                 if (bks.length === 0) {
@@ -2829,10 +2989,15 @@
                                     </td>
                                     <td>${b.patient_phone || '–'}</td>
                                     <td>${b.notes || '–'}</td>
-                                    <td style="font-family:'DM Mono',monospace;font-size:12px">${b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0]}</td>
-                                    <td><span class="status-badge ${statusClass}">${b.status || 'Waiting'}</span></td>
+                                    <td style="font-family:'DM Mono',monospace;font-size:12px">${b.is_waitlist ? 'WAITLIST' : (b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0])}</td>
+                                    <td><span class="status-badge ${(b.status || 'Waiting').toLowerCase().replace(/\s+/g, '')}">${b.status || 'Waiting'}</span></td>
                                     <td><span class="payment-badge ${paymentClass}">${paymentText}</span></td>
-                                    <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id}, '${b.doctor_id}', dashboardAppointments)">Edit</button></td>
+                                    <td>
+                                        ${b.is_waitlist 
+                                            ? `<button class="btn btn-ghost" onclick="showPage('slots')">Manage</button>`
+                                            : `<button class="btn btn-ghost" onclick="viewSlot(${b.slot_id}, '${b.doctor_id}', dashboardAppointments)">Edit</button>`
+                                        }
+                                    </td>
                                 </tr>
                                 `;}).join('')}
                             </tbody>
