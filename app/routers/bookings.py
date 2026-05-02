@@ -153,7 +153,7 @@ async def get_daily_limit(db: AsyncSession, doctor_id: str = 'dr_1') -> int:
     row = res.mappings().first()
     if row:
         return int(row['value'])
-    return 20 if doctor_id.startswith('review_') else 45
+    return 20 if doctor_id.startswith('review_') else 40
 
 async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str = 'dr_1') -> int:
     res = await db.execute(text("SELECT limit_value FROM dashboard_daily_limit WHERE date = :date AND doctor_id = :doctor_id"), 
