@@ -2536,27 +2536,30 @@
                     </div>
                 </div>
                 <div class="modal-footer" id="modal-footer">
-                    <div style="margin-right: auto; display: flex; gap: 8px; align-items: center;">
-                        <select class="form-input" id="prescription-template" style="width: 160px; font-size: 12px; padding: 6px 10px;">
-                            <option value="dr_iyad">Dr. Iyad Template</option>
-                            <option value="spark">Spark Template</option>
-                        </select>
-                        <button class="btn btn-ghost" onclick="saveAndPrintPrescription()" style="background: var(--accent-light); color: var(--accent); border-color: var(--accent-mid);">
-                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                    <div style="display: flex; flex-direction: column; width: 100%; gap: 12px;">
+                        <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                            <select class="form-input" id="prescription-template" style="width: 160px; font-size: 12px; padding: 6px 10px; margin-right: auto;">
+                                <option value="dr_iyad">Dr. Iyad Template</option>
+                                <option value="spark">Spark Template</option>
+                            </select>
+                            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                            <button class="btn btn-ghost" style="color:#a16207; border: 1px solid #fef08a; background: #fffbeb;" onclick="openWaitlistOnlyModal(selectedDoctor)">Add to Waitlist</button>
+                            <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Save Appointment
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; padding: 10px; font-weight: 600; font-size: 13px;">
+                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; margin-right: 8px; stroke: currentColor;">
                                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                 <rect x="6" y="14" width="12" height="8"></rect>
                             </svg>
-                            Save & Print
+                            Save and Print Prescription
                         </button>
                     </div>
-                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main">
-                        <svg viewBox="0 0 24 24">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Save Appointment
-                    </button>
                 </div>
             </div>
         </div>
@@ -4217,78 +4220,158 @@
                 let content = '';
                 if (type === 'dr_iyad') {
                     content = `
-                        <div style="font-family: 'DM Sans', sans-serif; padding: 20px; color: #333;">
-                            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1B6CA8; padding-bottom: 10px; margin-bottom: 20px;">
-                                <div>
-                                    <h1 style="margin: 0; color: #1B6CA8; font-family: 'Playfair Display', serif;">DR. IYAD</h1>
-                                    <p style="margin: 2px 0; font-size: 14px;">BMBS, MRCGP (UK), FRACGP (AUSTRALIA)</p>
-                                    <p style="margin: 2px 0; font-size: 12px; color: #666;">Consultant Family Physician</p>
+                        <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh;">
+                            <!-- Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; border-bottom: 2px solid #000;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 50px; height: 50px; background: #004d80; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 24px;">DY</div>
+                                    <div>
+                                        <h1 style="margin: 0; color: #000; font-size: 28px; letter-spacing: 1px;">Dr.Buddies</h1>
+                                        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Health Hub</div>
+                                    </div>
                                 </div>
-                                <div style="text-align: right;">
-                                    <p style="margin: 0; font-weight: 700;">Date: ${date}</p>
-                                    <p style="margin: 2px 0; font-size: 12px;">ID: ${appt.patient_code || '–'}</p>
+                                <div style="text-align: left; font-size: 11px; line-height: 1.4;">
+                                    <div><strong>BOOKING NO:</strong> 9995 30 53 04</div>
+                                    <div><strong>RECEPTION:</strong> 9747 30 60 60</div>
+                                    <div><strong>PHARMACY:</strong> 9526 90 60 60</div>
+                                    <div><strong>LAB:</strong> 9061 50 80 80</div>
                                 </div>
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px;">
-                                <div><strong style="font-size: 12px; color: #666;">Patient:</strong> <span style="font-size: 16px; font-weight: 600;">${appt.patient_name}</span></div>
-                                <div><strong style="font-size: 12px; color: #666;">Weight:</strong> ${appt.weight || '–'} kg</div>
-                                <div><strong style="font-size: 12px; color: #666;">Temp:</strong> ${appt.temp || '–'} °F</div>
-                                <div><strong style="font-size: 12px; color: #666;">BP:</strong> ${appt.bp || '–'} mmHg</div>
-                                <div><strong style="font-size: 12px; color: #666;">PR:</strong> ${appt.pr || '–'} /min</div>
-                                <div><strong style="font-size: 12px; color: #666;">SpO2:</strong> ${appt.spo2 || '–'} %</div>
+                            <div style="display: flex; flex: 1;">
+                                <!-- Left Sidebar -->
+                                <div style="width: 240px; border-right: 2px solid #000; padding: 15px; display: flex; flex-direction: column; gap: 15px;">
+                                    <div style="border: 2px solid #004d80; padding: 10px; text-align: center;">
+                                        <div style="background: #004d80; color: white; font-weight: 700; padding: 5px; margin-bottom: 5px;">ALLERGY</div>
+                                        <div style="font-size: 12px; font-weight: 700;">Yes ■ No ■</div>
+                                        <div style="height: 40px; border: 1px solid #004d80; margin-top: 5px;"></div>
+                                    </div>
+
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Surgical History</div>
+                                        <div style="border-bottom: 1px dotted #000; height: 20px;"></div>
+                                        <div style="border-bottom: 1px dotted #000; height: 20px;"></div>
+                                    </div>
+
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">OBG History</div>
+                                        <div style="font-size: 11px;">G .... P .... L .... A ....</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">FTND / LSCS: ..................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">PPD: ......... PMS: .........</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">LCB: ......... LMP: .........</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">MENOPAUSE: YES / NO</div>
+                                    </div>
+
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Paediatric History</div>
+                                        <div style="font-size: 11px;">Birth WT .....................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">FTND / LSCS ..................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Child ........................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Developmental Delay YES / NO</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Immunised for Age YES / NO</div>
+                                    </div>
+
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Personal History:</div>
+                                        <div style="font-size: 10px; font-weight: 600;">SMOKING / ALCOHOL / OTHERS</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Bowel: .......................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Bladder: .....................</div>
+                                        <div style="font-size: 11px; margin-top: 5px;">Past History:</div>
+                                    </div>
+                                </div>
+
+                                <!-- Main Area -->
+                                <div style="flex: 1; padding: 20px; display: flex; flex-direction: column;">
+                                    <div style="border: 2px solid #000; padding: 15px; margin-bottom: 20px;">
+                                        <div style="font-weight: 700; font-size: 13px; margin-bottom: 10px; text-transform: uppercase;">Medical History (Tick if Applicable)</div>
+                                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px;">
+                                            <div>□ DM ................</div><div>□ HTN ...............</div><div>□ BA ................</div>
+                                            <div>□ CVA / TIA ..........</div><div>□ CAD / AF ..........</div><div>□ DLP ...............</div>
+                                            <div>□ THYROID - HYPO / HYPER</div><div>□ CKD ...............</div><div>□ COPD ..............</div>
+                                            <div>□ ANXIETY / DEPRESSION / MADD</div><div>□ CLD / MASLD .......</div><div>□ APD / GERD ........</div>
+                                            <div>□ SEIZURE / EPILEPSY ..</div><div>□ GLAUCOMA / CATARACT / NPDR</div><div>□ IVDP - CERVICAL / LUMBAR</div>
+                                            <div>□ OA KNEE / HIP / OTHERS</div><div>□ RHEUMATIC DISEASES ...</div><div>□ OTHERS .............</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="flex: 1; border: 1px solid #eee; padding: 20px; position: relative;">
+                                        <div style="font-size: 48px; color: #000; font-weight: 800; position: absolute; top: 10px; left: 10px; font-family: serif;">R<sub style="font-size: 24px;">x</sub></div>
+                                        <div style="margin-top: 40px; font-size: 15px; line-height: 1.8; white-space: pre-wrap;">${appt.notes || ''}</div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div style="margin-bottom: 30px; min-height: 400px; border: 1px solid #eee; padding: 20px; position: relative;">
-                                <div style="font-size: 48px; color: #eee; font-weight: 800; position: absolute; top: 10px; left: 10px; font-family: serif;">R<sub style="font-size: 24px;">x</sub></div>
-                                <div style="margin-top: 40px; line-height: 1.8; white-space: pre-wrap;">${appt.notes || ''}</div>
-                            </div>
-
-                            <div style="text-align: right; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
-                                <div style="display: inline-block; text-align: center;">
-                                    <div style="width: 150px; border-bottom: 1px solid #333; margin-bottom: 5px;"></div>
-                                    <p style="margin: 0; font-size: 12px; font-weight: 700;">Doctor's Signature</p>
+                            <!-- Footer -->
+                            <div style="padding: 15px; border-top: 2px solid #000; text-align: center; font-size: 11px;">
+                                <div style="font-weight: 700; margin-bottom: 5px;">37/2612, Chalapuram P.O., Calicut - 673002, For Bookings & Enquiry: 9995305304</div>
+                                <div style="background: #004d80; color: white; padding: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; word-spacing: 5px;">
+                                    General / Internal Medicine | Geriatrics | Pain Clinic | Paediatrics | Asthma & Allergy Clinic | Diabetic Clinic | Thyroid Clinic
                                 </div>
                             </div>
                         </div>
                     `;
                 } else {
+                    // SPARK TEMPLATE
                     content = `
-                        <div style="font-family: 'DM Sans', sans-serif; padding: 20px; color: #333;">
-                            <div style="text-align: center; margin-bottom: 30px;">
-                                <h1 style="margin: 0; color: #1B6CA8; letter-spacing: 2px;">SPARK PRESCRIPTION</h1>
-                                <p style="margin: 5px 0; color: #666; font-size: 14px;">Healthcare Excellence</p>
-                                <div style="height: 3px; background: #1B6CA8; width: 60px; margin: 10px auto;"></div>
+                        <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh;">
+                            <!-- Header -->
+                            <div style="display: flex; align-items: center; gap: 15px; padding: 20px; border-bottom: 2px solid #000;">
+                                <div style="width: 50px; height: 50px; background: #004d80; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 24px;">DY</div>
+                                <div>
+                                    <h1 style="margin: 0; color: #000; font-size: 28px; letter-spacing: 1px;">Dr.Buddies</h1>
+                                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Health Hub</div>
+                                </div>
                             </div>
 
-                            <div style="border: 1px solid #1B6CA8; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                                <table style="width: 100%; border-collapse: collapse;">
-                                    <tr>
-                                        <td style="padding: 5px; width: 50%;"><strong>Patient:</strong> ${appt.patient_name}</td>
-                                        <td style="padding: 5px; text-align: right;"><strong>Date:</strong> ${date}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 5px;"><strong>ID:</strong> ${appt.patient_code || '–'}</td>
-                                        <td style="padding: 5px; text-align: right;"><strong>Phone:</strong> ${appt.patient_phone}</td>
-                                    </tr>
-                                </table>
-                            </div>
+                            <div style="display: flex; flex: 1;">
+                                <!-- Left Sidebar (Specialties) -->
+                                <div style="width: 240px; border-right: 2px solid #004d80; padding: 15px; background: #f9fafb;">
+                                    <div style="background: #e11d48; color: white; text-align: center; font-weight: 700; padding: 5px; border-radius: 20px; margin-bottom: 15px; font-size: 13px;">സ്പെഷ്യലിറ്റികൾ</div>
+                                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ശ്വാസകോശ വിഭാഗം (Pulmonology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ അസ്ഥിരോഗ വിഭാഗം (Orthopaedics)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ കിഡ്നി വിഭാഗം (Nephrology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ പ്രമേഹരോഗ വിഭാഗം (Diabetology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ വയോജന വിഭാഗം (Geriatrics)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ വാതരോഗ വിഭാഗം (Rheumatology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ലാപ്രോസ്കോപ്പിക് (Laparoscopy Surgeon)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ സ്പോർട്സ് മെഡിസിൻ (SPORTS MEDICINE)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ചർമ്മരോഗ വിഭാഗം (Dermatology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ശിശു രോഗ വിഭാഗം (Pediatrics)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ഗൈനക്കോളജി (Gynecology)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ കാൻസർ വിഭാഗം (Cancer)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ വേദന വിഭാഗം (PAIN)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ചെവി, മൂക്ക്, തൊണ്ട (ENT)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ സ്പൈൻ സർജൻ (Spine Surgeon)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ മാനസിക രോഗ വിഭാഗം (Psychiatry)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ജനറൽ മെഡിസിൻ (General Medicine)</div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">◈ ഹൃദ്രോഗ വിഭാഗം (Cardiology)</div>
+                                    </div>
+                                </div>
 
-                            <div style="background: #F1F5F9; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #1B6CA8; font-weight: 600; display: flex; justify-content: center; gap: 10px; border: 1px solid #E2E8F0;">
-                                <span>Weight: <span style="color:#334155">${appt.weight || '............'}</span> Kg</span> |
-                                <span>Temp: <span style="color:#334155">${appt.temp || '............'}</span> °F</span> |
-                                <span>BP: <span style="color:#334155">${appt.bp || '......................'}</span> mmHg</span> |
-                                <span>PR: <span style="color:#334155">${appt.pr || '............'}</span> /min</span> |
-                                <span>SpO2: <span style="color:#334155">${appt.spo2 || '............'}</span> %</span>
-                            </div>
+                                <!-- Main Area -->
+                                <div style="flex: 1; display: flex; flex-direction: column;">
+                                    <div style="padding: 10px 20px; border-bottom: 2px solid #004d80; font-size: 13px; font-weight: 600; display: flex; gap: 10px; color: #374151;">
+                                        <span>Weight: <span style="color:#000">${appt.weight || '............'}</span> Kg</span> |
+                                        <span>Temp: <span style="color:#000">${appt.temp || '............'}</span> °F</span> |
+                                        <span>BP: <span style="color:#000">${appt.bp || '..................'}</span> mmHg</span> |
+                                        <span>PR: <span style="color:#000">${appt.pr || '............'}</span> /min</span> |
+                                        <span>SpO2: <span style="color:#000">${appt.spo2 || '............'}</span> %</span>
+                                    </div>
 
-                            <div style="min-height: 450px; border: 2px solid #EBF4FF; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
-                                <h3 style="margin-top: 0; color: #1B6CA8; border-bottom: 1px solid #EBF4FF; padding-bottom: 10px;">Prescription / Rx</h3>
-                                <div style="line-height: 1.8; white-space: pre-wrap;">${appt.notes || ''}</div>
-                            </div>
+                                    <div style="flex: 1; padding: 30px; position: relative;">
+                                        <div style="font-size: 48px; color: #000; font-weight: 800; position: absolute; top: 10px; left: 15px; font-family: serif;">R<sub style="font-size: 24px;">x</sub></div>
+                                        <div style="margin-top: 40px; font-size: 16px; line-height: 2; white-space: pre-wrap;">${appt.notes || ''}</div>
+                                    </div>
 
-                            <div style="text-align: center; color: #9BA5B7; font-size: 12px;">
-                                <p>Thank you for choosing Spark Healthcare. Stay Healthy!</p>
+                                    <!-- Bottom Contact Icons -->
+                                    <div style="padding: 15px 20px; border-top: 2px solid #004d80; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                                        <div style="display: flex; align-items: center; gap: 5px;">📞 9747 30 60 60</div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">🏥 Pharmacy: 9526 90 60 60</div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">🔬 Lab: 9061 50 80 80</div>
+                                        <div style="display: flex; align-items: center; gap: 5px;">📍 Chalapuram, Calicut</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
