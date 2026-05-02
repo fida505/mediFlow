@@ -4274,23 +4274,12 @@
                                 </table>
                             </div>
 
-                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                <div style="flex: 1; background: #EBF4FF; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="font-size: 10px; color: #1B6CA8; font-weight: 700; text-transform: uppercase;">Weight</div>
-                                    <div style="font-size: 16px; font-weight: 700;">${appt.weight || '–'} kg</div>
-                                </div>
-                                <div style="flex: 1; background: #EBF4FF; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="font-size: 10px; color: #1B6CA8; font-weight: 700; text-transform: uppercase;">BP</div>
-                                    <div style="font-size: 16px; font-weight: 700;">${appt.bp || '–'}</div>
-                                </div>
-                                <div style="flex: 1; background: #EBF4FF; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="font-size: 10px; color: #1B6CA8; font-weight: 700; text-transform: uppercase;">SpO2</div>
-                                    <div style="font-size: 16px; font-weight: 700;">${appt.spo2 || '–'} %</div>
-                                </div>
-                                <div style="flex: 1; background: #EBF4FF; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="font-size: 10px; color: #1B6CA8; font-weight: 700; text-transform: uppercase;">PR</div>
-                                    <div style="font-size: 16px; font-weight: 700;">${appt.pr || '–'}</div>
-                                </div>
+                            <div style="background: #F1F5F9; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #1B6CA8; font-weight: 600; display: flex; justify-content: center; gap: 10px; border: 1px solid #E2E8F0;">
+                                <span>Weight: <span style="color:#334155">${appt.weight || '............'}</span> Kg</span> |
+                                <span>Temp: <span style="color:#334155">${appt.temp || '............'}</span> °F</span> |
+                                <span>BP: <span style="color:#334155">${appt.bp || '......................'}</span> mmHg</span> |
+                                <span>PR: <span style="color:#334155">${appt.pr || '............'}</span> /min</span> |
+                                <span>SpO2: <span style="color:#334155">${appt.spo2 || '............'}</span> %</span>
                             </div>
 
                             <div style="min-height: 450px; border: 2px solid #EBF4FF; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
