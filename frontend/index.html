@@ -1150,6 +1150,29 @@
             box-shadow: 0 0 0 3px rgba(27, 108, 168, 0.1);
         }
 
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit .form-input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            pointer-events: none;
+            background: var(--surface-2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
         .form-checkbox-row {
             display: flex;
             align-items: center;
@@ -2474,32 +2497,47 @@
                         <!-- Right Column: Patient Health Info & History -->
                         <div style="flex: 1; padding-left: 20px; border-left: 1px solid var(--border-light); display:flex; flex-direction:column; gap:14px;">
                             <div style="font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">Patient Health info</div>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                                 <div class="form-group">
-                                    <label class="form-label">Weight (Kg)</label>
-                                    <input type="text" class="form-input" id="field-weight" placeholder="Kg">
+                                    <label class="form-label" style="font-size: 10px; color: #64748b;">WEIGHT</label>
+                                    <div class="input-with-unit">
+                                        <input type="text" class="form-input" id="field-weight" placeholder="0">
+                                        <span class="input-unit">Kg</span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Temperature (°F)</label>
-                                    <input type="text" class="form-input" id="field-temp" placeholder="°F">
+                                    <label class="form-label" style="font-size: 10px; color: #64748b;">TEMPERATURE</label>
+                                    <div class="input-with-unit">
+                                        <input type="text" class="form-input" id="field-temp" placeholder="0">
+                                        <span class="input-unit">°F</span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">BP (mmHg)</label>
-                                    <input type="text" class="form-input" id="field-bp" placeholder="mmHg">
+                                    <label class="form-label" style="font-size: 10px; color: #64748b;">BP</label>
+                                    <div class="input-with-unit">
+                                        <input type="text" class="form-input" id="field-bp" placeholder="0">
+                                        <span class="input-unit">mmHg</span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">PR (/min)</label>
-                                    <input type="text" class="form-input" id="field-pr" placeholder="/min">
+                                    <label class="form-label" style="font-size: 10px; color: #64748b;">PR</label>
+                                    <div class="input-with-unit">
+                                        <input type="text" class="form-input" id="field-pr" placeholder="0">
+                                        <span class="input-unit">/min</span>
+                                    </div>
                                 </div>
                                 <div class="form-group" style="grid-column: span 2;">
-                                    <label class="form-label">SPO2 (%)</label>
-                                    <input type="text" class="form-input" id="field-spo2" placeholder="%">
+                                    <label class="form-label" style="font-size: 10px; color: #64748b;">SPO2</label>
+                                    <div class="input-with-unit">
+                                        <input type="text" class="form-input" id="field-spo2" placeholder="0">
+                                        <span class="input-unit">%</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="form-group" style="margin-top: 8px;">
-                                <label class="form-label">Medical History / Prescription Notes</label>
-                                <textarea class="form-input" id="field-notes" style="height: 100px;" placeholder="Enter details..."></textarea>
+                                <label class="form-label" style="font-size: 10px; color: #64748b;">MEDICAL HISTORY / PRESCRIPTION NOTES</label>
+                                <textarea class="form-input" id="field-notes" style="height: 120px;" placeholder="Enter details..."></textarea>
                             </div>
                         </div>
                         </div>
@@ -2536,23 +2574,24 @@
                     </div>
                 </div>
                 <div class="modal-footer" id="modal-footer">
-                    <div style="display: flex; flex-direction: column; width: 100%; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; width: 100%; gap: 14px;">
                         <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                            <select class="form-input" id="prescription-template" style="width: 160px; font-size: 12px; padding: 6px 10px; margin-right: auto;">
+                            <select class="form-input" id="prescription-template" style="width: 170px; font-size: 12px; padding: 7px 10px; margin-right: auto; border-color: #cbd5e1;">
                                 <option value="dr_iyad">Dr. Iyad Template</option>
                                 <option value="spark">Spark Template</option>
                             </select>
-                            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                            <button class="btn btn-ghost" style="color:#a16207; border: 1px solid #fef08a; background: #fffbeb;" onclick="openWaitlistOnlyModal(selectedDoctor)">Add to Waitlist</button>
-                            <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
+                            <button class="btn btn-ghost" onclick="closeModal()" style="font-size: 13px; padding: 10px 18px;">Cancel</button>
+                            <button class="btn btn-ghost" style="color:#a16207; border: 1px solid #fde68a; background: #fffde7; font-size: 13px; padding: 10px 18px; display:flex; align-items:center; gap:8px;" onclick="openWaitlistOnlyModal(selectedDoctor)">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                Add to Waitlist
+                            </button>
+                            <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main" style="font-size: 13px; padding: 10px 22px; display:flex; align-items:center; gap:8px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px; stroke-width:3;"><polyline points="20 6 9 17 4 12" /></svg>
                                 Save Appointment
                             </button>
                         </div>
-                        <button class="btn btn-primary" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; padding: 10px; font-weight: 600; font-size: 13px;">
-                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; margin-right: 8px; stroke: currentColor;">
+                        <button class="btn btn-primary" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #E0F2FE; color: #0369A1; border: 1px solid #7DD3FC; padding: 12px; font-weight: 600; font-size: 14px; letter-spacing: 0.3px; display:flex; align-items:center; gap:10px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2;">
                                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                 <rect x="6" y="14" width="12" height="8"></rect>
