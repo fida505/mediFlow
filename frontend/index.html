@@ -4229,16 +4229,13 @@
             }
 
             function printPatientList() {
-                // This function is used by the Slots page
-                // appointments array and currentDate are already set by fetchAppointments()
                 window.print();
             }
 
             async function saveAndPrintPrescription() {
                 const template = document.getElementById('prescription-template').value;
-                const success = await saveAppointment(true); // pass flag to skip closing modal if we need data
+                const success = await saveAppointment(true); 
                 if (success) {
-                    // Fetch latest data for the appointment to ensure consistency
                     const dateStr = toLocalDateStr(currentDate);
                     const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
                     const latestAppts = await res.json();
@@ -4254,103 +4251,94 @@
 
             function printPrescription(type, appt) {
                 const printWindow = window.open('', '_blank');
-                const date = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-                
                 let content = '';
                 if (type === 'dr_iyad') {
                     content = `
-                        <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh;">
-                            <!-- Header -->
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; border-bottom: 2px solid #000;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 50px; height: 50px; background: #004d80; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 24px;">DY</div>
+                        <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; background: #fff;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 30px; border-bottom: 2px solid #000;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <div style="width: 60px; height: 60px; background: #004d80; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 28px;">DY</div>
                                     <div>
-                                        <h1 style="margin: 0; color: #000; font-size: 28px; letter-spacing: 1px;">Dr.Buddies</h1>
-                                        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Health Hub</div>
+                                        <h1 style="margin: 0; color: #000; font-size: 32px; letter-spacing: 1px; font-weight: 800;">Dr.Buddies</h1>
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Health Hub</div>
                                     </div>
                                 </div>
-                                <div style="text-align: left; font-size: 11px; line-height: 1.4;">
-                                    <div><strong>BOOKING NO:</strong> 9995 30 53 04</div>
-                                    <div><strong>RECEPTION:</strong> 9747 30 60 60</div>
-                                    <div><strong>PHARMACY:</strong> 9526 90 60 60</div>
-                                    <div><strong>LAB:</strong> 9061 50 80 80</div>
+                                <div style="text-align: left; font-size: 11.5px; line-height: 1.5; font-weight: 600;">
+                                    <div>BOOKING NO: 9995 30 53 04</div>
+                                    <div>RECEPTION : 9747 30 60 60</div>
+                                    <div>PHARMACY : 9526 90 60 60</div>
+                                    <div>LAB       : 9061 50 80 80</div>
                                 </div>
                             </div>
-
                             <div style="display: flex; flex: 1;">
-                                <!-- Left Sidebar -->
-                                <div style="width: 240px; border-right: 2px solid #000; padding: 15px; display: flex; flex-direction: column; gap: 15px;">
-                                    <div style="border: 2px solid #004d80; padding: 10px; text-align: center;">
-                                        <div style="background: #004d80; color: white; font-weight: 700; padding: 5px; margin-bottom: 5px;">ALLERGY</div>
-                                        <div style="font-size: 12px; font-weight: 700;">Yes ■ No ■</div>
-                                        <div style="height: 40px; border: 1px solid #004d80; margin-top: 5px;"></div>
+                                <div style="width: 260px; border-right: 2px solid #000; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
+                                    <div style="border: 2px solid #004d80; padding: 0; text-align: center;">
+                                        <div style="background: #004d80; color: white; font-weight: 800; padding: 6px; font-size: 14px;">ALLERGY</div>
+                                        <div style="font-size: 13px; font-weight: 800; padding: 5px;">Yes ■ No ■</div>
+                                        <div style="height: 50px; border-top: 1px solid #004d80;"></div>
                                     </div>
-
                                     <div>
-                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Surgical History</div>
-                                        <div style="border-bottom: 1px dotted #000; height: 20px;"></div>
-                                        <div style="border-bottom: 1px dotted #000; height: 20px;"></div>
+                                        <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">SURGICAL HISTORY</div>
+                                        <div style="border-bottom: 1.5px dotted #000; height: 22px;"></div>
+                                        <div style="border-bottom: 1.5px dotted #000; height: 22px;"></div>
+                                        <div style="border-bottom: 1.5px dotted #000; height: 22px;"></div>
                                     </div>
-
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">OBG History</div>
-                                        <div style="font-size: 11px;">G .... P .... L .... A ....</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">FTND / LSCS: ..................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">PPD: ......... PMS: .........</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">LCB: ......... LMP: .........</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">MENOPAUSE: YES / NO</div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; margin-bottom: 2px;">OBG HISTORY</div>
+                                        <div style="font-size: 12px; font-weight: 600;">G ..... P ..... L ..... A .....</div>
+                                        <div style="font-size: 12px; font-weight: 600;">FTND / LSCS: .........................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">PPD: ............. PMS: .............</div>
+                                        <div style="font-size: 12px; font-weight: 600;">LCB: ............. LMP: .............</div>
+                                        <div style="font-size: 12px; font-weight: 600;">MENOPAUSE: YES / NO</div>
                                     </div>
-
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Paediatric History</div>
-                                        <div style="font-size: 11px;">Birth WT .....................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">FTND / LSCS ..................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Child ........................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Developmental Delay YES / NO</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Immunised for Age YES / NO</div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; margin-bottom: 2px;">PAEDIATRIC HISTORY</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Birth WT.............................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">FTND / LSCS.........................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Child...................................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Developmental Delay<br>YES / NO</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Immunised for Age<br>YES / NO</div>
                                     </div>
-
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px;">Personal History:</div>
-                                        <div style="font-size: 10px; font-weight: 600;">SMOKING / ALCOHOL / OTHERS</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Bowel: .......................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Bladder: .....................</div>
-                                        <div style="font-size: 11px; margin-top: 5px;">Past History:</div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; margin-bottom: 2px;">PERSONAL HISTORY:</div>
+                                        <div style="font-size: 11px; font-weight: 800;">SMOKING / ALCOHOL / OTHERS</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Bowel: ................................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Bladder: ..............................</div>
+                                        <div style="font-size: 12px; font-weight: 600;">Others:................................</div>
+                                        <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; margin-top: 5px;">PAST HISTORY:</div>
                                     </div>
                                 </div>
-
-                                <!-- Main Area -->
-                                <div style="flex: 1; padding: 20px; display: flex; flex-direction: column;">
-                                    <div style="border: 2px solid #000; padding: 15px; margin-bottom: 20px;">
-                                        <div style="font-weight: 700; font-size: 13px; margin-bottom: 10px; text-transform: uppercase;">Medical History (Tick if Applicable)</div>
-                                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px;">
-                                            <div>□ DM ................</div><div>□ HTN ...............</div><div>□ BA ................</div>
-                                            <div>□ CVA / TIA ..........</div><div>□ CAD / AF ..........</div><div>□ DLP ...............</div>
-                                            <div>□ THYROID - HYPO / HYPER</div><div>□ CKD ...............</div><div>□ COPD ..............</div>
-                                            <div>□ ANXIETY / DEPRESSION / MADD</div><div>□ CLD / MASLD .......</div><div>□ APD / GERD ........</div>
-                                            <div>□ SEIZURE / EPILEPSY ..</div><div>□ GLAUCOMA / CATARACT / NPDR</div><div>□ IVDP - CERVICAL / LUMBAR</div>
-                                            <div>□ OA KNEE / HIP / OTHERS</div><div>□ RHEUMATIC DISEASES ...</div><div>□ OTHERS .............</div>
+                                <div style="flex: 1; padding: 25px; display: flex; flex-direction: column;">
+                                    <div style="border: 2px solid #000; padding: 15px 20px; margin-bottom: 20px;">
+                                        <div style="font-weight: 800; font-size: 14px; margin-bottom: 12px; text-transform: uppercase;">MEDICAL HISTORY (Tick If Applicable)</div>
+                                        <div style="display: grid; grid-template-columns: 0.9fr 0.9fr 1fr 1.2fr; gap: 8px 15px; font-size: 11px; font-weight: 700;">
+                                            <div>□ DM...............</div><div>□ HTN ..........</div><div>□ NBA ...................</div><div>□ CVA / TIA .................</div>
+                                            <div style="grid-column: span 1;">□ CAD / AF ..............................</div><div style="grid-column: span 1;">□ DLP ....................</div><div style="grid-column: span 2;">□ THYROID - HYPO / HYPER...........</div>
+                                            <div>□ CKD...............</div><div style="grid-column: span 1;">□ COPD .............</div><div style="grid-column: span 2;">□ ANXIETY / DEPRESSION / MADD.......</div>
+                                            <div style="grid-column: span 1;">□ CLD / MASLD .............</div><div style="grid-column: span 1;">□ APD / GERD .................</div><div style="grid-column: span 2;">□ SEIZURE / EPILEPSY .................</div>
+                                            <div style="grid-column: span 2;">□ GLAUCOMA / CATARACT / NPDR ............</div><div style="grid-column: span 2;">□ IVDP - CERVICAL / LUMBAR ...........</div>
+                                            <div style="grid-column: span 2;">□ OA KNEE / HIP / OTHERS ........................</div><div style="grid-column: span 2;">□ RHEUMATIC DISEASES ......................</div>
+                                            <div style="grid-column: span 4;">□ OTHERS..........................................................................................................................</div>
                                         </div>
                                     </div>
-
-                                    <div style="flex: 1; border: 1px solid #eee; padding: 20px; position: relative;">
-                                        <div style="font-size: 48px; color: #000; font-weight: 800; position: absolute; top: 10px; left: 10px; font-family: serif;">R<sub style="font-size: 24px;">x</sub></div>
-                                        <div style="margin-top: 40px; font-size: 15px; line-height: 1.8; white-space: pre-wrap;">${appt.notes || ''}</div>
+                                    <div style="flex: 1; position: relative;">
+                                        <div style="font-size: 58px; color: #000; font-weight: 800; position: absolute; top: -5px; left: 0px; font-family: serif; letter-spacing: -2px;">R<sub style="font-size: 30px;">x</sub></div>
+                                        <div style="margin-top: 50px; font-size: 17px; line-height: 2; white-space: pre-wrap; font-weight: 500;">${appt.notes || ''}</div>
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Footer -->
-                            <div style="padding: 15px; border-top: 2px solid #000; text-align: center; font-size: 11px;">
-                                <div style="font-weight: 700; margin-bottom: 5px;">37/2612, Chalapuram P.O., Calicut - 673002, For Bookings & Enquiry: 9995305304</div>
-                                <div style="background: #004d80; color: white; padding: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; word-spacing: 5px;">
-                                    General / Internal Medicine | Geriatrics | Pain Clinic | Paediatrics | Asthma & Allergy Clinic | Diabetic Clinic | Thyroid Clinic
+                            <div style="padding: 10px 0 0 0; border-top: 2px solid #000; display: flex; flex-direction: column;">
+                                <div style="font-weight: 700; font-size: 12px; text-align: center; margin-bottom: 8px; padding: 0 20px;">
+                                    37/2612, Chalapuram P.O., Calicut - 673002, <span style="color: #004d80;">For Bookings & Enquiry: 9995305304</span>
+                                </div>
+                                <div style="background: #004d80; color: white; padding: 10px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                                    <span>GENERAL / INTERNAL MEDICINE</span> | <span>GERIATRICS</span> | <span>PAIN CLINIC</span> | <span>PAEDIATRICS</span>
+                                    <span>ASTHMA & ALLERGY CLINIC</span> | <span>DIABETIC CLINIC</span> | <span>THYROID CLINIC</span>
                                 </div>
                             </div>
                         </div>
                     `;
                 } else {
-                    // SPARK TEMPLATE
                     content = `
                         <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh;">
                             <!-- Header -->
@@ -4429,7 +4417,7 @@
                             </style>
                         </head>
                         <body>
-                            ${content}
+                            \${content}
                             <script>
                                 window.onload = function() {
                                     window.print();
@@ -4443,20 +4431,12 @@
             }
 
             function printFromDashboard() {
-                // Dashboard uses dashboardViewDate instead of the global currentDate
-                // We temporarily sync them and swap appointments array so the hidden print table is correct
                 const originalDate = new Date(currentDate);
                 const originalAppts = appointments;
-                
                 currentDate = new Date(dashboardViewDate);
                 appointments = dashboardAppointments;
-
-                // Re-render the slot grid's hidden print table to ensure it has dashboard's data
                 renderSlotGrid();
-
                 window.print();
-
-                // Restore
                 currentDate = originalDate;
                 appointments = originalAppts;
                 renderSlotGrid();
