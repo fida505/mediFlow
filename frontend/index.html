@@ -1354,21 +1354,22 @@
             padding: 0 16px 20px;
         }
         .status-card {
-            background: #1e1e1e;
-            padding: 14px;
+            background: var(--surface);
+            padding: 16px;
             border-radius: 12px;
-            color: #fff;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
-        .status-card .label { font-size: 13px; font-weight: 500; opacity: 0.8; }
-        .status-card .value { font-size: 24px; font-weight: 600; }
-        .status-card.waiting .value { color: #FBBF24; }
-        .status-card.consultation .value { color: #60A5FA; }
-        .status-card.completed .value { color: #34D399; }
-        .status-card.priority .value { color: #F87171; }
-        .status-card.unpaid .value { color: #F87171; }
+        .status-card .label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+        .status-card .value { font-size: 24px; font-weight: 600; color: var(--text-primary); }
+        .status-card.waiting .value { color: var(--amber); }
+        .status-card.consultation .value { color: var(--accent); }
+        .status-card.completed .value { color: var(--green); }
+        .status-card.priority .value { color: var(--red); }
+        .status-card.unpaid .value { color: var(--red); }
 
         .status-pill.available {
             background: var(--slot-available);
@@ -2863,10 +2864,12 @@
             }
 
             function updateSummaryCards(bks) {
-                const waiting = bks.filter(b => b.status === 'Waiting').length;
-                const consultation = bks.filter(b => b.status === 'In consultation').length;
-                const completed = bks.filter(b => b.status === 'Completed').length;
-                const priority = bks.filter(b => b.status === 'Priority').length;
+                const getCount = (status) => bks.filter(b => (b.status || 'Waiting').toLowerCase() === status.toLowerCase()).length;
+                
+                const waiting = getCount('Waiting');
+                const consultation = getCount('In consultation');
+                const completed = getCount('Completed');
+                const priority = getCount('Priority');
                 const unpaid = bks.filter(b => !b.is_paid).length;
                 const total = bks.length;
 
