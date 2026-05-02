@@ -23,6 +23,7 @@ class BookingCreate(BaseModel):
     custom_slot_label: str = None
     status: str = "Waiting"
     # Vitals
+    place: str = ""
     weight: str = ""
     temp: str = ""
     bp: str = ""
@@ -50,6 +51,7 @@ class BookingUpdate(BaseModel):
     custom_slot_label: str = None
     status: str = None
     # Vitals
+    place: str = None
     weight: str = None
     temp: str = None
     bp: str = None
@@ -90,6 +92,7 @@ async def init_db(db: AsyncSession):
                 custom_time TEXT,
                 custom_slot_label TEXT,
                 status TEXT DEFAULT 'Waiting',
+                place TEXT DEFAULT '',
                 weight TEXT DEFAULT '',
                 temp TEXT DEFAULT '',
                 bp TEXT DEFAULT '',
@@ -164,6 +167,8 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN custom_slot_label TEXT"))
         if 'status' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN status TEXT DEFAULT 'Waiting'"))
+        if 'place' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN place TEXT DEFAULT ''"))
         
         # New Vitals & History Migrations
         vitals_cols = {

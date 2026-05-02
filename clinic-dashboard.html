@@ -3116,7 +3116,7 @@
                                         ${b.patient_code ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Code: ${b.patient_code}</div>` : ''}
                                     </td>
                                     <td>${b.patient_phone || '–'}</td>
-                                    <td>${b.notes || '–'}</td>
+                                    <td>${b.place || '–'}</td>
                                     <td style="font-family:'DM Mono',monospace;font-size:12px">${b.is_waitlist ? 'WAITLIST' : (b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0])}</td>
                                     <td><span class="status-badge ${(b.status || 'Waiting').toLowerCase().replace(/\s+/g, '')}">${b.status || 'Waiting'}</span></td>
                                     <td><span class="payment-badge ${paymentClass}">${paymentText}</span></td>
@@ -3951,7 +3951,7 @@
                 document.getElementById('modal-slot-badge').textContent = `Slot #${slotId} (${timeRange})`;
                 document.getElementById('field-name').value = appt.patient_name;
                 document.getElementById('field-phone').value = appt.patient_phone;
-                document.getElementById('field-place').value = appt.notes || '';
+                document.getElementById('field-place').value = appt.place || '';
                 document.getElementById('field-code').value = appt.patient_code || '';
                 document.getElementById('field-custom-label').value = appt.custom_slot_label || '';
                 document.getElementById('field-custom-time').value = appt.custom_time || '';
@@ -3993,7 +3993,7 @@
                     patient_name: document.getElementById('field-name').value.trim(),
                     patient_phone: document.getElementById('field-phone').value.trim(),
                     patient_code: document.getElementById('field-code').value.trim(),
-                    notes: document.getElementById('field-place').value.trim(),
+                    place: document.getElementById('field-place').value.trim(),
                     is_paid: document.getElementById('field-paid').checked,
                     custom_time: document.getElementById('field-custom-time').value.trim(),
                     custom_slot_label: document.getElementById('field-custom-label').value.trim(),
