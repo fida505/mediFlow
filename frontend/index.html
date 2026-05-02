@@ -1433,7 +1433,30 @@
             flex-shrink: 0;
         }
 
-        /* ── SCROLLBAR ── */
+        /* ── VITALS INPUTS ── */
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-with-unit .form-input {
+            padding-right: 50px;
+        }
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .modal-body-p-info {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -2575,23 +2598,31 @@
                 </div>
                 <div class="modal-footer" id="modal-footer">
                     <div style="display: flex; flex-direction: column; width: 100%; gap: 14px;">
+                        <!-- Template Selection (Subtle) -->
+                        <div style="display: flex; align-items: center; gap: 15px; padding: 0 5px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Template:</span>
+                            <div style="display: flex; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <input type="radio" name="p-template" value="dr_iyad" checked id="prescription-template-dr_iyad">
+                                    <span style="font-size: 12px; font-weight: 600;">Dr. Iyad</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <input type="radio" name="p-template" value="spark" id="prescription-template-spark">
+                                    <span style="font-size: 12px; font-weight: 600;">Spark</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                            <select class="form-input" id="prescription-template" style="width: 170px; font-size: 12px; padding: 7px 10px; margin-right: auto; border-color: #cbd5e1;">
-                                <option value="dr_iyad">Dr. Iyad Template</option>
-                                <option value="spark">Spark Template</option>
-                            </select>
-                            <button class="btn btn-ghost" onclick="closeModal()" style="font-size: 13px; padding: 10px 18px;">Cancel</button>
-                            <button class="btn btn-ghost" style="color:#a16207; border: 1px solid #fde68a; background: #fffde7; font-size: 13px; padding: 10px 18px; display:flex; align-items:center; gap:8px;" onclick="openWaitlistOnlyModal(selectedDoctor)">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                Add to Waitlist
-                            </button>
-                            <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main" style="font-size: 13px; padding: 10px 22px; display:flex; align-items:center; gap:8px;">
-                                <svg viewBox="0 0 24 24" style="width:14px; height:14px; stroke-width:3;"><polyline points="20 6 9 17 4 12" /></svg>
+                            <button class="btn btn-ghost" onclick="closeModal()" style="font-size: 13px; padding: 10px 18px; border-radius: 8px;">Cancel</button>
+                            <button class="btn" style="color:#b45309; background: #fffbeb; border: 1px solid #fde68a; font-size: 13px; padding: 10px 18px; border-radius: 8px; font-weight: 600;" onclick="openWaitlistOnlyModal(selectedDoctor)">Add to Waitlist</button>
+                            <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main" style="font-size: 13px; padding: 10px 22px; border-radius: 8px; background: #1e3a8a; display:flex; align-items:center; gap:8px;">
+                                <svg viewBox="0 0 24 24" style="width:14px; height:14px; stroke:white; stroke-width:3; fill:none;"><polyline points="20 6 9 17 4 12" /></svg>
                                 Save Appointment
                             </button>
                         </div>
-                        <button class="btn btn-primary" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #E0F2FE; color: #0369A1; border: 1px solid #7DD3FC; padding: 12px; font-weight: 600; font-size: 14px; letter-spacing: 0.3px; display:flex; align-items:center; gap:10px;">
-                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2;">
+                        <button class="btn" onclick="saveAndPrintPrescription()" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 8px; padding: 14px; font-weight: 700; font-size: 14px; display:flex; align-items:center; gap:10px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill:none;">
                                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                 <rect x="6" y="14" width="12" height="8"></rect>
@@ -4233,7 +4264,7 @@
             }
 
             async function saveAndPrintPrescription() {
-                const template = document.getElementById('prescription-template').value;
+                const template = document.querySelector('input[name="p-template"]:checked').value;
                 const success = await saveAppointment(true); 
                 if (success) {
                     const dateStr = toLocalDateStr(currentDate);
