@@ -2832,7 +2832,7 @@
                                     <td style="font-family:'DM Mono',monospace;font-size:12px">${b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0]}</td>
                                     <td><span class="status-badge ${statusClass}">${b.status || 'Waiting'}</span></td>
                                     <td><span class="payment-badge ${paymentClass}">${paymentText}</span></td>
-                                    <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id}, '${b.doctor_id}')">Edit</button></td>
+                                    <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id}, '${b.doctor_id}', dashboardAppointments)">Edit</button></td>
                                 </tr>
                                 `;}).join('')}
                             </tbody>
@@ -3645,8 +3645,9 @@
                 }
             }
 
-            function viewSlot(slotId, doctorId) {
-                const appt = appointments.find(a => a.slot_id === slotId && a.doctor_id === doctorId);
+            function viewSlot(slotId, doctorId, list = null) {
+                const apptList = list || appointments;
+                const appt = apptList.find(a => a.slot_id === slotId && a.doctor_id === doctorId);
                 if (!appt) return;
                 selectedSlot = slotId;
                 selectedDoctor = doctorId;
