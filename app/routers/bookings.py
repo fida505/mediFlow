@@ -21,6 +21,7 @@ class BookingCreate(BaseModel):
     is_paid: bool = False
     custom_time: str = None
     custom_slot_label: str = None
+    status: str = "Waiting"
 
 class BookingUpdate(BaseModel):
     patient_name: str = None
@@ -33,6 +34,7 @@ class BookingUpdate(BaseModel):
     is_paid: bool = None
     custom_time: str = None
     custom_slot_label: str = None
+    status: str = None
 
 class WaitlistCreate(BaseModel):
     patient_name: str
@@ -58,7 +60,8 @@ async def init_db(db: AsyncSession):
                 doctor_id TEXT NOT NULL DEFAULT 'dr_1',
                 is_paid BOOLEAN NOT NULL DEFAULT FALSE,
                 custom_time TEXT,
-                custom_slot_label TEXT
+                custom_slot_label TEXT,
+                status TEXT DEFAULT 'Waiting'
             );""",
         """CREATE TABLE IF NOT EXISTS dashboard_waiting_list (
                 id TEXT PRIMARY KEY,
@@ -119,6 +122,8 @@ async def init_db(db: AsyncSession):
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN custom_time TEXT"))
         if 'custom_slot_label' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN custom_slot_label TEXT"))
+        if 'status' not in cols:
+            await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN status TEXT DEFAULT 'Waiting'"))
         
         # Migration for dashboard_waiting_list
         res_wl = await db.execute(text("SELECT * FROM dashboard_waiting_list LIMIT 0"))
@@ -174,7 +179,7 @@ async def get_capacity_for_date(db: AsyncSession, date_str: str, doctor_id: str 
 @router.get("")
 async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db: AsyncSession = Depends(get_db)):
     try:
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label FROM dashboard_bookings"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label, status FROM dashboard_bookings"
         conditions = []
         params = {}
         
@@ -207,7 +212,8 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "doctor_id": row.get('doctor_id', 'dr_1'),
                 "is_paid": row.get('is_paid', False),
                 "custom_time": row.get('custom_time', ''),
-                "custom_slot_label": row.get('custom_slot_label', '')
+                "custom_slot_label": row.get('custom_slot_label', ''),
+                "status": row.get('status', 'Waiting')
             })
         return bookings_list
     except Exception as e:
@@ -447,7 +453,7 @@ async def delete_from_waitlist(wl_id: str, db: AsyncSession = Depends(get_db)):
 async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(get_db)):
     try:
         search_pattern = f"%{phone}%"
-        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
+        query = "SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, custom_time, custom_slot_label, status FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC"
         result = await db.execute(text(query), {"phone": search_pattern})
         bookings = []
         for row in result.mappings().all():
@@ -463,7 +469,8 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
                 "doctor_id": str(row['doctor_id']),
                 "is_paid": bool(row['is_paid']),
                 "custom_time": row.get('custom_time', ''),
-                "custom_slot_label": row.get('custom_slot_label', '')
+                "custom_slot_label": row.get('custom_slot_label', ''),
+                "status": row.get('status', 'Waiting')
             })
         return bookings
     except Exception as e:
@@ -511,6 +518,9 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
         if booking.custom_slot_label is not None:
             updates.append("custom_slot_label = :custom_slot_label")
             params["custom_slot_label"] = booking.custom_slot_label
+        if booking.status is not None:
+            updates.append("status = :status")
+            params["status"] = booking.status
             
         if not updates:
             return {"message": "No changes made"}
@@ -556,8 +566,8 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
         # 3. Delete old booking, insert at new slot (atomic)
         await db.execute(text("DELETE FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid)
-            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid)
+            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, status)
+            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, :status)
         """), {
             "id": new_id,
             "name": existing["patient_name"],
@@ -568,7 +578,8 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
             "date": data.new_date,
             "slot_id": data.new_slot_id,
             "doctor_id": data.doctor_id,
-            "is_paid": existing["is_paid"]
+            "is_paid": existing["is_paid"],
+            "status": existing.get("status", "Waiting")
         })
         await db.commit()
         return {"message": "Booking rescheduled successfully", "new_id": new_id}

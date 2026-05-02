@@ -1293,10 +1293,32 @@
             font-weight: 600;
         }
 
-        .status-pill.booked {
-            background: var(--slot-booked);
-            color: var(--red);
+        .status-pill.booked { background: var(--slot-booked); color: var(--red); }
+        .status-pill.available { background: var(--slot-available); color: var(--green); }
+
+        /* Status Badges from Image */
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
         }
+        .status-badge.waiting { background: #FEF3C7; color: #92400E; }
+        .status-badge.consultation { background: #DBEAFE; color: #1E40AF; }
+        .status-badge.priority { background: #FCE7F3; color: #9D174D; }
+        .status-badge.completed { background: #DCFCE7; color: #166534; }
+
+        .payment-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .payment-badge.paid { background: #DCFCE7; color: #166534; }
+        .payment-badge.unpaid { background: #FEE2E2; color: #991B1B; }
 
         .status-pill.available {
             background: var(--slot-available);
@@ -2329,6 +2351,16 @@
                             <input type="text" class="form-input" id="field-custom-time" placeholder="e.g. 10:30 AM, After Lunch...">
                         </div>
                     </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="form-label">Appointment Status</label>
+                        <select class="form-input" id="field-status">
+                            <option value="Waiting">Waiting</option>
+                            <option value="In consultation">In consultation</option>
+                            <option value="Priority">Priority</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
                     </div>
                     
                     <label class="form-checkbox-row" style="margin-top: 16px;">
@@ -2779,11 +2811,17 @@
                                     <th>Place/Notes</th>
                                     <th>Time</th>
                                     <th>Status</th>
+                                    <th>Payment</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${docBks.map(b => `
+                                ${docBks.map(b => {
+                                    const statusClass = (b.status || 'Waiting').toLowerCase().replace(/\s+/g, '');
+                                    const paymentClass = b.is_paid ? 'paid' : 'unpaid';
+                                    const paymentText = b.is_paid ? 'Paid' : 'Unpaid';
+                                    
+                                    return `
                                 <tr>
                                     <td>
                                         <div style="font-weight:500">${b.patient_name}</div>
@@ -2791,11 +2829,12 @@
                                     </td>
                                     <td>${b.patient_phone || '–'}</td>
                                     <td>${b.notes || '–'}</td>
-                                    <td>${b.custom_slot_label || `Slot #${b.slot_id}`} (${b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id)})</td>
-                                    <td><span class="status-pill booked">Confirmed</span></td>
-                                    <td><button class="btn btn-ghost" onclick="viewFromDashboard('${dateStr}', ${b.slot_id}, '${b.doctor_id}')">View</button></td>
+                                    <td style="font-family:'DM Mono',monospace;font-size:12px">${b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0]}</td>
+                                    <td><span class="status-badge ${statusClass}">${b.status || 'Waiting'}</span></td>
+                                    <td><span class="payment-badge ${paymentClass}">${paymentText}</span></td>
+                                    <td><button class="btn btn-ghost" onclick="viewSlot(${b.slot_id}, '${b.doctor_id}')">Edit</button></td>
                                 </tr>
-                                `).join('')}
+                                `;}).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -3419,6 +3458,7 @@
                 document.getElementById('field-custom-label').value = '';
                 document.getElementById('field-custom-time').value = '';
                 document.getElementById('field-paid').checked = false;
+                document.getElementById('field-status').value = 'Waiting';
 
                 // Reset footer to default 
                 document.getElementById('modal-footer').innerHTML = `
@@ -3622,6 +3662,7 @@
                 document.getElementById('field-custom-label').value = appt.custom_slot_label || '';
                 document.getElementById('field-custom-time').value = appt.custom_time || '';
                 document.getElementById('field-paid').checked = !!appt.is_paid;
+                document.getElementById('field-status').value = appt.status || 'Waiting';
 
                 // Allow editing or deletion
                 document.getElementById('modal-footer').innerHTML = `
@@ -3653,7 +3694,8 @@
                     notes: document.getElementById('field-place').value.trim(),
                     is_paid: document.getElementById('field-paid').checked,
                     custom_time: document.getElementById('field-custom-time').value.trim(),
-                    custom_slot_label: document.getElementById('field-custom-label').value.trim()
+                    custom_slot_label: document.getElementById('field-custom-label').value.trim(),
+                    status: document.getElementById('field-status').value
                 };
 
                 if (!data.patient_name || !data.patient_phone || !data.notes) return showToast("Name, Phone and Place are required", "error");
