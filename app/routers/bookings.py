@@ -131,7 +131,15 @@ async def init_db(db: AsyncSession):
         print(f"!!! Column migration error: {e}")
         await db.rollback()
 
-    # 4. Indexes for performance
+    # 4. Force default capacities for this rollout (overwrite stuck defaults)
+    try:
+        await db.execute(text("UPDATE dashboard_settings SET value = '40' WHERE key IN ('daily_limit_dr_1', 'daily_limit_dr_2') AND value = '45'"))
+        await db.execute(text("UPDATE dashboard_settings SET value = '20' WHERE key IN ('daily_limit_review_dr_1', 'daily_limit_review_dr_2') AND value IN ('40', '45')"))
+        await db.commit()
+    except Exception as e:
+        print(f"!!! Settings migration error: {e}")
+
+    # 5. Indexes for performance
     try:
         for idx in [
             "CREATE INDEX IF NOT EXISTS idx_bookings_date ON dashboard_bookings(date);",
