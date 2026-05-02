@@ -165,6 +165,25 @@ async def init_db(db: AsyncSession):
         if 'status' not in cols:
             await db.execute(text("ALTER TABLE dashboard_bookings ADD COLUMN status TEXT DEFAULT 'Waiting'"))
         
+        # New Vitals & History Migrations
+        vitals_cols = {
+            'weight': 'TEXT DEFAULT \'\'',
+            'temp': 'TEXT DEFAULT \'\'',
+            'bp': 'TEXT DEFAULT \'\'',
+            'pr': 'TEXT DEFAULT \'\'',
+            'spo2': 'TEXT DEFAULT \'\'',
+            'allergy': 'TEXT DEFAULT \'\'',
+            'surgical_history': 'TEXT DEFAULT \'\'',
+            'obg_history': 'TEXT DEFAULT \'\'',
+            'pediatric_history': 'TEXT DEFAULT \'\'',
+            'personal_history': 'TEXT DEFAULT \'\'',
+            'past_history': 'TEXT DEFAULT \'\'',
+            'medical_history_json': 'TEXT DEFAULT \'\''
+        }
+        for col_name, col_type in vitals_cols.items():
+            if col_name not in cols:
+                await db.execute(text(f"ALTER TABLE dashboard_bookings ADD COLUMN {col_name} {col_type}"))
+        
         # Migration for dashboard_waiting_list
         res_wl = await db.execute(text("SELECT * FROM dashboard_waiting_list LIMIT 0"))
         cols_wl = res_wl.keys()
