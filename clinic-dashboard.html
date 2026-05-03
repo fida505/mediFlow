@@ -2617,7 +2617,6 @@
 
                         <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
                             <button class="btn btn-ghost" onclick="closeModal()" style="font-size: 13px; padding: 10px 18px; border-radius: 8px;">Cancel</button>
-                            <button class="btn" style="color:#b45309; background: #fffbeb; border: 1px solid #fde68a; font-size: 13px; padding: 10px 18px; border-radius: 8px; font-weight: 600;" onclick="openWaitlistOnlyModal(selectedDoctor)">Add to Waitlist</button>
                             <button class="btn btn-primary" onclick="saveAppointment()" id="btn-save-main" style="font-size: 13px; padding: 10px 22px; border-radius: 8px; background: #1e3a8a; display:flex; align-items:center; gap:8px;">
                                 <svg viewBox="0 0 24 24" style="width:14px; height:14px; stroke:white; stroke-width:3; fill:none;"><polyline points="20 6 9 17 4 12" /></svg>
                                 Save Appointment
@@ -3777,7 +3776,6 @@
                 document.getElementById('modal-footer').innerHTML = `
                 <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
                 <div style="display:flex; gap:8px;">
-                    <button class="btn btn-ghost" style="color:#b45309; border: 1px solid #fef08a" onclick="addToWaitlist()">Add to Waitlist</button>
                     <button class="btn btn-primary" onclick="saveAppointment()">
                         <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:8px;fill:none;stroke:currentColor;stroke-width:2">
                             <polyline points="20 6 9 17 4 12" />
@@ -4039,7 +4037,7 @@
                     <div style="display:flex; width:100%; align-items:center;">
                         <button class="btn btn-ghost" style="color:var(--red); padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px;" onclick="openConfirm()">Cancel</button>
                         <div id="modal-action-buttons" style="margin-left:auto; display:flex; gap:8px;">
-                            <button class="btn btn-ghost" style="background:#fefce8; border:1px solid #fef08a; color:#a16207; padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px;" onclick="openReschedule()">Move</button>
+                            <button class="btn" style="background:#f59e0b; color:white; padding:10px 18px; font-size:13px; font-weight:600; border-radius: 8px; border:none;" onclick="openReschedule()">Move</button>
                             <button class="btn btn-primary" style="padding:10px 22px; font-size:13px; border-radius: 8px; background: #1e3a8a;" onclick="saveAppointment()">Update</button>
                         </div>
                     </div>
