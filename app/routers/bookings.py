@@ -644,6 +644,11 @@ async def update_booking(booking_id: str, booking: BookingUpdate, db: AsyncSessi
             updates.append("status = :status")
             params["status"] = booking.status
             
+        # Place
+        if booking.place is not None:
+            updates.append("place = :place")
+            params["place"] = booking.place
+
         # Vitals
         if booking.weight is not None:
             updates.append("weight = :weight")
