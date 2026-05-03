@@ -4440,6 +4440,110 @@
                             </div>
                         </div>
                     `;
+                } else if (type === 'spark') {
+                    content = `
+                        <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; background: #fff;">
+                            <!-- Top Logo Header -->
+                            <div style="padding: 20px 40px; display: flex; align-items: center; gap: 20px;">
+                                <div style="width: 50px; height: 50px;">
+                                    <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+                                        <circle cx="50" cy="50" r="45" fill="#1e3a8a" />
+                                        <path d="M50 30 C40 30, 35 40, 35 50 C35 65, 50 75, 50 75 C50 75, 65 65, 65 50 C65 40, 60 30, 50 30" fill="white" />
+                                        <path d="M50 40 L50 60 M40 50 L60 50" stroke="#1e3a8a" stroke-width="5" />
+                                    </svg>
+                                </div>
+                                <div style="display: flex; flex-direction: column;">
+                                    <h1 style="margin: 0; color: #1e3a8a; font-size: 32px; font-weight: 800; letter-spacing: 0.5px;">Dr.Buddies</h1>
+                                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">HEALTH HUB</div>
+                                </div>
+                            </div>
+
+                            <div style="height: 1px; background: #e2e8f0; width: 100%;"></div>
+
+                            <div style="display: flex; flex: 1;">
+                                <!-- Sidebar: Specialities -->
+                                <div style="width: 250px; border-right: 1.5px solid #000; padding: 20px 10px; display: flex; flex-direction: column; align-items: center;">
+                                    <div style="background: #e11d48; color: white; padding: 8px 15px; border-radius: 20px; font-weight: 700; font-size: 13px; margin-bottom: 20px; text-align: center; width: 90%;">
+                                        സ്പെഷ്യാലിറ്റികൾ
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; padding-left: 10px;">
+                                        ${[
+                                            {m: 'ശ്വാസകോശ വിഭാഗം', e: 'Pulmonology', i: 'M12 2c-4 0-7 3-7 7s3 7 7 7s7-3 7-7s-3-7-7-7z M12 16c-3.3 0-6 2.7-6 6h12c0-3.3-2.7-6-6-6z'},
+                                            {m: 'അസ്ഥിരോഗ വിഭാഗം', e: 'Orthopaedics', i: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10s10-4.5 10-10S17.5 2 12 2z M10 7l4 4l-4 4'},
+                                            {m: 'കിഡ്നി വിഭാഗം', e: 'Nephrology', i: 'M12 2c-5.5 0-10 4.5-10 10s4.5 10 10 10s10-4.5 10-10S17.5 2 12 2z M12 6v12'},
+                                            {m: 'പ്രമേഹരോഗ വിഭാഗം', e: 'Diabetology', i: 'M12 2l-8 14h16z'},
+                                            {m: 'വയോജന വിഭാഗം', e: 'Geriatrics', i: 'M12 2a5 5 0 1 0 5 5a5 5 0 0 0-5-5z M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'},
+                                            {m: 'വാതരോഗ വിഭാഗം', e: 'Rheumatology', i: 'M7 7l10 10M17 7L7 17'},
+                                            {m: 'ലാപ്രോസ്കോപ്പിക്', e: 'Laparoscopy Surgeon', i: 'M6 10a2 2 0 1 1-4 0a2 2 0 0 1 4 0zm12 0a2 2 0 1 1 4 0a2 2 0 0 1-4 0zM8 12l8 8m0-8l-8 8'},
+                                            {m: 'സ്പോർട്സ് മെഡിസിൻ', e: 'SPORTS MEDICINE', i: 'M4 19s1-1 2-1s2 2 4 2s4-4 4-4s1 1 2 1s2-1 2-1 M13 5a2 2 0 1 1-4 0a2 2 0 0 1 4 0z'},
+                                            {m: 'ചർമ്മരോഗ വിഭാഗം', e: 'Dermatology', i: 'M12 2a5 5 0 1 0 5 5a5 5 0 0 0-5-5z M20 18a8 8 0 1 0-16 0'},
+                                            {m: 'ശിശു രോഗ വിഭാഗം', e: 'Pediatrics', i: 'M12 12a3 3 0 1 0 0-6a3 3 0 0 0 0 6z M19 13v-2a7 7 0 0 0-14 0v2'},
+                                            {m: 'ഗൈനക്കോളജി', e: 'Gynecology', i: 'M12 2a5 5 0 1 0 0 10a5 5 0 0 0 0-10z M12 12v10M9 18h6'},
+                                            {m: 'കാൻസർ വിഭാഗം', e: 'Cancer', i: 'M12 2c2 0 4 2 4 4c0 3-4 8-4 8s-4-5-4-8c0-2 2-4 4-4z'},
+                                            {m: 'വേദന വിഭാഗം', e: 'PAIN', i: 'M13 2L3 14h9l-1 8L21 10h-9l1-8z'},
+                                            {m: 'ചെവി, മൂക്ക്, തൊണ്ട', e: 'ENT', i: 'M12 2L15 8H9z M12 22v-6M8 20l8-8'},
+                                            {m: 'സ്പൈൻ സർജൻ', e: 'Spine Surgeon', i: 'M12 2v20M4 12h16'},
+                                            {m: 'മാനസിക രോഗ വിഭാഗം', e: 'Psychiatry', i: 'M12 2c-5 0-9 4-9 9s4 9 9 9s9-4 9-9s-4-9-9-9z M9 10a1 1 0 1 0 0-2a1 1 0 0 0 0 2z M15 10a1 1 0 1 0 0-2a1 1 0 0 0 0 2z'},
+                                            {m: 'ജനറൽ മെഡിസിൻ', e: 'General Medicine', i: 'M12 2L2 7l10 5l10-5z M2 17l10 5l10-5M2 12l10 5l10-5'},
+                                            {m: 'ഹൃദ്രോഗ വിഭാഗം', e: 'Cardiology', i: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'}
+                                        ].map(s => `
+                                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                                <div style="width: 14px; height: 14px; margin-top: 2px;">
+                                                    <svg viewBox="0 0 24 24" style="width:100%; height:100%; fill:#1e3a8a;"><path d="${s.i}"/></svg>
+                                                </div>
+                                                <div style="display: flex; flex-direction: column;">
+                                                    <div style="font-size: 9.5px; font-weight: 700; line-height: 1;">${s.m}</div>
+                                                    <div style="font-size: 8.5px; font-weight: 600; color: #475569; margin-top: 1px;">${s.e}</div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Main Prescription Area -->
+                                <div style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
+                                    <!-- Vitals Row -->
+                                    <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 4px; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 15px;">
+                                        <div style="display: flex; gap: 4px;">Weight: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 30px; text-align: center;">${appt.weight || ''}</span> <span style="font-weight:600">Kg</span></div>
+                                        <div style="color: #e2e8f0; font-weight: 300;">|</div>
+                                        <div style="display: flex; gap: 4px;">Temp: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 30px; text-align: center;">${appt.temp || ''}</span> <span style="font-weight:600">°F</span></div>
+                                        <div style="color: #e2e8f0; font-weight: 300;">|</div>
+                                        <div style="display: flex; gap: 4px;">BP: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 50px; text-align: center;">${appt.bp || ''}</span> <span style="font-weight:600">mmHg</span></div>
+                                        <div style="color: #e2e8f0; font-weight: 300;">|</div>
+                                        <div style="display: flex; gap: 4px;">PR: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 30px; text-align: center;">${appt.pr || ''}</span> <span style="font-weight:600">/min</span></div>
+                                        <div style="color: #e2e8f0; font-weight: 300;">|</div>
+                                        <div style="display: flex; gap: 4px;">SpO₂: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 30px; text-align: center;">${appt.spo2 || ''}</span> <span style="font-weight:600">%</span></div>
+                                    </div>
+
+                                    <!-- Content -->
+                                    <div style="flex: 1; border: 1.5px solid #e2e8f0; border-top: none; position: relative; padding: 25px;">
+                                        <div style="font-size: 55px; font-weight: 800; color: #000; font-family: serif; position: absolute; top: 0px; left: 15px;">R<sub style="font-size: 24px;">x</sub></div>
+                                        <div style="margin-top: 60px; font-size: 16px; line-height: 2; white-space: pre-wrap;">${appt.notes || ''}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Branded Footer -->
+                            <div style="border-top: 2px solid #1e3a8a; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                                <div style="display: flex; align-items: center; gap: 6px; color: #1e3a8a; font-weight: 700; font-size: 11px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:#1e3a8a;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57c.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                    FOR BOOKING & APPOINTMENTS<br/>9747 30 60 60
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; color: #1e3a8a; font-weight: 700; font-size: 11px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:#1e3a8a;"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 1.99-.9 1.99-2V5c0-1.1-.89-2-1.99-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/></svg>
+                                    Dr. Buddies Pharmacy<br/>9526 90 60 60
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; color: #1e3a8a; font-weight: 700; font-size: 11px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:#1e3a8a;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                    Dr. Buddies Lab<br/>9061 50 80 80
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; color: #1e3a8a; font-weight: 700; font-size: 11px;">
+                                    <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:#1e3a8a;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5z"/></svg>
+                                    Chalappuram<br/>Calicut
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     content = `
                         <div style="font-family: 'DM Sans', sans-serif; padding: 0; color: #000; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh;">
