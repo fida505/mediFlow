@@ -17,7 +17,7 @@ class BookingCreate(BaseModel):
     slot_id: int
     date: str
     doctor_id: str = "dr_1"
-    notes: str
+    notes: str = ""
     is_paid: bool = False
     custom_time: str = None
     custom_slot_label: str = None
