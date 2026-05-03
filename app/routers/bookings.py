@@ -733,8 +733,16 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
         # 3. Delete old booking, insert at new slot (atomic)
         await db.execute(text("DELETE FROM dashboard_bookings WHERE id = :id"), {"id": booking_id})
         await db.execute(text("""
-            INSERT INTO dashboard_bookings (id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, status)
-            VALUES (:id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, :status)
+            INSERT INTO dashboard_bookings (
+                id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, status,
+                place, weight, temp, bp, pr, spo2, allergy, surgical_history, obg_history, 
+                pediatric_history, personal_history, past_history, medical_history_json
+            )
+            VALUES (
+                :id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, :status,
+                :place, :weight, :temp, :bp, :pr, :spo2, :allergy, :surgical_history, :obg_history,
+                :pediatric_history, :personal_history, :past_history, :medical_history_json
+            )
         """), {
             "id": new_id,
             "name": existing["patient_name"],
@@ -746,7 +754,20 @@ async def reschedule_booking(booking_id: str, data: RescheduleRequest, db: Async
             "slot_id": data.new_slot_id,
             "doctor_id": data.doctor_id,
             "is_paid": existing["is_paid"],
-            "status": existing.get("status", "Waiting")
+            "status": existing.get("status", "Waiting"),
+            "place": existing.get("place", ""),
+            "weight": existing.get("weight", ""),
+            "temp": existing.get("temp", ""),
+            "bp": existing.get("bp", ""),
+            "pr": existing.get("pr", ""),
+            "spo2": existing.get("spo2", ""),
+            "allergy": existing.get("allergy", ""),
+            "surgical_history": existing.get("surgical_history", ""),
+            "obg_history": existing.get("obg_history", ""),
+            "pediatric_history": existing.get("pediatric_history", ""),
+            "personal_history": existing.get("personal_history", ""),
+            "past_history": existing.get("past_history", ""),
+            "medical_history_json": existing.get("medical_history_json", "")
         })
         await db.commit()
         return {"message": "Booking rescheduled successfully", "new_id": new_id}
