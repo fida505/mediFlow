@@ -3887,8 +3887,14 @@
                     patient_name: document.getElementById('field-name').value.trim(),
                     patient_phone: document.getElementById('field-phone').value.trim(),
                     patient_code: document.getElementById('field-code').value.trim(),
-                    notes: document.getElementById('field-place').value.trim(),
-                    is_paid: document.getElementById('field-paid').checked
+                    place: document.getElementById('field-place').value.trim(),
+                    is_paid: document.getElementById('field-paid').checked,
+                    weight: document.getElementById('field-weight').value.trim(),
+                    temp: document.getElementById('field-temp').value.trim(),
+                    bp: document.getElementById('field-bp').value.trim(),
+                    pr: document.getElementById('field-pr').value.trim(),
+                    spo2: document.getElementById('field-spo2').value.trim(),
+                    notes: document.getElementById('field-notes').value.trim()
                 };
 
                 try {
@@ -4084,7 +4090,7 @@
                     medical_history_json: ""
                 };
 
-                if (!data.patient_name || !data.patient_phone || !data.notes) return showToast("Name, Phone and Place are required", "error");
+                if (!data.patient_name || !data.patient_phone || !data.place) return showToast("Name, Phone and Place are required", "error");
 
                 try {
                     let res;
