@@ -4338,19 +4338,78 @@
                 window.print();
             }
 
+
             async function saveAndPrintPrescription() {
                 const template = document.querySelector('input[name="p-template"]:checked').value;
-                const success = await saveAppointment(true); 
-                if (success) {
-                    const dateStr = toLocalDateStr(currentDate);
-                    const res = await fetch(`${API_BASE}/bookings?date=${dateStr}`);
-                    const latestAppts = await res.json();
-                    const appt = latestAppts.find(a => a.slot_id === selectedSlot && a.doctor_id === selectedDoctor);
-                    
-                    if (appt) {
-                        printPrescription(template, appt);
+                const btnEl = document.querySelector('button[onclick="saveAndPrintPrescription()"]');
+                if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Saving...'; }
+
+                try {
+                    // Build data same as saveAppointment but without toast / close
+                    const data = {
+                        slot_id: selectedSlot,
+                        date: toLocalDateStr(currentDate),
+                        doctor_id: selectedDoctor,
+                        patient_name: document.getElementById('field-name').value.trim(),
+                        patient_phone: document.getElementById('field-phone').value.trim(),
+                        patient_code: document.getElementById('field-code').value.trim(),
+                        place: document.getElementById('field-place').value.trim(),
+                        is_paid: document.getElementById('field-paid').checked,
+                        custom_time: document.getElementById('field-custom-time').value.trim(),
+                        custom_slot_label: document.getElementById('field-custom-label').value.trim(),
+                        status: document.getElementById('field-status').value,
+                        weight: document.getElementById('field-weight').value.trim(),
+                        temp: document.getElementById('field-temp').value.trim(),
+                        bp: document.getElementById('field-bp').value.trim(),
+                        pr: document.getElementById('field-pr').value.trim(),
+                        spo2: document.getElementById('field-spo2').value.trim(),
+                        notes: document.getElementById('field-notes').value.trim(),
+                        allergy: "", surgical_history: "", obg_history: "",
+                        pediatric_history: "", personal_history: "", past_history: "", medical_history_json: ""
+                    };
+
+                    if (!data.patient_name || !data.patient_phone) {
+                        showToast("Name and Phone are required", "error");
+                        return;
+                    }
+
+                    let res;
+                    if (currentEditingId) {
+                        res = await fetch(`${API_BASE}/bookings/${currentEditingId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data)
+                        });
                     } else {
-                        showToast("Could not find appointment data for printing", "error");
+                        res = await fetch(`${API_BASE}/bookings`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data)
+                        });
+                    }
+
+                    if (res.ok) {
+                        // Refresh local data silently
+                        await fetchAppointments();
+                        await updateDashboard();
+                        // Find the saved appointment and print immediately
+                        const appt = appointments.find(a => a.slot_id === selectedSlot && a.doctor_id === selectedDoctor);
+                        if (appt) {
+                            printPrescription(template, appt);
+                        } else {
+                            // Fallback: use current form data for printing
+                            printPrescription(template, { ...data, patient_name: data.patient_name });
+                        }
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || "Error saving", "error");
+                    }
+                } catch (e) {
+                    showToast("Connection failed", "error");
+                } finally {
+                    if (btnEl) {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = `<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill:none;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Save and Print Prescription`;
                     }
                 }
             }
