@@ -245,7 +245,7 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
     try:
         query = """
             SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
-                   custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2,
+                   custom_time, custom_slot_label, status, place, weight, temp, bp, pr, spo2,
                    allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
             FROM dashboard_bookings
         """
@@ -283,6 +283,7 @@ async def get_bookings(date: str = Query(None), doctor_id: str = Query(None), db
                 "custom_time": row.get('custom_time', ''),
                 "custom_slot_label": row.get('custom_slot_label', ''),
                 "status": row.get('status', 'Waiting'),
+                "place": row.get('place', ''),
                 "weight": row.get('weight', ''),
                 "temp": row.get('temp', ''),
                 "bp": row.get('bp', ''),
@@ -446,12 +447,12 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         await db.execute(text("""
             INSERT INTO dashboard_bookings (
                 id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
-                custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2, 
+                custom_time, custom_slot_label, status, place, weight, temp, bp, pr, spo2, 
                 allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
             )
             VALUES (
                 :id, :name, :phone, :code, :notes, :time, :date, :slot_id, :doctor_id, :is_paid, 
-                :custom_time, :custom_slot_label, :status, :weight, :temp, :bp, :pr, :spo2, 
+                :custom_time, :custom_slot_label, :status, :place, :weight, :temp, :bp, :pr, :spo2, 
                 :allergy, :surgical_history, :obg_history, :pediatric_history, :personal_history, :past_history, :medical_history_json
             )
         """), {
@@ -468,6 +469,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "custom_time": booking.custom_time,
             "custom_slot_label": booking.custom_slot_label,
             "status": booking.status,
+            "place": booking.place or "",
             "weight": booking.weight,
             "temp": booking.temp,
             "bp": booking.bp,
@@ -557,7 +559,7 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
         search_pattern = f"%{phone}%"
         query = """
             SELECT id, patient_name, phone, patient_code, notes, time, date, slot_id, doctor_id, is_paid, 
-                   custom_time, custom_slot_label, status, weight, temp, bp, pr, spo2,
+                   custom_time, custom_slot_label, status, place, weight, temp, bp, pr, spo2,
                    allergy, surgical_history, obg_history, pediatric_history, personal_history, past_history, medical_history_json
             FROM dashboard_bookings WHERE phone LIKE :phone ORDER BY date DESC
         """
@@ -578,6 +580,7 @@ async def search_bookings(phone: str = Query(...), db: AsyncSession = Depends(ge
                 "custom_time": row.get('custom_time', ''),
                 "custom_slot_label": row.get('custom_slot_label', ''),
                 "status": row.get('status', 'Waiting'),
+                "place": row.get('place', ''),
                 "weight": row.get('weight', ''),
                 "temp": row.get('temp', ''),
                 "bp": row.get('bp', ''),
