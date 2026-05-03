@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Build Version: 2026-05-03 13:18 -->
 
 <head>
     <meta charset="UTF-8">
@@ -2735,7 +2736,7 @@
                             a.patient_name === document.getElementById('field-name').value.trim() &&
                             a.date === dateStr
                         );
-                        if (appt) printPrescription(appt, template);
+                        if (appt) printPrescription(template, appt);
                         else showToast("Prescription ready! Refresh and Edit to print if it didn't pop up.", "info");
                     }, 1500);
                 }
