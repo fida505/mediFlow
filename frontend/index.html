@@ -4493,6 +4493,29 @@
                                     <div>LAB       : 9061 50 80 80</div>
                                 </div>
                             </div>
+                            <!-- Patient Info Bar -->
+                            <div style="display: flex; gap: 0; border-bottom: 2px solid #000; background: #f0f7ff;">
+                                <div style="flex: 2; padding: 8px 20px; border-right: 1.5px solid #004d80;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Patient Name</div>
+                                    <div style="font-size: 15px; font-weight: 800; color: #000; text-transform: uppercase;">${appt.patient_name || ''}</div>
+                                </div>
+                                <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Place</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: #000; text-transform: uppercase;">${appt.place || '—'}</div>
+                                </div>
+                                <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Date</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #000;">${appt.date || ''}</div>
+                                </div>
+                                <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Slot / Token</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #000;">#${appt.slot_id || ''}</div>
+                                </div>
+                                <div style="flex: 1; padding: 8px 20px;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Phone</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #000;">${appt.patient_phone || ''}</div>
+                                </div>
+                            </div>
                             <div style="display: flex; flex: 1;">
                                 <div style="width: 250px; border-right: 2px solid #000; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
                                     <div style="border: 2px solid #004d80; padding: 0; text-align: center;">
