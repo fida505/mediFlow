@@ -2996,7 +2996,7 @@
                                 const resWl = await fetch(`${API_BASE}/bookings/waitlist?date=${dateStr}&_cb=${cbBookings}`);
                                 if (resWl.ok) {
                                     const wl = await resWl.json();
-                                    allBks = allBks.concat(wl.map(w => ({ ...w, status: 'Waitlist', is_waitlist: true })));
+                                    allBks = allBks.concat(wl.map(w => ({ ...w, status: 'Waitlist', is_waitlist: true, place: w.notes, notes: '' })));
                                 }
                             } catch(e) { console.error("Waitlist fetch failed", e); }
 
@@ -3135,7 +3135,7 @@
                                         ${b.patient_code ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Code: ${b.patient_code}</div>` : ''}
                                     </td>
                                     <td>${b.patient_phone || '–'}</td>
-                                    <td>${b.place || '–'}</td>
+                                    <td>${(b.place || '') + (b.place && b.notes ? ' / ' : '') + (b.notes || '') || '–'}</td>
                                     <td style="font-family:'DM Mono',monospace;font-size:12px">${b.is_waitlist ? 'WAITLIST' : (b.custom_time || getSlotTimeRange(b.slot_id, b.doctor_id).split(' - ')[0])}</td>
                                     <td><span class="status-badge ${(b.status || 'Waiting').toLowerCase().replace(/\s+/g, '')}">${b.status || 'Waiting'}</span></td>
                                     <td><span class="payment-badge ${paymentClass}">${paymentText}</span></td>
@@ -3575,7 +3575,7 @@
                                     </div>
                                     <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px; border-top: 1px solid #fef3c7; padding-top:6px;">
                                          <div style="font-size:9px; color:#92400e; font-weight:500;">${w.patient_code || '-'}</div>
-                                         <div style="font-size:9px; color:#92400e; font-family:var(--font-mono)">${w.patient_phone}</div>
+                                         <div style="font-size:9px; color:#92400e; font-family:var(--font-mono); font-weight:700;">${w.notes || '-'}</div>
                                     </div>
                                 </div>
                                 `).join('')}
@@ -3707,8 +3707,8 @@
                                     <td>${appt ? (appt.custom_time || getSlotTimeRange(i, doc.id)) : getSlotTimeRange(i, doc.id)}</td>
                                     <td>${appt ? `<strong>${appt.patient_name}</strong>` : '<span style="color:#ccc">Available</span>'}</td>
                                     <td>${appt ? (appt.patient_code || '-') : '-'}</td>
-                                    <td>${appt ? appt.patient_phone : '-'}</td>
-                                    <td>${appt ? (appt.notes || '-') : '-'}</td>
+                                    <td>${appt ? (appt.patient_phone || '-') : '-'}</td>
+                                    <td>${appt ? ((appt.place || '') + (appt.place && appt.notes ? ' / ' : '') + (appt.notes || '') || '-') : '-'}</td>
                                 </tr>
                         `;
                         }
