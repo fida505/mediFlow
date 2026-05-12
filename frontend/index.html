@@ -4423,8 +4423,8 @@
                         surgical_history: "", obg_history: "", pediatric_history: "", personal_history: "", past_history: ""
                     };
 
-                    if (!data.patient_name || !data.patient_phone) {
-                        showToast("Name and Phone are required", "error");
+                    if (!data.patient_name || !data.patient_phone || !data.place) {
+                        showToast("Name, Phone and Place are required", "error");
                         return;
                     }
 
@@ -4448,7 +4448,7 @@
                         await fetchAppointments();
                         await updateDashboard();
                         // Find the saved appointment and print immediately
-                        const appt = appointments.find(a => a.slot_id === selectedSlot && a.doctor_id === selectedDoctor);
+                        const appt = appointments.find(a => a.slot_id == selectedSlot && a.doctor_id === selectedDoctor);
                         if (appt) {
                             printPrescription(template, appt);
                         } else {
@@ -4470,6 +4470,7 @@
             }
 
             function printPrescription(type, appt) {
+                console.log("Printing prescription for:", appt);
                 const printWindow = window.open('', '_blank');
                 let content = '';
                 if (type === 'dr_iyad') {
