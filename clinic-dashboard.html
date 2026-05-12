@@ -4435,6 +4435,11 @@
                                     <div>LAB       : 9061 50 80 80</div>
                                 </div>
                             </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 30px; background: #f8fafc; border-bottom: 1.5px solid #000; font-size: 13px; font-weight: 700; color: #000;">
+                                <div style="display: flex; gap: 5px;">NAME: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 150px;">${appt.patient_name}</span></div>
+                                <div style="display: flex; gap: 5px;">PLACE: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 120px;">${appt.place || ''}</span></div>
+                                <div style="display: flex; gap: 5px;">DATE: <span style="border-bottom: 1px dotted #000; min-width: 80px;">${appt.date}</span></div>
+                            </div>
                             <div style="display: flex; flex: 1;">
                                 <div style="width: 260px; border-right: 2px solid #000; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
                                     <div style="border: 2px solid #004d80; padding: 0; text-align: center;">
@@ -4565,6 +4570,13 @@
 
                                 <!-- Main Prescription Area -->
                                 <div style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
+                                    <!-- Patient Info Row -->
+                                    <div style="display: flex; justify-content: space-between; padding: 10px 15px; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 4px; margin-bottom: 10px; font-size: 12px; font-weight: 800; color: #1e3a8a;">
+                                        <div style="display: flex; gap: 5px;">PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></div>
+                                        <div style="display: flex; gap: 5px;">PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></div>
+                                        <div style="display: flex; gap: 5px;">DATE: <span style="color:#000;">${appt.date}</span></div>
+                                    </div>
+
                                     <!-- Vitals Row -->
                                     <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 4px; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 15px;">
                                         <div style="display: flex; gap: 4px;">Weight: <span style="color:#000; border-bottom: 1px dotted #94a3b8; min-width: 30px; text-align: center;">${appt.weight || ''}</span> <span style="font-weight:600">Kg</span></div>
@@ -4617,6 +4629,11 @@
                                     <h1 style="margin: 0; color: #000; font-size: 28px; letter-spacing: 1px;">Dr.Buddies</h1>
                                     <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Health Hub</div>
                                 </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 20px; background: #f3f4f6; border-bottom: 2px solid #000; font-size: 12px; font-weight: 700;">
+                                <span>PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></span>
+                                <span>PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></span>
+                                <span>DATE: <span style="color:#000;">${appt.date}</span></span>
                             </div>
 
                             <div style="display: flex; flex: 1;">
