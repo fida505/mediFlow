@@ -4497,15 +4497,15 @@
                             <div style="display: flex; gap: 0; border-bottom: 2px solid #000; background: #f0f7ff;">
                                 <div style="flex: 2; padding: 8px 20px; border-right: 1.5px solid #004d80;">
                                     <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Patient Name</div>
-                                    <div style="font-size: 15px; font-weight: 800; color: #000; text-transform: uppercase;">${appt.patient_name || ''}</div>
+                                    <div style="font-size: 15px; font-weight: 800; color: #000; text-transform: uppercase;">${appt?.patient_name || ''}</div>
                                 </div>
                                 <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
                                     <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Place</div>
-                                    <div style="font-size: 14px; font-weight: 700; color: #000; text-transform: uppercase;">${appt.place || '—'}</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: #000; text-transform: uppercase;">${appt?.place || '—'}</div>
                                 </div>
                                 <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
                                     <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Date</div>
-                                    <div style="font-size: 13px; font-weight: 700; color: #000;">${appt.date || ''}</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #000;">${appt?.date || ''}</div>
                                 </div>
                                 <div style="flex: 1; padding: 8px 20px; border-right: 1.5px solid #004d80;">
                                     <div style="font-size: 9px; font-weight: 700; color: #004d80; text-transform: uppercase; letter-spacing: 0.5px;">Slot / Token</div>
@@ -4663,9 +4663,9 @@
                                 <div style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
                                     <!-- Patient Info Row -->
                                     <div style="display: flex; justify-content: space-between; padding: 10px 15px; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 4px; margin-bottom: 10px; font-size: 12px; font-weight: 800; color: #1e3a8a;">
-                                        <div style="display: flex; gap: 5px;">PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></div>
-                                        <div style="display: flex; gap: 5px;">PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></div>
-                                        <div style="display: flex; gap: 5px;">DATE: <span style="color:#000;">${appt.date}</span></div>
+                                        <div style="display: flex; gap: 5px;">PATIENT: <span style="color:#000; text-transform: uppercase;">${appt?.patient_name || ''}</span></div>
+                                        <div style="display: flex; gap: 5px;">PLACE: <span style="color:#000; text-transform: uppercase;">${appt?.place || ''}</span></div>
+                                        <div style="display: flex; gap: 5px;">DATE: <span style="color:#000;">${appt?.date || ''}</span></div>
                                     </div>
 
                                     <!-- Vitals Row -->
@@ -4722,9 +4722,9 @@
                                 </div>
                             </div>
                             <div style="display: flex; justify-content: space-between; padding: 10px 20px; background: #f3f4f6; border-bottom: 2px solid #000; font-size: 12px; font-weight: 700;">
-                                <span>PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></span>
-                                <span>PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></span>
-                                <span>DATE: <span style="color:#000;">${appt.date}</span></span>
+                                <span>PATIENT: <span style="color:#000; text-transform: uppercase;">${appt?.patient_name || ''}</span></span>
+                                <span>PLACE: <span style="color:#000; text-transform: uppercase;">${appt?.place || ''}</span></span>
+                                <span>DATE: <span style="color:#000;">${appt?.date || ''}</span></span>
                             </div>
 
                             <div style="display: flex; flex: 1;">
@@ -4784,7 +4784,7 @@
                 printWindow.document.write(`
                     <html>
                         <head>
-                            <title>Prescription — ${appt.patient_name}</title>
+                            <title>Prescription — ${appt?.patient_name || ''}</title>
                             <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
                             <style>
                                 body { margin: 0; padding: 0; }

@@ -4345,6 +4345,12 @@
                 if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Saving...'; }
 
                 try {
+                    // Gather Medical History Checkboxes
+                    let medicalChecks = {};
+                    document.querySelectorAll('.hist-check').forEach(chk => {
+                        if (chk.checked) medicalChecks[chk.dataset.id] = true;
+                    });
+
                     // Build data same as saveAppointment but without toast / close
                     const data = {
                         slot_id: selectedSlot,
@@ -4364,8 +4370,9 @@
                         pr: document.getElementById('field-pr').value.trim(),
                         spo2: document.getElementById('field-spo2').value.trim(),
                         notes: document.getElementById('field-notes').value.trim(),
-                        allergy: "", surgical_history: "", obg_history: "",
-                        pediatric_history: "", personal_history: "", past_history: "", medical_history_json: ""
+                        allergy: document.getElementById('field-allergy').value.trim(),
+                        medical_history_json: JSON.stringify(medicalChecks),
+                        surgical_history: "", obg_history: "", pediatric_history: "", personal_history: "", past_history: ""
                     };
 
                     if (!data.patient_name || !data.patient_phone) {
@@ -4436,9 +4443,9 @@
                                 </div>
                             </div>
                             <div style="display: flex; justify-content: space-between; padding: 10px 30px; background: #f8fafc; border-bottom: 1.5px solid #000; font-size: 13px; font-weight: 700; color: #000;">
-                                <div style="display: flex; gap: 5px;">NAME: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 150px;">${appt.patient_name}</span></div>
-                                <div style="display: flex; gap: 5px;">PLACE: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 120px;">${appt.place || ''}</span></div>
-                                <div style="display: flex; gap: 5px;">DATE: <span style="border-bottom: 1px dotted #000; min-width: 80px;">${appt.date}</span></div>
+                                <div style="display: flex; gap: 5px;">NAME: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 150px;">${appt?.patient_name || ''}</span></div>
+                                <div style="display: flex; gap: 5px;">PLACE: <span style="text-transform: uppercase; border-bottom: 1px dotted #000; min-width: 120px;">${appt?.place || ''}</span></div>
+                                <div style="display: flex; gap: 5px;">DATE: <span style="border-bottom: 1px dotted #000; min-width: 80px;">${appt?.date || ''}</span></div>
                             </div>
                             <div style="display: flex; flex: 1;">
                                 <div style="width: 260px; border-right: 2px solid #000; padding: 20px 15px; display: flex; flex-direction: column; gap: 20px;">
@@ -4572,9 +4579,9 @@
                                 <div style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
                                     <!-- Patient Info Row -->
                                     <div style="display: flex; justify-content: space-between; padding: 10px 15px; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 4px; margin-bottom: 10px; font-size: 12px; font-weight: 800; color: #1e3a8a;">
-                                        <div style="display: flex; gap: 5px;">PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></div>
-                                        <div style="display: flex; gap: 5px;">PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></div>
-                                        <div style="display: flex; gap: 5px;">DATE: <span style="color:#000;">${appt.date}</span></div>
+                                        <div style="display: flex; gap: 5px;">PATIENT: <span style="color:#000; text-transform: uppercase;">${appt?.patient_name || ''}</span></div>
+                                        <div style="display: flex; gap: 5px;">PLACE: <span style="color:#000; text-transform: uppercase;">${appt?.place || ''}</span></div>
+                                        <div style="display: flex; gap: 5px;">DATE: <span style="color:#000;">${appt?.date || ''}</span></div>
                                     </div>
 
                                     <!-- Vitals Row -->
@@ -4631,9 +4638,9 @@
                                 </div>
                             </div>
                             <div style="display: flex; justify-content: space-between; padding: 10px 20px; background: #f3f4f6; border-bottom: 2px solid #000; font-size: 12px; font-weight: 700;">
-                                <span>PATIENT: <span style="color:#000; text-transform: uppercase;">${appt.patient_name}</span></span>
-                                <span>PLACE: <span style="color:#000; text-transform: uppercase;">${appt.place || ''}</span></span>
-                                <span>DATE: <span style="color:#000;">${appt.date}</span></span>
+                                <span>PATIENT: <span style="color:#000; text-transform: uppercase;">${appt?.patient_name || ''}</span></span>
+                                <span>PLACE: <span style="color:#000; text-transform: uppercase;">${appt?.place || ''}</span></span>
+                                <span>DATE: <span style="color:#000;">${appt?.date || ''}</span></span>
                             </div>
 
                             <div style="display: flex; flex: 1;">
@@ -4693,7 +4700,7 @@
                 printWindow.document.write(`
                     <html>
                         <head>
-                            <title>Prescription — ${appt.patient_name}</title>
+                            <title>Prescription — ${appt?.patient_name || ''}</title>
                             <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
                             <style>
                                 body { margin: 0; padding: 0; }
