@@ -2883,7 +2883,7 @@
                                     "Patient Name": appt ? appt.patient_name : 'Available',
                                     "Code": appt ? (appt.patient_code || '-') : '-',
                                     "Phone": appt ? appt.patient_phone : '-',
-                                    "Notes": appt ? (appt.notes || '-') : '-'
+                                    "Place/Notes": appt ? ((appt.place || '') + (appt.place && appt.notes ? ' / ' : '') + (appt.notes || '') || '-') : '-'
                                 });
                             }
                             // Also add waitlist for this doctor
@@ -2899,7 +2899,7 @@
                                         "Patient Name": w.patient_name,
                                         "Code": w.patient_code || '-',
                                         "Phone": w.patient_phone,
-                                        "Notes": w.notes
+                                        "Place/Notes": w.notes || '-'
                                     });
                                 });
                             }
